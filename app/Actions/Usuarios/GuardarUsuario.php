@@ -74,6 +74,12 @@ class GuardarUsuario
             $usuario->save();
             $usuario->syncRoles($validado['rol']);
 
+            // Si lo desactivan o le cambian la contraseña, se cierran sus sesiones abiertas en otros equipos.
+            if ($usuario->wasChanged(['activo', 'password']) && $usuario->id !== $quienLoHace->id) {
+                DB::table('sessions')->where('user_id', $usuario->id)->delete();
+                $usuario->forceFill(['remember_token' => null])->save();
+            }
+
             return $usuario->load('roles');
         });
     }

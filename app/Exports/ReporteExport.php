@@ -35,7 +35,11 @@ class ReporteExport implements Export, FromArray, ShouldAutoSize, WithHeadings, 
 
     public function array(): array
     {
-        return $this->filas;
+        // Un texto que empieza con = + - @ se abriría como fórmula en Excel; con una comilla al inicio queda como texto.
+        return array_map(fn (array $fila) => array_map(
+            fn ($v) => is_string($v) && $v !== '' && str_contains("=+-@\t\r", $v[0]) && ! is_numeric($v) ? "'".$v : $v,
+            $fila,
+        ), $this->filas);
     }
 
     public function styles(Worksheet $hoja): array

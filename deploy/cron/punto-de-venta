@@ -1,0 +1,13 @@
+# Tareas programadas del Punto de Venta. Copiar a /etc/cron.d/punto-de-venta (el archivo no lleva extensión).
+# Formato: minuto hora día mes día-semana USUARIO comando
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Scheduler de Laravel (mantenimiento diario)
+* * * * * deploy cd /var/www/punto-de-venta && php artisan schedule:run >> /dev/null 2>&1
+
+# Respaldo de la base de datos todos los días a las 2:30 a.m. (hora de México)
+30 2 * * * deploy /var/www/punto-de-venta/deploy/scripts/respaldo.sh >> /var/log/punto-de-venta-respaldo.log 2>&1
+
+# Revisión de salud cada 5 minutos (avisa si algo falla)
+*/5 * * * * deploy /var/www/punto-de-venta/deploy/scripts/salud.sh >> /var/log/punto-de-venta-salud.log 2>&1

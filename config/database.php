@@ -59,6 +59,8 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // Hora de México (UTC-6 fija desde 2022): así NOW() y los valores por defecto de la base coinciden con la app.
+            'timezone' => env('DB_TIMEZONE', '-06:00'),
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],

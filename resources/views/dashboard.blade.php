@@ -2,13 +2,36 @@
     $hora = now()->hour;
     $saludo = $hora < 12 ? 'Buenos días' : ($hora < 19 ? 'Buenas tardes' : 'Buenas noches');
     $nombre = \Illuminate\Support\Str::before(auth()->user()->name, ' ');
-    $modulos = \App\Support\Menu::para(auth()->user())->reject(fn ($m) => $m['ruta'] === 'dashboard');
+    $modulos = \App\Support\Menu::para(auth()->user())->reject(fn ($m) => in_array($m['ruta'], ['dashboard', 'profile', 'guia'], true));
+    $verTablero = auth()->user()->can('reportes.ver');
+    $miTurno = \App\Models\Turno::abiertoDe(auth()->user());
+    $miResumen = $miTurno ? \App\Services\ResumenTurno::calcular($miTurno) : null;
 @endphp
 
 <x-app-layout>
     <x-slot name="titulo">{{ $saludo }}, {{ $nombre }}</x-slot>
 
-    <section aria-labelledby="modulos">
+    @if ($verTablero)
+        <livewire:dashboard.metricas />
+    @endif
+
+    @if ($miTurno)
+        <section class="{{ $verTablero ? 'mt-6' : '' }} rounded-xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)]" aria-labelledby="mi-turno">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 id="mi-turno" class="rotulo">Mi turno</h2>
+                    <p class="font-display text-xl font-extrabold">{{ $miTurno->caja->nombre }}</p>
+                    <p class="text-sm text-anil-700">Abierto desde las {{ $miTurno->abierto_at->format('H:i') }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-display text-3xl font-extrabold">${{ number_format((float) $miResumen['ventas']['total'], 2) }}</p>
+                    <p class="text-sm text-anil-700">{{ $miResumen['ventas']['cantidad'] }} {{ $miResumen['ventas']['cantidad'] === 1 ? 'venta' : 'ventas' }}</p>
+                </div>
+            </div>
+        </section>
+    @endif
+
+    <section class="{{ $verTablero || $miTurno ? 'mt-8' : '' }}" aria-labelledby="modulos">
         <h2 id="modulos" class="rotulo mb-3">Tus accesos</h2>
 
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -25,13 +48,5 @@
                 </a>
             @endforeach
         </div>
-    </section>
-
-    <section class="mt-8 rounded-xl border-2 border-dashed border-anil-200 p-6 text-center sm:p-8" aria-labelledby="proximos">
-        <x-phosphor-cash-register-bold class="mx-auto size-8 text-anil-400" />
-        <h2 id="proximos" class="mt-3 text-lg font-extrabold text-anil-900">Aquí aparecerán la caja y el inventario</h2>
-        <p class="mx-auto mt-1 max-w-md text-sm text-anil-700">
-            Por ahora puedes entrar y revisar los datos de la tienda. Los módulos de venta se activan conforme avance el sistema.
-        </p>
     </section>
 </x-app-layout>

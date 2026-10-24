@@ -28,6 +28,7 @@ final class Menu
             ['Venta', 'Cobrar con escáner o teclado.', 'pos', 'cash-register', 'pos', Permiso::VentasCobrar, 'Principal', true],
             ['Mi caja', 'Abrir y cerrar tu turno, retiros y cortes.', 'caja', 'wallet', 'caja', [Permiso::CajaAbrir, Permiso::CajaCorte], 'Principal', true],
             ['Ventas', 'Historial, tickets, cancelaciones y devoluciones.', 'ventas.index', 'receipt', 'ventas.*', [Permiso::VentasCobrar, Permiso::VentasVerTodas], 'Principal', true],
+            ['Reportes', 'Ventas, utilidad, inventario y exportación a Excel.', 'reportes', 'chart-bar', 'reportes*', Permiso::ReportesVer, 'Principal', false],
             ['Clientes', 'Crédito, abonos, estado de cuenta y precios de mayoreo.', 'clientes.index', 'users', 'clientes.*', Permiso::ClientesVer, 'Principal', false],
             ['Artículos', 'Catálogo de productos, precios y claves.', 'articulos.index', 'package', 'articulos.*', Permiso::ArticulosVer, 'Mercancía', false],
             ['Inventario', 'Existencias, kardex, ajustes y conteo físico.', 'inventario.index', 'stack', 'inventario.*', Permiso::InventarioVer, 'Mercancía', false],

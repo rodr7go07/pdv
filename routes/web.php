@@ -5,6 +5,7 @@ use App\Http\Controllers\CerrarSesionController;
 use App\Http\Controllers\CorteController;
 use App\Http\Controllers\EstadoCuentaController;
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\ReporteExportController;
 use App\Http\Controllers\VentaTicketController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -39,6 +40,10 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Volt::route('{venta}', 'pages.ventas.ver')->name('ver');
         Route::get('{venta}/ticket', VentaTicketController::class)->name('ticket');
     });
+
+    // Reportes y tablero (Fase 7)
+    Volt::route('reportes', 'pages.reportes.index')->middleware('can:reportes.ver')->name('reportes');
+    Route::get('reportes/exportar/{seccion}', ReporteExportController::class)->middleware('can:reportes.ver')->name('reportes.exportar');
 
     // Clientes y crédito (Fase 6)
     Route::prefix('clientes')->name('clientes.')->middleware('can:clientes.ver')->group(function () {

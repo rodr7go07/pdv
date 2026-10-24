@@ -41,6 +41,7 @@ class LoginForm extends Form
 
         if (! Auth::attempt($credenciales, $this->remember)) {
             RateLimiter::hit($this->throttleKey());
+            RateLimiter::hit($this->ipKey(), 300);
 
             throw ValidationException::withMessages([
                 'form.login' => trans('auth.failed'),
@@ -52,13 +53,20 @@ class LoginForm extends Form
 
     protected function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        // Límite por usuario+IP y otro por IP sola (cambiar de nombre de usuario no reinicia el conteo).
+        $llave = match (true) {
+            RateLimiter::tooManyAttempts($this->throttleKey(), 5) => $this->throttleKey(),
+            RateLimiter::tooManyAttempts($this->ipKey(), 30) => $this->ipKey(),
+            default => null,
+        };
+
+        if ($llave === null) {
             return;
         }
 
         event(new Lockout(request()));
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
+        $seconds = RateLimiter::availableIn($llave);
 
         throw ValidationException::withMessages([
             'form.login' => trans('auth.throttle', [
@@ -66,6 +74,11 @@ class LoginForm extends Form
                 'minutes' => ceil($seconds / 60),
             ]),
         ]);
+    }
+
+    protected function ipKey(): string
+    {
+        return 'login-ip|'.request()->ip();
     }
 
     protected function throttleKey(): string

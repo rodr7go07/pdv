@@ -65,6 +65,7 @@
                 ['p' => '**Producto a granel.** Si lo vendes por peso (frutas, queso), marca **Se vende a granel** y elige kilo como unidad. Al venderlo, el sistema te pregunta cuánto pesa.'],
                 ['p' => '**Subir muchos productos de golpe.** Entra a **Artículos → Importar**, descarga la plantilla de Excel, llénala y súbela. Si algo está mal en una fila, el sistema te dice cuál y no guarda nada, para que lo corrijas y lo vuelvas a subir sin que se repita nada.'],
                 ['p' => '**Etiquetas de precio.** En **Artículos → Etiquetas** eliges productos y cuántas copias, y las imprimes con su código de barras.'],
+                ['p' => '**Cambiar un producto o su precio.** En **Artículos** busca el producto, tócalo, cambia lo que necesites (descripción, costo, precio, mínimo…) y toca **Guardar cambios**. Lo vendido antes no cambia: cada venta guarda el precio con el que se cobró.'],
                 ['consejo' => 'Cada vez que cambias un costo o un precio, el sistema lo anota (quién y cuándo). Lo ves al final de la pantalla del artículo.'],
             ],
         ],
@@ -97,6 +98,8 @@
                     'Al terminar, mira la tabla: te muestra la diferencia de cada uno.',
                     'Si todo está bien, toca **Aplicar al inventario**. No se puede deshacer.',
                 ]],
+                ['p' => '**Si te equivocaste en un conteo**, antes de aplicarlo toca **Cancelar conteo**: no cambia nada del inventario y puedes empezar otro.'],
+                ['p' => '**Existencia en negativo.** Si en **Configuración** está activado *Permitir vender aunque no haya existencia*, el sistema deja vender un producto que según él ya se acabó, y la existencia queda en negativo. Casi siempre significa que falta registrar una compra: regístrala y se corrige sola. Si prefieres que no se pueda vender sin existencia, desactiva esa opción.'],
                 ['consejo' => 'No tienes que contar toda la tienda de una vez. Puedes contar un pasillo hoy y otro mañana.'],
             ],
         ],
@@ -172,6 +175,7 @@
                     'Escribe cuántas piezas regresan y el motivo.',
                     'Entrégale al cliente el dinero que muestra el sistema. Sale del cajón de tu turno, así que necesitas tener tu turno abierto.',
                 ]],
+                ['p' => '**Encontrar una venta de otro día.** En **Ventas** escribe el **folio** (por ejemplo A-000123) en el buscador, o elige las fechas **Desde** y **Hasta**.'],
                 ['p' => '**Imprimir otra vez un ticket.** Abre la venta y toca **Ver / reimprimir ticket**. Un cajero solo ve sus propias ventas.'],
             ],
         ],
@@ -192,6 +196,7 @@
             'intro' => 'Al terminar, cuentas el dinero y el sistema te dice si **cuadra**, si **sobra** o si **falta**.',
             'bloques' => [
                 ['p' => '**Corte parcial (X).** Es una foto de cómo va el día. No cierra nada. Úsalo cuando quieras ver cuánto llevas. El cajero ve sus ventas y movimientos, pero **no** cuánto efectivo debería haber: eso lo ve el encargado, para que el conteo al cerrar sea honesto.'],
+                ['p' => '**Imprimir un corte otra vez.** En **Mi caja**, en la tarjeta **Cortes de este turno**, abre el corte que quieras y vuelve a imprimirlo. Los turnos ya cerrados los ve el encargado en **Turnos y cortes** (menú → Administración).'],
                 ['p' => '**Corte final (Z).** Cierra tu turno.'],
                 ['pasos' => [
                     'Entra a **Mi caja** y toca **Cerrar turno**.',
@@ -306,7 +311,7 @@
 <x-app-layout>
     <x-slot name="titulo">Guía de uso</x-slot>
 
-    <div x-data="{ q: '', visibles() { return [...$refs.secciones.querySelectorAll('[data-seccion]')].filter(e => e.style.display !== 'none').length; } }" class="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
+    <div x-data="{ q: '', n(t) { return (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }, visibles() { return [...$refs.secciones.querySelectorAll('[data-seccion]')].filter(e => e.style.display !== 'none').length; } }" class="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
 
         {{-- Índice --}}
         <aside class="lg:sticky lg:top-8">
@@ -337,7 +342,7 @@
             <div x-ref="secciones" class="space-y-6">
                 @foreach ($secciones as $s)
                     <section id="{{ $s['id'] }}" data-seccion data-texto="{{ $texto($s) }}"
-                             x-show="q.trim() === '' || $el.dataset.texto.includes(q.trim().toLowerCase())"
+                             x-show="n(q) === '' || n($el.dataset.texto).includes(n(q))"
                              class="scroll-mt-6 rounded-2xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)] sm:p-7">
                         <header class="mb-4 flex items-start gap-4">
                             <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-anil-900 text-rosa-400">{{ svg('phosphor-'.$s['icono'].'-fill', 'size-6') }}</span>

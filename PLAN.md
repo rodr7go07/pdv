@@ -66,6 +66,13 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 47. **Respaldos:** diarios a las 2:30 a.m., comprimidos y verificados, subidos a DigitalOcean Spaces con retención de 30 días (7 en el servidor). `restaurar.sh --probar` restaura en una base temporal y compara cifras; se recomienda hacerlo al instalar y cada mes.
 48. **Usuarios:** el administrador da de alta cajeros y encargados en la pantalla Usuarios (usuario en minúsculas, contraseña mínima de 8 caracteres, rol). Un usuario no se borra, se desactiva. Nadie puede desactivarse a sí mismo y la tienda nunca se queda sin un administrador activo. La pantalla explica en palabras sencillas qué puede hacer cada rol (`Permiso::etiqueta()`).
 49. **Guía de uso:** vive dentro de la aplicación (menú → Ayuda) escrita en lenguaje sencillo, con buscador, índice y pasos numerados; la versión detallada está en `docs/GUIA_DETALLADA.md`. Cualquier cambio de flujo o de atajos debe actualizar ambas (hay pruebas que comparan los atajos con la pantalla de venta).
+50. **Revisión final (correcciones):** sin cliente solo se vende con el precio 1 (las listas 2 y 3 son del cliente). Una devolución suma las partidas repetidas y valida una sola vez; el reembolso parcial usa redondeo acumulado para nunca pagar más de lo cobrado. Los folios se generan con `UPDATE ... increment` (sin bloqueos cruzados) y los artículos se bloquean siempre en orden de id (venta, devolución, cancelaciones, conteo). La recaptura de un conteo refresca la existencia del sistema.
+51. **Seguridad de sesión:** las peticiones de Livewire repiten los middleware persistentes (usuario activo, permisos de la ruta). Desactivar a un usuario o cambiarle la contraseña cierra sus sesiones. Las exportaciones a Excel escapan textos que empiezan con `=`, `+`, `-`, `@`.
+52. **Corte ciego:** quien no es supervisor no ve el efectivo esperado en el corte X ni en su turno abierto; lo ve en el corte final (Z) ya con lo contado.
+53. **Fechas y reportes:** las fechas inválidas de la URL o de filtros se ignoran (reportes usa hoy) en `App\Support\Fecha`; los filtros por día usan rangos para aprovechar índices.
+54. **Pruebas protegidas:** `tests/TestCase.php` se niega a correr si la conexión no es SQLite o si la configuración está en caché, para que `migrate:fresh` nunca toque MySQL.
+55. **Descuento general:** se reparte en centavos exactos (mayor fracción), sin partidas con descuento negativo ni mayor que su importe.
+56. **Cobro mixto:** el efectivo se calcula solo como lo que falta mientras no se escriba a mano.
 
 ## Pendientes por decidir
 

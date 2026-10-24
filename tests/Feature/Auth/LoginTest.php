@@ -89,6 +89,19 @@ it('bloquea temporalmente tras demasiados intentos fallidos', function () {
     $this->assertGuest();
 });
 
+it('también limita por IP aunque se cambie el nombre de usuario en cada intento', function () {
+    $usuario = User::factory()->create(['usuario' => 'carlos']);
+    $usuario->update(['password' => 'correcta-123']);
+
+    foreach (range(1, 30) as $i) {
+        Volt::test('pages.auth.login')->set('form.login', "intruso{$i}")->set('form.password', 'mal')->call('login');
+    }
+
+    // Aunque ahora use una contraseña correcta, la IP ya está bloqueada
+    Volt::test('pages.auth.login')->set('form.login', 'carlos')->set('form.password', 'correcta-123')->call('login')
+        ->assertHasErrors('form.login');
+    $this->assertGuest();
+});
 it('no tiene registro público', function () {
     $this->get('/register')->assertNotFound();
 });

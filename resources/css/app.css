@@ -1,3 +1,134 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/instrument-sans/index.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+@plugin '@tailwindcss/forms' { strategy: base; }
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views';
+
+/*
+ * Identidad visual: rótulo pintado + ticket térmico.
+ * Añil de fachada, rosa mexicano como único acento, papel gris azulado.
+ */
+@theme {
+    --font-display: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+    --color-anil-50: #f1f3fd;
+    --color-anil-100: #e4e8fa;
+    --color-anil-200: #c9d1f4;
+    --color-anil-300: #a3b0ea;
+    --color-anil-400: #7788dc;
+    --color-anil-500: #4f63cb;
+    --color-anil-600: #3a4cb0;
+    --color-anil-700: #2d3b8f;
+    --color-anil-800: #1f2a68;
+    --color-anil-900: #141a4a;
+    --color-anil-950: #0d1132;
+
+    --color-rosa-50: #fff0f7;
+    --color-rosa-100: #ffd9ec;
+    --color-rosa-400: #f2429b;
+    --color-rosa-500: #e4007c;
+    --color-rosa-600: #c40069;
+    --color-rosa-700: #9c0054;
+
+    --color-papel: #f1f2f6;
+    --color-tinta: #11153a;
+    --color-etiqueta: #ffd60a;
+    --color-ok: #0e8f63;
+    --color-peligro: #d02847;
+
+    --radius-ticket: 0.875rem;
+    --shadow-ticket: 0 1px 0 rgb(17 21 58 / 0.04), 0 10px 30px -12px rgb(17 21 58 / 0.25);
+}
+
+@layer base {
+    html {
+        font-family: var(--font-sans);
+        color: var(--color-tinta);
+        background-color: var(--color-papel);
+        -webkit-tap-highlight-color: transparent;
+        text-size-adjust: 100%;
+    }
+
+    body {
+        min-height: 100dvh;
+        font-feature-settings: 'ss01', 'tnum';
+    }
+
+    h1, h2, h3 {
+        font-family: var(--font-display);
+        font-stretch: 112%;
+        letter-spacing: -0.01em;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-rosa-500);
+        outline-offset: 2px;
+    }
+
+    [x-cloak] { display: none !important; }
+}
+
+@layer components {
+    /* Etiqueta en mayúsculas pequeñas, como las del ticket */
+    .rotulo {
+        font-family: var(--font-mono);
+        font-size: 0.6875rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-anil-600);
+    }
+
+    /* Papel de ticket: borde inferior perforado */
+    .ticket {
+        position: relative;
+        background: #fff;
+        border-radius: var(--radius-ticket) var(--radius-ticket) 0 0;
+        box-shadow: var(--shadow-ticket);
+        --diente: 10px;
+        padding-bottom: calc(var(--diente) + 1.25rem);
+        -webkit-mask:
+            conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--diente) 100%;
+        mask:
+            conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--diente) 100%;
+    }
+
+    /* Línea de corte punteada entre secciones del ticket */
+    .corte {
+        border: 0;
+        border-top: 2px dashed var(--color-anil-200);
+    }
+
+    .zona-segura-abajo {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* El ticket sale de la ranura de la impresora */
+@keyframes imprimir {
+    from {
+        clip-path: inset(0 0 100% 0);
+        transform: translateY(-1.5rem);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

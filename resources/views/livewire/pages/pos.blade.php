@@ -7,6 +7,7 @@ use App\Http\Controllers\PosController;
 use App\Models\Caja;
 use App\Models\Configuracion;
 use App\Models\Departamento;
+use App\Models\Turno;
 use App\Models\Impuesto;
 use App\Models\UnidadMedida;
 use App\Models\VentaEnEspera;
@@ -26,29 +27,20 @@ new #[Layout('layouts.pos')] class extends Component
     {
         $this->authorize('ventas.cobrar');
 
-        $guardada = (int) session('pos.caja_id', 0);
-        $this->cajaId = $this->cajas->firstWhere('id', $guardada)?->id ?? $this->cajas->first()?->id;
+        // La caja la define el turno abierto del usuario.
+        $this->cajaId = $this->turno?->caja_id;
     }
 
     #[Computed]
-    public function cajas()
+    public function turno(): ?Turno
     {
-        return Caja::query()->activas()->orderBy('nombre')->get();
+        return Turno::abiertoDe(auth()->user());
     }
 
     #[Computed]
     public function caja(): ?Caja
     {
-        return $this->cajas->firstWhere('id', $this->cajaId);
-    }
-
-    public function elegirCaja(int $id): void
-    {
-        abort_unless($this->cajas->contains('id', $id), 404);
-
-        $this->cajaId = $id;
-        session(['pos.caja_id' => $id]);
-        $this->redirectRoute('pos', navigate: true);
+        return $this->turno?->caja;
     }
 
     #[Computed]
@@ -113,7 +105,7 @@ new #[Layout('layouts.pos')] class extends Component
         $caja = $this->caja;
 
         if (! $caja) {
-            return ['ok' => false, 'mensaje' => 'No hay una caja activa. Pídele al administrador que active una.'];
+            return ['ok' => false, 'mensaje' => 'Abre tu turno de caja antes de vender.'];
         }
 
         try {
@@ -289,8 +281,13 @@ new #[Layout('layouts.pos')] class extends Component
 <div x-data="pos(@js($this->configuracionJs()))" x-on:keydown.window="teclado($event)" class="flex h-dvh flex-col bg-papel">
     @if (! $this->caja)
         <div class="grid flex-1 place-items-center p-6">
-            <x-empty icono="cash-register" titulo="No hay una caja activa" texto="Pídele al administrador que cree o active una caja para poder vender.">
-                <a href="{{ route('dashboard') }}" wire:navigate class="rounded-lg bg-anil-900 px-4 py-2.5 text-sm font-semibold text-white">Volver al inicio</a>
+            <x-empty icono="cash-register" titulo="Abre tu turno para empezar a vender" texto="Antes de cobrar necesitas abrir tu turno de caja con el fondo inicial.">
+                <div class="flex flex-wrap justify-center gap-3">
+                    @can('caja.abrir')
+                        <a href="{{ route('caja') }}" wire:navigate class="rounded-lg bg-rosa-500 px-4 py-2.5 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)]">Abrir mi turno</a>
+                    @endcan
+                    <a href="{{ route('dashboard') }}" wire:navigate class="rounded-lg border border-anil-200 px-4 py-2.5 text-sm font-semibold text-anil-800">Volver al inicio</a>
+                </div>
             </x-empty>
         </div>
     @else
@@ -302,15 +299,7 @@ new #[Layout('layouts.pos')] class extends Component
             <x-application-logo class="hidden size-7 shrink-0 text-rosa-500 sm:block" />
             <div class="min-w-0 leading-tight">
                 <p class="truncate font-display text-sm font-extrabold [font-stretch:115%]">{{ \App\Models\Configuracion::actual()->nombre_tienda }}</p>
-                @if ($this->cajas->count() > 1)
-                    <select wire:change="elegirCaja($event.target.value)" aria-label="Caja" class="mt-0.5 max-w-[10rem] rounded border-0 bg-anil-800 py-0.5 pl-2 pr-7 text-xs text-white focus:ring-2 focus:ring-rosa-500">
-                        @foreach ($this->cajas as $c)
-                            <option value="{{ $c->id }}" @selected($c->id === $cajaId)>{{ $c->nombre }}</option>
-                        @endforeach
-                    </select>
-                @else
-                    <p class="rotulo !text-anil-300">{{ $this->caja->nombre }}</p>
-                @endif
+                <p class="rotulo !text-anil-300">{{ $this->caja->nombre }}</p>
             </div>
             <div class="ml-auto flex items-center gap-1">
                 <span class="mr-2 hidden text-sm text-anil-200 md:block">{{ auth()->user()->name }}</span>

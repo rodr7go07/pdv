@@ -5,6 +5,7 @@ namespace App\Actions\Ventas;
 use App\Actions\Inventario\RegistrarMovimientoInventario;
 use App\Enums\TipoMovimiento;
 use App\Models\Devolucion;
+use App\Models\Turno;
 use App\Models\User;
 use App\Models\Venta;
 use App\Models\VentaPartida;
@@ -52,6 +53,14 @@ class RegistrarDevolucion
                 throw ValidationException::withMessages(['venta' => 'No se puede devolver una venta cancelada.']);
             }
 
+            // El dinero sale del cajón de quien procesa la devolución; si no tiene turno, del turno aún abierto de la venta.
+            $turno = Turno::query()->abiertos()->where('user_id', $usuario->id)->lockForUpdate()->first()
+                ?? ($venta->turno_id ? Turno::query()->abiertos()->lockForUpdate()->find($venta->turno_id) : null);
+
+            if (! $turno) {
+                throw ValidationException::withMessages(['venta' => 'Necesitas un turno de caja abierto para devolver dinero.']);
+            }
+
             $partidas = VentaPartida::query()->where('venta_id', $venta->id)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
 
             $total = BigDecimal::zero();
@@ -86,6 +95,7 @@ class RegistrarDevolucion
             $devolucion = Devolucion::query()->create([
                 'folio' => Folios::formato('D', Folios::siguiente('D')),
                 'venta_id' => $venta->id,
+                'turno_id' => $turno->id,
                 'user_id' => $usuario->id,
                 'motivo' => $motivo,
                 'total' => (string) $total->toScale(2),

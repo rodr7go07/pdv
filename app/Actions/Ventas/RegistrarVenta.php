@@ -8,6 +8,7 @@ use App\Models\Articulo;
 use App\Models\Caja;
 use App\Models\Configuracion;
 use App\Models\Impuesto;
+use App\Models\Turno;
 use App\Models\User;
 use App\Models\Venta;
 use App\Services\CalculadoraPrecios;
@@ -45,6 +46,15 @@ class RegistrarVenta
         $this->validar($caja, $lineas, $pagos, $descuentoGlobal, $lista);
 
         return DB::transaction(function () use ($caja, $usuario, $lineas, $pagos, $descuentoGlobal, $lista) {
+            // Solo se vende con el turno propio abierto en esa caja; se bloquea para que no se cierre a medio cobro.
+            $turno = Turno::query()->abiertos()
+                ->where('caja_id', $caja->id)->where('user_id', $usuario->id)
+                ->lockForUpdate()->first();
+
+            if (! $turno) {
+                throw ValidationException::withMessages(['turno' => 'Abre tu turno de caja antes de vender.']);
+            }
+
             // Bloqueo en orden fijo para que dos ventas simultáneas no se crucen.
             $ids = collect($lineas)->pluck('articulo_id')->map(fn ($id) => (int) $id)->unique()->sort()->values();
             $articulos = Articulo::query()->with(['impuestos', 'unidad'])->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
@@ -75,6 +85,7 @@ class RegistrarVenta
                 'numero' => $numero,
                 'folio' => Folios::formato($caja->serie, $numero),
                 'caja_id' => $caja->id,
+                'turno_id' => $turno->id,
                 'user_id' => $usuario->id,
                 'estado' => 'completada',
                 'lista_precios' => $lista,

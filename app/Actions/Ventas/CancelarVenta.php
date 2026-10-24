@@ -4,6 +4,7 @@ namespace App\Actions\Ventas;
 
 use App\Actions\Inventario\RegistrarMovimientoInventario;
 use App\Enums\TipoMovimiento;
+use App\Models\Turno;
 use App\Models\User;
 use App\Models\Venta;
 use Brick\Math\BigDecimal;
@@ -41,6 +42,15 @@ class CancelarVenta
 
             if ($venta->devoluciones()->exists()) {
                 throw ValidationException::withMessages(['venta' => 'Esta venta ya tiene devoluciones y no se puede cancelar.']);
+            }
+
+            // Una venta de un turno ya cortado no se cancela (cambiaría un corte cerrado): se usa una devolución.
+            if ($venta->turno_id) {
+                $turno = Turno::query()->lockForUpdate()->find($venta->turno_id);
+
+                if (! $turno?->estaAbierto()) {
+                    throw ValidationException::withMessages(['venta' => 'El turno de esta venta ya se cerró. Registra una devolución en lugar de cancelarla.']);
+                }
             }
 
             foreach ($venta->partidas as $partida) {

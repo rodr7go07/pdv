@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CerrarSesionController;
+use App\Http\Controllers\CorteController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\VentaTicketController;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,15 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Volt::route('{venta}', 'pages.ventas.ver')->name('ver');
         Route::get('{venta}/ticket', VentaTicketController::class)->name('ticket');
     });
+
+    // Caja y cortes (Fase 4)
+    Route::prefix('caja')->name('caja')->group(function () {
+        Volt::route('/', 'pages.caja.index')->middleware('permission:caja.abrir|caja.corte')->name('');
+        Volt::route('turnos', 'pages.caja.turnos')->middleware('can:caja.supervisar')->name('.turnos');
+        Volt::route('turnos/{turno}', 'pages.caja.turno')->name('.turno');
+        Route::get('cortes/{corte}', CorteController::class)->name('.corte');
+    });
+    Volt::route('cajas', 'pages.cajas')->middleware('can:cajas.administrar')->name('cajas');
 
     // Inventario y compras (Fase 2)
     Route::prefix('inventario')->name('inventario.')->group(function () {

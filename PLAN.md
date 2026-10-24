@@ -46,6 +46,11 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 27. **Cancelar una venta:** requiere `ventas.cancelar` y motivo; regresa el inventario; no se permite si la venta ya tiene devoluciones. La venta no se borra (queda con quién, cuándo y por qué).
 28. **Devoluciones:** parciales por partida; reembolsan lo realmente cobrado (precio con su descuento); la última pieza absorbe el redondeo para que el total devuelto nunca pase de lo cobrado. El dinero se regresa en efectivo y las piezas vuelven al inventario.
 29. **Ticket:** HTML con CSS de impresión para 58 u 80 mm según la caja (`window.print()`); lo reimprime su cajero o quien tenga `ventas.ver_todas`. Las ventas en espera se guardan en base de datos por caja (máximo 30).
+30. **Turnos:** solo se vende con el turno propio abierto en la caja (`turnos`). La base de datos garantiza un turno abierto por caja y por usuario con dos columnas únicas (`caja_abierta_id`, `usuario_abierto_id`) que valen `NULL` al cerrar. La caja que usa el punto de venta sale del turno abierto del cajero.
+31. **Efectivo esperado** = fondo inicial + efectivo cobrado en ventas + entradas − retiros − devoluciones. Tarjeta y transferencia no entran al cajón. Las ventas canceladas no cuentan. Los retiros no pueden exceder el efectivo esperado.
+32. **Cancelación vs. devolución:** una venta solo se cancela mientras su turno sigue abierto (así ningún corte cerrado cambia); después se usa una devolución. Una devolución sale del cajón del turno de quien la procesa (o, si no tiene turno, del turno aún abierto de la venta); sin ningún turno abierto no se puede devolver dinero.
+33. **Cortes:** el corte X (parcial) guarda una foto de las cifras sin cerrar; el Z (final) pide el efectivo contado (arqueo), calcula sobrante o faltante, guarda la foto y cierra el turno. Los cortes guardados no cambian aunque después se registren más movimientos. El cajero no ve el efectivo esperado (corte "ciego"); solo quien tiene `caja.supervisar`.
+34. **Cajas:** la serie de una caja con ventas no se puede cambiar y una caja con turno abierto no se desactiva. Cada caja define el ancho de papel (58 u 80 mm) y si imprime sola.
 
 ## Pendientes por decidir
 
@@ -114,13 +119,13 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 ## Fase 4 — Caja y cortes
 
-- [ ] Cajas / terminales (ej. Caja 1, Caja 2) con su serie de folios
-- [ ] Apertura de turno con fondo inicial
-- [ ] Entradas y retiros de efectivo con motivo
-- [ ] Corte parcial (X) y corte final (Z) por turno: ventas por forma de pago, cancelaciones, devoluciones, retiros, efectivo esperado
-- [ ] Arqueo: captura de efectivo contado y diferencia (sobrante/faltante)
-- [ ] Impresión del corte
-- [ ] Una venta solo puede registrarse con turno abierto
+- [x] Cajas / terminales (ej. Caja 1, Caja 2) con su serie de folios
+- [x] Apertura de turno con fondo inicial
+- [x] Entradas y retiros de efectivo con motivo
+- [x] Corte parcial (X) y corte final (Z) por turno: ventas por forma de pago, cancelaciones, devoluciones, retiros, efectivo esperado
+- [x] Arqueo: captura de efectivo contado y diferencia (sobrante/faltante)
+- [x] Impresión del corte
+- [x] Una venta solo puede registrarse con turno abierto
 
 **Entregable:** flujo diario completo: abrir caja, vender, retirar, cortar.
 

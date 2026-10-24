@@ -58,6 +58,9 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 39. **Abonos:** requieren `clientes.abonar`. Un abono en efectivo exige turno abierto de quien lo recibe y aparece en su corte (suma al efectivo esperado); un abono con tarjeta o transferencia no. No se puede abonar más de lo que se debe.
 40. **Cancelar o devolver una venta a crédito:** la parte fiada baja la deuda en lugar de mover efectivo. En una devolución esa parte es proporcional a lo fiado y nunca pasa de lo que el cliente todavía debe ni de lo fiado pendiente de devolver; el resto sale en efectivo. Si el cliente ya había abonado, la cancelación solo baja lo que todavía debe.
 41. **Pagos de una venta** se listan en el orden en que se guardaron (`venta_pagos.id`). Las ventas en espera no conservan el cliente: se vuelve a elegir al recuperarlas.
+42. **Reportes:** `App\Services\ReporteVentas` concentra las cifras. Solo cuentan ventas completadas; la **utilidad bruta** es el precio de venta sin impuestos menos el costo guardado en cada partida (no el costo actual); las devoluciones se restan en el periodo de la venta original, con su costo e impuestos proporcionales. El departamento que se reporta es el actual del artículo. El «valor del inventario» usa el costo vigente y solo artículos con inventario y existencia mayor que cero.
+43. **Tablero:** quien tiene `reportes.ver` ve ventas de hoy contra ayer, ticket promedio, utilidad, últimos 7 días, lo más vendido, artículos por reabastecer, cajas abiertas y cuentas por cobrar (se actualiza solo cada 60 s). El cajero ve solo su turno. Todas las pantallas de reportes se exportan a Excel con los mismos filtros.
+44. **Índices revisados (Fase 7):** con 4,000 ventas y 12,000 partidas en MySQL, las consultas de reportes tardan entre 13 y 70 ms y `EXPLAIN` muestra `ventas_estado_created_at_index` y el índice de la llave foránea de `venta_partidas`. No hizo falta agregar índices; conviene repetir la medición si el volumen supera unas 100,000 ventas.
 
 ## Pendientes por decidir
 
@@ -155,12 +158,12 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 ## Fase 7 — Reportes y tablero
 
-- [ ] Tablero móvil: ventas del día, ticket promedio, top artículos, artículos bajo mínimo
-- [ ] Ventas por periodo, por departamento, por artículo, por cajero, por forma de pago
-- [ ] Utilidad bruta (precio de venta − costo guardado en la partida)
-- [ ] Valor del inventario
-- [ ] Exportación a Excel de todos los reportes
-- [ ] Índices en BD revisados para los reportes más usados
+- [x] Tablero móvil: ventas del día, ticket promedio, top artículos, artículos bajo mínimo
+- [x] Ventas por periodo, por departamento, por artículo, por cajero, por forma de pago
+- [x] Utilidad bruta (precio de venta − costo guardado en la partida)
+- [x] Valor del inventario
+- [x] Exportación a Excel de todos los reportes
+- [x] Índices en BD revisados para los reportes más usados
 
 ## Fase 8 — Despliegue en DigitalOcean
 

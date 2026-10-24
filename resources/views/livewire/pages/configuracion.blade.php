@@ -121,6 +121,27 @@ new #[Layout('layouts.app')] class extends Component
                 <x-input-error :messages="$errors->get('form.leyenda_ticket')" class="mt-2" />
             </div>
 
+            <div class="space-y-5 border-t border-anil-100 pt-6">
+                <div>
+                    <h2 class="text-lg font-extrabold text-anil-900">Inventario y costos</h2>
+                    <p class="mt-1 text-sm text-anil-700">Cómo se calcula tu utilidad y qué pasa cuando algo se agota.</p>
+                </div>
+
+                <div>
+                    <x-input-label for="metodo_costeo" value="Costo que se usa para la utilidad" />
+                    <x-select wire:model="form.metodo_costeo" id="metodo_costeo">
+                        @foreach (App\Enums\MetodoCosteo::cases() as $m)
+                            <option value="{{ $m->value }}">{{ $m->etiqueta() }}</option>
+                        @endforeach
+                    </x-select>
+                    <p class="mt-1.5 text-xs text-anil-600">Siempre se guardan los dos costos en cada compra. Esta opción solo decide cuál se usa para márgenes y utilidad, desde la siguiente compra.</p>
+                    <x-input-error :messages="$errors->get('form.metodo_costeo')" class="mt-1.5" />
+                </div>
+
+                <x-checkbox wire:model="form.vender_sin_existencia" label="Permitir vender aunque no haya existencia"
+                            ayuda="Útil si a veces vendes antes de capturar la compra. La existencia puede quedar en negativo hasta que la regularices." />
+            </div>
+
             <div>
                 <x-input-label for="logo" value="Logotipo" />
                 <div class="flex flex-wrap items-center gap-4">

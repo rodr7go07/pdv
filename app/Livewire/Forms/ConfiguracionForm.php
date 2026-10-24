@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Forms;
 
+use App\Enums\MetodoCosteo;
 use App\Models\Configuracion;
+use Illuminate\Validation\Rule;
 use Livewire\Form;
 
 class ConfiguracionForm extends Form
@@ -19,9 +21,15 @@ class ConfiguracionForm extends Form
 
     public string $leyenda_ticket = '';
 
+    public string $metodo_costeo = 'promedio';
+
+    public bool $vender_sin_existencia = true;
+
     public function cargar(Configuracion $configuracion): void
     {
         $this->fill([
+            'metodo_costeo' => $configuracion->metodo_costeo?->value ?? 'promedio',
+            'vender_sin_existencia' => (bool) $configuracion->vender_sin_existencia,
             'nombre_tienda' => $configuracion->nombre_tienda,
             'razon_social' => $configuracion->razon_social ?? '',
             'rfc' => $configuracion->rfc ?? '',
@@ -41,6 +49,8 @@ class ConfiguracionForm extends Form
             'telefono' => ['nullable', 'string', 'max:20'],
             'direccion' => ['nullable', 'string', 'max:255'],
             'leyenda_ticket' => ['nullable', 'string', 'max:255'],
+            'metodo_costeo' => ['required', Rule::enum(MetodoCosteo::class)],
+            'vender_sin_existencia' => ['boolean'],
         ];
     }
 
@@ -54,6 +64,7 @@ class ConfiguracionForm extends Form
             'telefono' => 'teléfono',
             'direccion' => 'dirección',
             'leyenda_ticket' => 'leyenda del ticket',
+            'metodo_costeo' => 'método de costeo',
         ];
     }
 
@@ -75,7 +86,7 @@ class ConfiguracionForm extends Form
         $datos = $this->validate();
 
         return collect($datos)
-            ->map(fn (?string $valor) => ($valor = trim((string) $valor)) === '' ? null : $valor)
+            ->map(fn (mixed $valor) => is_bool($valor) ? $valor : (($valor = trim((string) $valor)) === '' ? null : $valor))
             ->all();
     }
 }

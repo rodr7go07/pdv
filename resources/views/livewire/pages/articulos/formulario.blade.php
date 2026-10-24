@@ -378,6 +378,18 @@ new #[Layout('layouts.app')] class extends Component
 
                 {{-- Inventario --}}
                 <x-card titulo="Inventario" descripcion="Cómo se controla la existencia de este artículo.">
+                    @if ($articulo && $articulo->inventariable)
+                        <p class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-anil-50 px-4 py-3 text-sm text-anil-800">
+                            <span>Existencia actual:
+                                <strong class="font-mono text-base text-anil-900">{{ rtrim(rtrim((string) $articulo->existencia, '0'), '.') ?: '0' }} {{ $articulo->unidad->abreviatura }}</strong>
+                            </span>
+                            <span class="text-anil-600">Cambia con compras, ventas, ajustes o conteos.</span>
+                            @can('inventario.ver')
+                                <a href="{{ route('inventario.kardex', $articulo) }}" wire:navigate class="font-semibold text-rosa-600 underline">Ver kardex</a>
+                            @endcan
+                        </p>
+                    @endif
+
                     <div class="space-y-2">
                         <x-checkbox wire:model.live="form.inventariable" label="Llevar control de inventario" ayuda="Desmárcalo para servicios o artículos que no se cuentan." />
                         <x-checkbox wire:model="form.granel" label="Se vende a granel" ayuda="Se pesa o se mide al vender, por ejemplo por kilo. La unidad debe permitir decimales." />

@@ -88,3 +88,23 @@ it('reparte el impuesto entre IVA e IEPS en proporción a su tasa', function () 
 it('una venta sin partidas da total cero', function () {
     expect(Venta::calcular([])['total'])->toBe('0.00');
 });
+
+it('reparte el descuento general en centavos exactos sin dejar descuentos negativos', function () {
+    // Tres partidas iguales y un solo centavo de descuento: lo recibe una sola, las otras quedan en 0.00
+    $r = Venta::calcular([lin('1'), lin('1'), lin('1')], ['tipo' => 'monto', 'valor' => '0.01']);
+    $descuentos = array_column($r['lineas'], 'descuento');
+
+    expect($r['descuento'])->toBe('0.01')->and($r['total'])->toBe('2.99')
+        ->and(array_map('floatval', $descuentos))->each->toBeGreaterThanOrEqual(0);
+
+    // Repartos que redondean hacia arriba en todas las partidas: la suma sigue siendo exacta
+    $r = Venta::calcular([lin('0.10'), lin('0.10'), lin('0.10'), lin('0.10')], ['tipo' => 'monto', 'valor' => '0.05']);
+    expect($r['descuento'])->toBe('0.05')->and($r['total'])->toBe('0.35');
+    foreach ($r['lineas'] as $l) {
+        expect((float) $l['descuento'])->toBeGreaterThanOrEqual(0)->and((float) $l['total'])->toBeGreaterThanOrEqual(0);
+    }
+
+    // Descuento total: todo a 0 sin partidas negativas
+    $r = Venta::calcular([lin('0.03'), lin('0.03'), lin('0.03')], ['tipo' => 'pct', 'valor' => '100']);
+    expect($r['total'])->toBe('0.00');
+});

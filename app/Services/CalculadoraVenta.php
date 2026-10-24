@@ -102,8 +102,10 @@ final class CalculadoraVenta
     }
 
     /**
-     * Reparte el descuento general entre las partidas en proporción a su importe.
-     * La última partida absorbe el redondeo para que la suma sea exacta.
+     * Reparte el descuento general entre las partidas en proporción a su importe, en centavos exactos:
+     * a cada una le toca su parte redondeada hacia abajo y los centavos que sobran se dan, uno a uno,
+     * a las que tuvieron la fracción más grande. Así la suma es exacta y ninguna partida queda con
+     * un descuento negativo ni mayor que su importe.
      *
      * @param  array<int, BigDecimal>  $importes
      * @return array<int, BigDecimal>
@@ -116,19 +118,31 @@ final class CalculadoraVenta
             return $repartos;
         }
 
-        $acumulado = self::cero();
-        $ultima = array_key_last($importes);
+        $fracciones = [];
+        $asignado = self::cero();
 
         foreach ($importes as $i => $importe) {
-            if ($i === $ultima) {
-                $parte = $descuento->minus($acumulado);
-            } else {
-                $parte = self::dinero($descuento->multipliedBy($importe)->dividedBy($suma, 10, RoundingMode::HalfUp));
+            $exacto = $descuento->multipliedBy($importe)->dividedBy($suma, 10, RoundingMode::HalfUp);
+            $abajo = $exacto->toScale(2, RoundingMode::Down);
+
+            $repartos[$i] = $abajo;
+            $fracciones[$i] = $exacto->minus($abajo);
+            $asignado = $asignado->plus($abajo);
+        }
+
+        $centavos = $descuento->minus($asignado)->multipliedBy(100)->toInt();
+        $orden = array_keys($fracciones);
+        usort($orden, fn ($a, $b) => $fracciones[$b]->compareTo($fracciones[$a]) ?: $b <=> $a);
+
+        foreach ($orden as $i) {
+            if ($centavos <= 0) {
+                break;
             }
 
-            $parte = $parte->isGreaterThan($importe) ? $importe : $parte;
-            $repartos[$i] = $parte;
-            $acumulado = $acumulado->plus($parte);
+            if ($repartos[$i]->isLessThan($importes[$i])) {
+                $repartos[$i] = $repartos[$i]->plus('0.01');
+                $centavos--;
+            }
         }
 
         return $repartos;

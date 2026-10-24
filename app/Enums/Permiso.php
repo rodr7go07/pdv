@@ -18,7 +18,10 @@ enum Permiso: string
     case InventarioVer = 'inventario.ver';
     case InventarioAjustar = 'inventario.ajustar';
     case InventarioConteo = 'inventario.conteo';
+    case ComprasVer = 'compras.ver';
     case ComprasRegistrar = 'compras.registrar';
+    case ComprasCancelar = 'compras.cancelar';
+    case ProveedoresAdministrar = 'proveedores.administrar';
 
     case VentasCobrar = 'ventas.cobrar';
     case VentasDescuento = 'ventas.descuento';

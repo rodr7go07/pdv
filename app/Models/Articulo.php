@@ -30,6 +30,9 @@ class Articulo extends Model
             'precio_1' => 'decimal:2',
             'precio_2' => 'decimal:2',
             'precio_3' => 'decimal:2',
+            'existencia' => 'decimal:3',
+            'ultimo_costo' => 'decimal:4',
+            'costo_promedio' => 'decimal:4',
             'existencia_minima' => 'decimal:3',
             'existencia_maxima' => 'decimal:3',
             'inventariable' => 'boolean',
@@ -66,6 +69,26 @@ class Articulo extends Model
     public function scopeActivos(Builder $query): void
     {
         $query->where('activo', true);
+    }
+
+    /** Artículos con inventario cuya existencia está en o por debajo del mínimo configurado. */
+    public function scopeBajoMinimo(Builder $query): void
+    {
+        $query->where('inventariable', true)
+            ->whereNotNull('existencia_minima')
+            ->whereColumn('existencia', '<=', 'existencia_minima');
+    }
+
+    public function movimientos(): HasMany
+    {
+        return $this->hasMany(MovimientoInventario::class)->latest('created_at')->latest('id');
+    }
+
+    public function estaBajoMinimo(): bool
+    {
+        return $this->inventariable
+            && $this->existencia_minima !== null
+            && (float) $this->existencia <= (float) $this->existencia_minima;
     }
 
     /** Búsqueda libre por clave, clave alterna o descripción. */

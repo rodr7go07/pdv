@@ -18,6 +18,12 @@ use Brick\Math\RoundingMode;
  */
 final class CalculadoraPrecios
 {
+    /** ¿El número trae decimales distintos de cero? (2.000 no, 2.5 sí) */
+    public static function tieneDecimales(string $numero): bool
+    {
+        return ! self::decimal($numero)->getFractionalPart()->isZero();
+    }
+
     /** @param  list<string|int|float>  $tasas */
     public static function sumarTasas(array $tasas): string
     {

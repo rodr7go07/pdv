@@ -33,7 +33,7 @@
                 ['pasos' => [
                     'Cambia tu contraseña por una que solo tú sepas. (**Mi cuenta**)',
                     'Escribe los datos de tu tienda: nombre, dirección, teléfono y el mensaje que sale al final del ticket. Puedes subir tu logotipo. (**Configuración**)',
-                    'Revisa los **departamentos** (grupos de productos, como lácteos o bebidas), las **unidades** (pieza, kilo, litro) y los **impuestos**. Ya vienen los más comunes. (**Catálogos**)',
+                    'Revisa los **departamentos** (grupos de productos, como lácteos o bebidas), las **unidades** (pieza, kilo, litro) y los **impuestos**. Las unidades y los impuestos más comunes ya vienen listos. De departamentos solo viene uno, «General»: crea aquí los tuyos (lácteos, bebidas, botanas…). (**Catálogos**)',
                     'Revisa tu caja y elige si tu impresora usa papel angosto (58) o normal (80). Con el botón de la impresora imprimes una hoja de prueba. (**Cajas**)',
                     'Da de alta a tus cajeros: les pones un usuario y una contraseña, y les entregas los datos. (**Usuarios**)',
                     'Anota a quienes te surten. (**Compras → Proveedores**)',
@@ -53,14 +53,14 @@
             'bloques' => [
                 ['pasos' => [
                     'Entra a **Artículos** y toca **Nuevo**.',
-                    'En **Clave**, escanea el código de barras del producto (o escríbelo). No puede haber dos productos con la misma clave.',
-                    'Escribe el **nombre**. Elige su **departamento** y su **unidad** (pieza, kilo…).',
-                    'Escribe cuánto te **cuesta** a ti (sin impuestos) y cuánto lo **vendes**. El sistema te ayuda a calcular: si escribes el costo y cuánto quieres ganar, él te dice a cuánto venderlo.',
-                    'Elige el **IVA** que lleva. Los alimentos básicos suelen ser IVA 0 %; confírmalo con tu contador.',
-                    'Escribe el **mínimo** que quieres tener. Cuando baje de ahí, el sistema te avisa.',
+                    'En **Clave principal**, escanea el código de barras del producto (o escríbelo). No puede haber dos productos con la misma clave.',
+                    'En **Descripción** escribe el nombre del producto. Elige su **departamento** y su **unidad de medida** (pieza, kilogramo…).',
+                    'Elige el **IVA** que lleva. Viene marcado IVA 16 %; los alimentos básicos suelen ser IVA 0 %, confírmalo con tu contador. Hazlo **antes** de poner los precios, porque el precio depende de él.',
+                    'Escribe cuánto te **cuesta** a ti (sin impuestos). Luego escribe el **Precio 1** (el que paga el cliente, con impuestos incluidos) o, si prefieres, cuánto quieres ganar en **Margen sobre el costo (%)** y el sistema calcula el precio.',
+                    'Escribe la **existencia mínima** que quieres tener. Cuando baje de ahí, el sistema te avisa.',
                     'Toca **Crear artículo**.',
                 ]],
-                ['p' => '**Ejemplo del precio.** Si una leche te cuesta $20 y quieres ganarle 35 %, escribe 20 en costo y 35 en margen: el sistema pone $27 como precio. También puedes hacerlo al revés: escribes $27 y él te dice cuánto ganas.'],
+                ['p' => '**Ejemplo del precio.** Si una leche te cuesta $20 y quieres ganarle 35 %: con **IVA 0 %** el sistema pone $27 como precio. Con **IVA 16 %** pone $31.32, porque al precio le suma el impuesto (el precio que ves ya lo incluye). También puedes hacerlo al revés: escribes el precio y él te dice cuánto ganas. Ese «margen» es sobre lo que **te costó**; en Reportes la utilidad se mide sobre lo que **vendiste**, por eso los porcentajes no coinciden.'],
                 ['p' => '**Claves alternas.** Si un producto tiene dos códigos de barras (por ejemplo una presentación nueva), agrega el segundo como clave alterna. Cualquiera de los dos lo encuentra.'],
                 ['p' => '**Producto a granel.** Si lo vendes por peso (frutas, queso), marca **Se vende a granel** y elige kilo como unidad. Al venderlo, el sistema te pregunta cuánto pesa.'],
                 ['p' => '**Subir muchos productos de golpe.** Entra a **Artículos → Importar**, descarga la plantilla de Excel, llénala y súbela. Si algo está mal en una fila, el sistema te dice cuál y no guarda nada, para que lo corrijas y lo vuelvas a subir sin que se repita nada.'],
@@ -141,14 +141,14 @@
                 ]],
                 ['p' => '**Productos que se pesan.** Si escaneas fruta o queso, el sistema te pregunta **cuánto pesa**. Escribe el peso (por ejemplo 0.375) y Enter.'],
                 ['p' => '**Un producto sin código.** Toca **Buscar** (F2) y escribe parte del nombre. Toca el que sea.'],
-                ['p' => '**Un producto que no existe.** El sistema te avisa. Si tienes permiso, te deja darlo de alta ahí mismo.'],
-                ['p' => '**Se acerca otro cliente con prisa.** Toca **Espera** (F3) para guardar esta venta, atiende al otro y luego **Recuperar** (F4).'],
+                ['p' => '**Un producto que no existe.** El sistema te avisa. Si tienes permiso para crear artículos y poner precios, te deja darlo de alta ahí mismo; si no, avisa al encargado.'],
+                ['p' => '**Se acerca otro cliente con prisa.** Toca **Espera** (F3) para guardar esta venta, atiende al otro y luego **Recuperar** (F4). Para recuperar una venta la pantalla debe estar vacía (termina o guarda la que tengas). Las ventas en espera son de la caja, no de una persona, y caben hasta 30. Al guardarlas se guardan los productos y el descuento, pero **no** el cliente: vuelve a elegirlo con F7.'],
                 ['p' => '**Descuentos.** Con permiso, toca el símbolo de porcentaje junto al producto, o **Descuento** (F6) para toda la venta. Puedes dar un porcentaje o una cantidad en pesos.'],
                 ['p' => '**Cómo paga el cliente:**'],
                 ['lista' => [
                     '**Efectivo.** Escribe cuánto te dio (o toca el billete). Verás el cambio.',
                     '**Tarjeta o transferencia.** Elige la forma y listo. Puedes anotar el número de autorización.',
-                    '**Mezclado.** Por ejemplo, $100 con tarjeta y el resto en efectivo. Toca **+ Tarjeta** o **+ Transferencia** para agregar otra forma.',
+                    '**Mezclado.** Por ejemplo, $100 con tarjeta y el resto en efectivo. Toca **+ Tarjeta** (o **+ Transferencia**), escribe cuánto paga con ella y el efectivo se acomoda solo con lo que falta. Si el cliente da un billete, toca el billete o escribe el efectivo y verás el cambio.',
                     '**A crédito (fiado).** Primero elige al cliente con F7. Mira más abajo, en *Clientes que te deben*.',
                 ]],
                 ['cuidado' => 'La pantalla te enseña un total, pero **el sistema lo vuelve a calcular con los precios de verdad** antes de cobrar. Si algo cambió, te lo avisa.'],
@@ -158,11 +158,12 @@
             'id' => 'problemas-venta', 'titulo' => 'Cuando una venta salió mal (cancelar y devolver)', 'icono' => 'arrow-u-up-left', 'para' => 'Encargado · Dueño',
             'intro' => 'Nada se borra: todo queda anotado con tu nombre y el motivo.',
             'bloques' => [
-                ['p' => '**Cancelar una venta completa.** Úsalo si te equivocaste al cobrar. Solo se puede **mientras tu turno sigue abierto**.'],
+                ['p' => '**Cancelar una venta completa.** Úsalo si te equivocaste al cobrar. Solo se puede **mientras el turno en que se hizo la venta siga abierto**, y solo si esa venta **no tiene devoluciones**. Si ya se cerró ese turno, usa una devolución.'],
                 ['pasos' => [
                     'Entra a **Ventas** y abre la venta.',
                     'Toca **Cancelar venta** y escribe el motivo.',
                     'Los productos regresan al inventario.',
+                    'Si el cliente había pagado en efectivo, el cajero debe regresarle ese dinero: el sistema ya no cuenta esa venta en el corte.',
                 ]],
                 ['p' => '**Devolución.** Úsala cuando el cliente regresa algo después (o ya se cerró el turno).'],
                 ['pasos' => [
@@ -190,7 +191,7 @@
             'id' => 'cerrar', 'titulo' => 'Cerrar tu caja al final (corte)', 'icono' => 'lock-key', 'para' => 'Cajero',
             'intro' => 'Al terminar, cuentas el dinero y el sistema te dice si **cuadra**, si **sobra** o si **falta**.',
             'bloques' => [
-                ['p' => '**Corte parcial (X).** Es una foto de cómo va el día. No cierra nada. Úsalo cuando quieras ver cuánto llevas.'],
+                ['p' => '**Corte parcial (X).** Es una foto de cómo va el día. No cierra nada. Úsalo cuando quieras ver cuánto llevas. El cajero ve sus ventas y movimientos, pero **no** cuánto efectivo debería haber: eso lo ve el encargado, para que el conteo al cerrar sea honesto.'],
                 ['p' => '**Corte final (Z).** Cierra tu turno.'],
                 ['pasos' => [
                     'Entra a **Mi caja** y toca **Cerrar turno**.',
@@ -207,7 +208,7 @@
             'intro' => 'Algunos clientes te compran «fiado». El sistema apunta cuánto te debe cada uno y no deja que se pase de su límite.',
             'bloques' => [
                 ['pasos' => [
-                    '**Dar de alta al cliente:** en **Clientes** toca **Nuevo cliente** (nombre y teléfono).',
+                    '**Dar de alta al cliente:** el encargado o el dueño, en **Clientes**, toca **Nuevo cliente** (nombre y teléfono). El cajero puede elegir clientes y cobrarles, pero no crearlos.',
                     '**Darle crédito:** el dueño le pone un **límite de crédito** (lo máximo que puede deber). Con 0 no se le fía.',
                     '**Venderle:** en la pantalla de venta toca **Cliente** (F7) y búscalo. Al cobrar elige **+ A crédito**.',
                     '**Cuando te paga:** abre al cliente en **Clientes** y toca **Registrar abono**. Escribe cuánto te dio y cómo.',

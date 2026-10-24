@@ -418,9 +418,16 @@ new #[Layout('layouts.pos')] class extends Component
                                     </button>
                                     <input type="text" inputmode="decimal" :value="cantidadTexto(l)" x-on:change="fijarCantidad(i, $event.target.value); $event.target.value = cantidadTexto(l)"
                                            x-on:keydown.enter.stop.prevent="$event.target.blur(); enfocar()" x-on:focus="$event.target.select()"
-                                           class="h-11 w-24 rounded-lg border border-anil-200 bg-white px-1 text-center font-mono text-base font-bold focus:border-rosa-500 focus:ring-2 focus:ring-rosa-500/20 sm:h-9 sm:w-[4.75rem]" :aria-label="'Cantidad de ' + l.descripcion">
+                                           class="h-11 w-20 rounded-lg border border-anil-200 bg-white px-1 text-center font-mono text-base font-bold focus:border-rosa-500 focus:ring-2 focus:ring-rosa-500/20 sm:h-9 sm:w-[4.75rem]" :aria-label="'Cantidad de ' + l.descripcion">
                                     <button type="button" x-on:click.stop="cambiarCantidad(i, 1)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-800 active:bg-anil-100 sm:size-9" aria-label="Agregar una pieza">
                                         <x-phosphor-plus-bold class="size-4" />
+                                    </button>
+                                    {{-- En teléfono los botones de descuento y quitar van junto a la cantidad --}}
+                                    <button type="button" x-on:click.stop="abrirDescuentoLinea(i)" x-show="cfg.puedeDescuento" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-700 active:bg-anil-100 sm:hidden" aria-label="Descuento a este artículo">
+                                        <x-phosphor-percent-bold class="size-4" />
+                                    </button>
+                                    <button type="button" x-on:click.stop="quitar(i)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-700 active:bg-red-50 sm:hidden" aria-label="Quitar artículo">
+                                        <x-phosphor-trash-bold class="size-4" />
                                     </button>
                                 </div>
 
@@ -706,13 +713,13 @@ new #[Layout('layouts.pos')] class extends Component
                         <template x-for="(p, i) in cobro.pagos" :key="i">
                             <div class="rounded-xl border border-anil-200 p-3">
                                 <div class="flex items-center gap-2">
-                                    <select x-model="p.forma" class="rounded-lg border border-anil-200 py-2 pl-3 pr-8 text-sm font-semibold focus:border-anil-500 focus:ring-2 focus:ring-anil-500/20" aria-label="Forma de pago">
+                                    <select x-model="p.forma" x-on:change="p.auto = false; sincronizarEfectivo()" class="rounded-lg border border-anil-200 py-2 pl-3 pr-8 text-sm font-semibold focus:border-anil-500 focus:ring-2 focus:ring-anil-500/20" aria-label="Forma de pago">
                                         <option value="efectivo">Efectivo</option>
                                         <option value="tarjeta">Tarjeta</option>
                                         <option value="transferencia">Transferencia</option>
                                         <option value="credito" x-show="cliente?.credito" :disabled="!cliente?.credito">A crédito</option>
                                     </select>
-                                    <input x-ref="montoCobro" x-model="p.monto" type="text" inputmode="decimal" autocomplete="off" aria-label="Monto"
+                                    <input x-ref="montoCobro" x-model="p.monto" x-on:input="p.forma === 'efectivo' ? (p.auto = false) : sincronizarEfectivo()" type="text" inputmode="decimal" autocomplete="off" aria-label="Monto"
                                            class="min-w-0 flex-1 rounded-lg border-2 border-anil-200 px-3 py-2 text-right font-mono text-xl font-bold focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
                                     <button type="button" x-show="cobro.pagos.length > 1" x-on:click="quitarPago(i)" class="grid size-10 shrink-0 place-items-center rounded-lg text-anil-500 hover:bg-red-50 hover:text-red-700" aria-label="Quitar este pago"><x-phosphor-x-bold class="size-4" /></button>
                                 </div>

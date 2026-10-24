@@ -32,7 +32,7 @@ Haz estos pasos en orden:
 2. **Configuración:** nombre de la tienda, razón social, RFC, dirección, teléfono, leyenda del ticket y logotipo. A la derecha ves cómo queda el ticket.
    - *Costo que se usa para la utilidad*: **costo promedio** (mezcla lo que tenías con lo nuevo) o **último costo** (lo que pagaste la última vez). Se guardan siempre los dos; esta opción solo decide cuál se usa para márgenes y utilidad.
    - *Permitir vender aunque no haya existencia*: útil si a veces vendes antes de capturar la compra.
-3. **Catálogos:** revisa los departamentos, las unidades de medida y los impuestos que ya vienen (IVA 16 %, IVA 0 %, Exento, IEPS 8 %). Agrega los que falten.
+3. **Catálogos:** crea tus departamentos (solo viene «General») y revisa las unidades de medida y los impuestos que ya vienen (IVA 16 %, IVA 0 %, Exento, IEPS 8 %). Agrega los que falten.
 4. **Cajas:** revisa la *Caja 1* (serie A). Elige el ancho del papel de tu impresora (58 u 80 mm) y si el ticket se imprime solo. El botón de impresora imprime una hoja de prueba.
 5. **Usuarios:** da de alta a tus cajeros y encargados (usuario, nombre, contraseña y rol). Entrégales su usuario y contraseña.
 6. **Proveedores:** registra a quienes te surten.
@@ -49,6 +49,7 @@ Haz estos pasos en orden:
 - **Clave principal:** el código de barras (puedes escanearlo en el campo). No se puede repetir.
 - **Claves alternas:** otros códigos del mismo artículo (por ejemplo otra presentación). Escribe cada uno y presiona Enter. Tampoco se pueden repetir con ninguna otra clave del sistema.
 - **Departamento y unidad de medida.**
+- **Orden recomendado:** elige primero el IVA (viene en 16 %), después escribe costo y precio. Ejemplo: costo $20 con margen 35 % da $27.00 con IVA 0 % y $31.32 con IVA 16 %, porque el precio de venta incluye el impuesto.
 - **Costo, margen y precio.** Los tres están enlazados: si cambias el costo o el margen, el sistema sugiere el precio; si cambias el precio, calcula el margen. El margen es la utilidad sobre el costo, calculada con el precio sin impuestos.
 - **IVA e IEPS.** Un artículo lleva como máximo un IVA y puede llevar IEPS.
 - **Precios 2 y 3 (mayoreo):** opcionales; se usan con clientes que tengan esa lista de precios.

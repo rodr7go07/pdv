@@ -491,7 +491,7 @@ export function registrarPos(Alpine) {
                 if (!r.ok) { this.cobro.error = r.mensaje; this.cobro.procesando = false; return; }
                 this.cobro.totalServidor = aCentavos(r.total);
                 this.cobro.disponible = aCentavos(r.disponible);
-                this.cobro.pagos = [{ forma: 'efectivo', monto: r.total, referencia: '' }];
+                this.cobro.pagos = [{ forma: 'efectivo', monto: r.total, referencia: '', auto: true }];
                 if (this.cobro.totalServidor !== this.total) this.avisar('El total se recalculó con los precios actuales.', 'info', 5000);
             } catch (e) {
                 this.cobro.error = 'No se pudo conectar con el servidor. Revisa tu internet.';
@@ -531,18 +531,29 @@ export function registrarPos(Alpine) {
         },
 
         agregarPago(forma) {
-            let restante = Math.max(this.totalCobro - this.sinEfectivo - this.efectivoRecibido, 0);
+            // Lo que falta por cubrir sin contar el efectivo: el efectivo se ajusta solo para completar el resto.
+            let restante = forma === 'efectivo'
+                ? Math.max(this.totalCobro - this.sinEfectivo - this.efectivoRecibido, 0)
+                : Math.max(this.totalCobro - this.sinEfectivo, 0);
             if (forma === 'credito') restante = Math.min(restante, Math.max((this.cobro.disponible || 0) - this.creditoUsado, 0));
-            this.cobro.pagos.push({ forma, monto: (restante / 100).toFixed(2), referencia: '' });
+            this.cobro.pagos.push({ forma, monto: (restante / 100).toFixed(2), referencia: '', auto: forma === 'efectivo' });
+            this.sincronizarEfectivo();
         },
         quitarPago(i) {
             this.cobro.pagos.splice(i, 1);
+            this.sincronizarEfectivo();
+        },
+        // Mientras el efectivo no se haya escrito a mano, siempre es lo que falta para completar el total.
+        sincronizarEfectivo() {
+            const fila = this.cobro.pagos.find((p) => p.forma === 'efectivo' && p.auto);
+            if (fila) fila.monto = (this.efectivoNecesario / 100).toFixed(2);
         },
         fijarEfectivo(centavos) {
             const fila = this.cobro.pagos.find((p) => p.forma === 'efectivo');
             const monto = (Math.max(centavos, this.efectivoNecesario) / 100).toFixed(2);
-            if (fila) fila.monto = monto;
-            else this.cobro.pagos.push({ forma: 'efectivo', monto, referencia: '' });
+            const exacto = centavos <= this.efectivoNecesario;
+            if (fila) { fila.monto = monto; fila.auto = exacto; }
+            else this.cobro.pagos.push({ forma: 'efectivo', monto, referencia: '', auto: exacto });
         },
         get billetes() {
             return [50, 100, 200, 500, 1000].map((b) => b * 100).filter((b) => b >= this.efectivoNecesario && this.efectivoNecesario > 0).slice(0, 4);

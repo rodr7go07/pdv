@@ -69,7 +69,9 @@
         <tr><td>+ Entradas</td><td class="der">{{ $m($d['entradas']) }}</td></tr>
         <tr><td>- Retiros</td><td class="der">{{ $m($d['retiros']) }}</td></tr>
         <tr><td>- Devoluciones ({{ $d['devoluciones']['cantidad'] }})</td><td class="der">{{ $m($d['devoluciones']['efectivo'] ?? $d['devoluciones']['total']) }}</td></tr>
-        <tr class="negrita"><td>Efectivo esperado</td><td class="der">{{ $m($d['efectivo_esperado']) }}</td></tr>
+        @if ($veEsperado || isset($d['efectivo_contado']))
+            <tr class="negrita"><td>Efectivo esperado</td><td class="der">{{ $m($d['efectivo_esperado']) }}</td></tr>
+        @endif
         @if (isset($d['efectivo_contado']))
             <tr><td>Efectivo contado</td><td class="der">{{ $m($d['efectivo_contado']) }}</td></tr>
             @php $dif = (float) $d['diferencia']; @endphp

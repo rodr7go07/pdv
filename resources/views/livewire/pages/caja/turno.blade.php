@@ -80,7 +80,7 @@ new #[Layout('layouts.app')] class extends Component
         <x-badge :tono="$turno->estaAbierto() ? 'ok' : 'gris'">{{ $turno->estaAbierto() ? 'Turno abierto' : 'Turno cerrado' }}</x-badge>
     </div>
 
-    <x-resumen-turno :resumen="$this->resumen()" :contado="$turno->efectivo_contado" :diferencia="$turno->diferencia" />
+    <x-resumen-turno :resumen="$this->resumen()" :mostrar-esperado="auth()->user()->can('caja.supervisar') || ! $turno->estaAbierto()" :contado="$turno->efectivo_contado" :diferencia="$turno->diferencia" />
 
     @if ($turno->notas)
         <p class="mt-4 text-sm text-anil-800"><strong>Notas del cierre:</strong> {{ $turno->notas }}</p>

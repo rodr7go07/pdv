@@ -24,6 +24,7 @@ class CorteController extends Controller
             'd' => $corte->datos,
             'tienda' => Configuracion::actual(),
             'ancho' => in_array($ancho, [58, 80], true) ? $ancho : 80,
+            'veEsperado' => $usuario->can('caja.supervisar'),
             'imprimir' => $request->boolean('imprimir'),
         ]);
     }

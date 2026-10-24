@@ -404,3 +404,14 @@ it('no cambia la serie de una caja con ventas ni desactiva una con turno abierto
         ->call('editar', $this->caja->id)->set('serie', 'NUEVA')->call('guardar')->assertHasErrors('serie')
         ->call('editar', $this->caja->id)->set('activa', false)->call('guardar')->assertHasErrors('activa');
 });
+
+it('el corte X y el turno abierto no revelan el efectivo esperado al cajero, pero sí al encargado', function () {
+    $t = ($this->abrir)($this->caja, $this->cajero, '100');
+    venta($t, '1', [['forma' => 'efectivo', 'monto' => '50']]);
+    $x = app(CerrarTurno::class)->corteX($t, $this->cajero);
+
+    $this->actingAs($this->cajero)->get("/caja/cortes/{$x->id}")->assertOk()->assertDontSee('Efectivo esperado');
+    $this->actingAs($this->encargado)->get("/caja/cortes/{$x->id}")->assertOk()->assertSee('Efectivo esperado');
+
+    Volt::actingAs($this->cajero)->test('pages.caja.turno', ['turno' => $t])->assertDontSee('Efectivo esperado');
+});

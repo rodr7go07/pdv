@@ -19,12 +19,14 @@ final class Menu
     public const GRUPOS = ['Principal', 'Mercancía', 'Administración', 'Ayuda'];
 
     /**
-     * @return Collection<int, array{etiqueta: string, descripcion: string, ruta: string, icono: string, coincide: string, permiso: ?Permiso, grupo: string, movil: bool}>
+     * @return Collection<int, array{etiqueta: string, descripcion: string, ruta: string, icono: string, coincide: string, permiso: Permiso|list<Permiso>|null, grupo: string, movil: bool}>
      */
     public static function para(?User $user): Collection
     {
         return collect([
             ['Inicio', 'Resumen y accesos rápidos.', 'dashboard', 'house', 'dashboard', null, 'Principal', true],
+            ['Venta', 'Cobrar con escáner o teclado.', 'pos', 'cash-register', 'pos', Permiso::VentasCobrar, 'Principal', true],
+            ['Ventas', 'Historial, tickets, cancelaciones y devoluciones.', 'ventas.index', 'receipt', 'ventas.*', [Permiso::VentasCobrar, Permiso::VentasVerTodas], 'Principal', true],
             ['Artículos', 'Catálogo de productos, precios y claves.', 'articulos.index', 'package', 'articulos.*', Permiso::ArticulosVer, 'Mercancía', true],
             ['Inventario', 'Existencias, kardex, ajustes y conteo físico.', 'inventario.index', 'stack', 'inventario.*', Permiso::InventarioVer, 'Mercancía', true],
             ['Compras', 'Mercancía que recibes y sus proveedores.', 'compras.index', 'truck', 'compras.*', Permiso::ComprasVer, 'Mercancía', false],
@@ -35,8 +37,9 @@ final class Menu
         ])->map(fn (array $i) => [
             'etiqueta' => $i[0], 'descripcion' => $i[1], 'ruta' => $i[2], 'icono' => $i[3],
             'coincide' => $i[4], 'permiso' => $i[5], 'grupo' => $i[6], 'movil' => $i[7],
-        ])->filter(fn (array $item) => $item['permiso'] === null || $user?->can($item['permiso']->value))
-            ->values();
+        ])->filter(fn (array $item) => $item['permiso'] === null || $user?->canAny(
+            array_map(fn (Permiso $p) => $p->value, is_array($item['permiso']) ? $item['permiso'] : [$item['permiso']]),
+        ))->values();
     }
 
     /**

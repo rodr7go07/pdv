@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Actions\Compras\CancelarCompra;
 use App\Models\Compra;

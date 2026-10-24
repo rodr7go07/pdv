@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\CerrarSesionController;
+use App\Http\Controllers\PosController;
+use App\Http\Controllers\VentaTicketController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -21,6 +23,17 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Volt::route('crear', 'pages.articulos.formulario')->middleware('can:articulos.crear')->name('crear');
         Volt::route('importar', 'pages.articulos.importar')->middleware('can:articulos.importar')->name('importar');
         Volt::route('{articulo}/editar', 'pages.articulos.formulario')->middleware('can:articulos.editar')->name('editar');
+    });
+
+    // Punto de venta (Fase 3)
+    Volt::route('venta', 'pages.pos')->middleware('can:ventas.cobrar')->name('pos');
+    Route::get('venta/buscar', [PosController::class, 'buscar'])->middleware('can:ventas.cobrar')->name('pos.buscar');
+    Route::get('venta/por-ids', [PosController::class, 'porIds'])->middleware('can:ventas.cobrar')->name('pos.por-ids');
+
+    Route::prefix('ventas')->name('ventas.')->middleware('permission:ventas.cobrar|ventas.ver_todas')->group(function () {
+        Volt::route('/', 'pages.ventas.index')->name('index');
+        Volt::route('{venta}', 'pages.ventas.ver')->name('ver');
+        Route::get('{venta}/ticket', VentaTicketController::class)->name('ticket');
     });
 
     // Inventario y compras (Fase 2)

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Actions\Inventario\GestionarConteo;
 use App\Models\Conteo;

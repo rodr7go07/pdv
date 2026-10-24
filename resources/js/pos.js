@@ -1,0 +1,596 @@
+/*
+ * Pantalla de caja (Alpine). El carrito vive en el navegador para que escanear sea instantáneo;
+ * al cobrar, el servidor vuelve a leer precios, impuestos y existencias de la base de datos
+ * y recalcula todo. Aquí el dinero se maneja SIEMPRE en enteros (centavos / milésimas) para
+ * que los redondeos coincidan con los del servidor (mitad hacia arriba).
+ */
+
+const moneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+
+export const formatear = (centavos) => moneda.format(centavos / 100);
+const aCentavos = (v) => Math.round(parseFloat(v || 0) * 100);
+const aMilesimas = (v) => Math.round(parseFloat(v || 0) * 1000);
+const mitadArriba = (numerador, divisor) => Math.floor((numerador + divisor / 2) / divisor);
+
+const limpiarNumero = (v) => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? String(parseFloat(n.toFixed(3))) : '';
+};
+
+const guardado = {
+    leer(clave) {
+        try { return JSON.parse(localStorage.getItem(clave) || 'null'); } catch { return null; }
+    },
+    escribir(clave, valor) {
+        try { valor === null ? localStorage.removeItem(clave) : localStorage.setItem(clave, JSON.stringify(valor)); } catch { /* sin almacenamiento: no pasa nada */ }
+    },
+};
+
+let uid = 0;
+
+export function registrarPos(Alpine) {
+    Alpine.data('pos', (cfg) => ({
+        cfg,
+        lineas: [],
+        entrada: '',
+        multiplicador: null,
+        sel: -1,
+        aviso: '',
+        avisoTipo: 'info',
+        cargando: false,
+        cola: [],
+        modal: null,
+
+        busqueda: { texto: '', resultados: [], cargando: false, enfocado: 0 },
+        descGlobal: { tipo: '', valor: '' },
+        descLinea: { indice: -1, tipo: 'pct', valor: '' },
+        peso: { articulo: null, valor: '' },
+        alta: { clave: '', descripcion: '', precio: '', departamento_id: '', unidad_medida_id: '', iva_id: '', error: '', guardando: false },
+        esperas: { lista: [], cargando: false, nombre: '' },
+        cobro: { pagos: [], procesando: false, error: '', totalServidor: null },
+        exito: null,
+
+        // ─── Ciclo de vida ──────────────────────────────────────────────────────────
+        init() {
+            const previo = guardado.leer(this.claveGuardado());
+            if (previo && Array.isArray(previo.lineas) && previo.lineas.length) {
+                this.lineas = previo.lineas;
+                this.descGlobal = previo.descGlobal || { tipo: '', valor: '' };
+                this.refrescarPrecios();
+            }
+
+            this.$watch('lineas', () => this.persistir());
+            this.$watch('descGlobal', () => this.persistir());
+            this.enfocar();
+        },
+
+        claveGuardado() {
+            return `pos-carrito-${this.cfg.cajaId}`;
+        },
+
+        persistir() {
+            guardado.escribir(this.claveGuardado(), this.lineas.length ? { lineas: this.lineas, descGlobal: this.descGlobal } : null);
+        },
+
+        enfocar() {
+            // Si hay una ventana abierta, el foco es de ella (el peso, el cobro, etc.).
+            this.$nextTick(() => this.modal === null && this.$refs.entrada && this.$refs.entrada.focus());
+        },
+
+        // ─── Dinero ─────────────────────────────────────────────────────────────────
+        precioCents(l) {
+            const lista = this.cfg.lista;
+            return aCentavos(l.precios[lista - 1] ?? l.precios[0]);
+        },
+        brutoLinea(l) {
+            return mitadArriba(this.precioCents(l) * aMilesimas(l.cantidad), 1000);
+        },
+        descuentoLinea(l) {
+            const bruto = this.brutoLinea(l);
+            const valor = parseFloat(l.descValor || 0);
+            if (!l.descTipo || !(valor > 0)) return 0;
+            const d = l.descTipo === 'pct'
+                ? mitadArriba(bruto * Math.round(valor * 100), 10000)
+                : aCentavos(valor);
+            return Math.min(d, bruto);
+        },
+        totalLinea(l) {
+            return this.brutoLinea(l) - this.descuentoLinea(l);
+        },
+        get sumaLineas() {
+            return this.lineas.reduce((s, l) => s + this.totalLinea(l), 0);
+        },
+        get descuentoGeneral() {
+            const valor = parseFloat(this.descGlobal.valor || 0);
+            if (!this.descGlobal.tipo || !(valor > 0)) return 0;
+            const suma = this.sumaLineas;
+            const d = this.descGlobal.tipo === 'pct'
+                ? mitadArriba(suma * Math.round(valor * 100), 10000)
+                : aCentavos(valor);
+            return Math.min(d, suma);
+        },
+        get total() {
+            return this.sumaLineas - this.descuentoGeneral;
+        },
+        get descuentoTotal() {
+            return this.lineas.reduce((s, l) => s + this.descuentoLinea(l), 0) + this.descuentoGeneral;
+        },
+        get piezas() {
+            return this.lineas.reduce((s, l) => s + parseFloat(l.cantidad || 0), 0);
+        },
+        dinero(centavos) {
+            return formatear(centavos);
+        },
+        cantidadTexto(l) {
+            return limpiarNumero(l.cantidad) || '0';
+        },
+
+        // ─── Avisos ─────────────────────────────────────────────────────────────────
+        avisar(texto, tipo = 'info', ms = 4000) {
+            this.aviso = texto;
+            this.avisoTipo = tipo;
+            clearTimeout(this._avisoT);
+            if (ms) this._avisoT = setTimeout(() => (this.aviso = ''), ms);
+        },
+
+        // ─── Captura (escáner o teclado) ────────────────────────────────────────────
+        async enviarEntrada() {
+            const texto = this.entrada.trim();
+            this.entrada = '';
+            if (!texto) return;
+
+            // "5*" deja el multiplicador listo para el siguiente artículo.
+            const soloMult = texto.match(/^(\d+(?:\.\d+)?)\s*[*xX]$/);
+            if (soloMult) {
+                this.multiplicador = parseFloat(soloMult[1]);
+                this.avisar(`Cantidad ×${limpiarNumero(this.multiplicador)}: escanea el artículo`, 'info', 0);
+                return;
+            }
+
+            // "5*7501055300075" = 5 piezas de ese código.
+            const conMult = texto.match(/^(\d+(?:\.\d+)?)\s*[*xX]\s*(.+)$/);
+            let cantidad = this.multiplicador;
+            let codigo = texto;
+            if (conMult) { cantidad = parseFloat(conMult[1]); codigo = conMult[2].trim(); }
+            this.multiplicador = null;
+
+            this.cola.push({ codigo, cantidad });
+            if (!this.cargando) await this.procesarCola();
+        },
+
+        async procesarCola() {
+            this.cargando = true;
+            while (this.cola.length) {
+                const { codigo, cantidad } = this.cola.shift();
+                await this.agregarPorCodigo(codigo, cantidad);
+            }
+            this.cargando = false;
+            this.enfocar();
+        },
+
+        async consultar(texto) {
+            const r = await fetch(`${this.cfg.urlBuscar}?q=${encodeURIComponent(texto)}`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            if (!r.ok) throw new Error(r.status === 401 || r.status === 419 ? 'Tu sesión expiró. Vuelve a iniciar sesión.' : 'No se pudo consultar el artículo.');
+            return r.json();
+        },
+
+        async agregarPorCodigo(codigo, cantidad) {
+            try {
+                const { exacto, articulos } = await this.consultar(codigo);
+
+                if (exacto && articulos.length === 1) {
+                    this.agregar(articulos[0], cantidad);
+                } else if (articulos.length) {
+                    this.abrirBusqueda(codigo, articulos);
+                } else {
+                    this.avisar(`No existe el artículo «${codigo}».`, 'error', 6000);
+                    if (this.cfg.puedeAlta) this.abrirAlta(codigo);
+                }
+            } catch (e) {
+                this.avisar(e.message, 'error', 6000);
+            }
+        },
+
+        // ─── Carrito ────────────────────────────────────────────────────────────────
+        agregar(articulo, cantidad = null) {
+            if (articulo.granel && cantidad === null) {
+                this.peso = { articulo, valor: '' };
+                this.modal = 'peso';
+                return;
+            }
+
+            cantidad = cantidad ?? 1;
+            if (!articulo.decimales && !Number.isInteger(cantidad)) {
+                this.avisar(`«${articulo.descripcion}» solo se vende por piezas completas.`, 'error');
+                return;
+            }
+
+            const existente = !articulo.granel
+                ? this.lineas.findIndex((l) => l.id === articulo.id && !l.descTipo)
+                : -1;
+
+            if (existente >= 0) {
+                this.lineas[existente].cantidad = limpiarNumero(parseFloat(this.lineas[existente].cantidad) + cantidad);
+                this.sel = existente;
+            } else {
+                this.lineas.push({
+                    uid: ++uid,
+                    id: articulo.id,
+                    clave: articulo.clave,
+                    descripcion: articulo.descripcion,
+                    unidad: articulo.unidad,
+                    decimales: articulo.decimales,
+                    granel: articulo.granel,
+                    inventariable: articulo.inventariable,
+                    existencia: articulo.existencia,
+                    precios: articulo.precios,
+                    cantidad: limpiarNumero(cantidad),
+                    descTipo: '',
+                    descValor: '',
+                });
+                this.sel = this.lineas.length - 1;
+            }
+
+            this.avisar('');
+            this.$nextTick(() => {
+                const fila = this.$refs.lista?.querySelector('[data-sel="true"]');
+                fila?.scrollIntoView({ block: 'nearest' });
+            });
+        },
+
+        confirmarPeso() {
+            const v = parseFloat(this.peso.valor);
+            if (!(v > 0)) return;
+            this.agregar(this.peso.articulo, v);
+            this.modal = null;
+            this.enfocar();
+        },
+
+        cambiarCantidad(i, delta) {
+            const l = this.lineas[i];
+            if (!l) return;
+            const paso = l.decimales && l.granel ? 0.1 : 1;
+            const nueva = Math.max(parseFloat(l.cantidad || 0) + delta * paso, 0);
+            if (nueva <= 0) { this.quitar(i); return; }
+            l.cantidad = limpiarNumero(nueva);
+        },
+
+        fijarCantidad(i, valor) {
+            const l = this.lineas[i];
+            let v = parseFloat(valor);
+            if (!(v > 0)) { l.cantidad = limpiarNumero(l.cantidad) || '1'; return; }
+            if (!l.decimales) v = Math.round(v) || 1;
+            l.cantidad = limpiarNumero(v);
+        },
+
+        quitar(i) {
+            this.lineas.splice(i, 1);
+            this.sel = Math.min(this.sel, this.lineas.length - 1);
+            this.enfocar();
+        },
+
+        vaciar() {
+            if (!this.lineas.length) return;
+            if (!confirm('¿Quitar todos los artículos de esta venta?')) return;
+            this.limpiarVenta();
+        },
+
+        limpiarVenta() {
+            this.lineas = [];
+            this.descGlobal = { tipo: '', valor: '' };
+            this.multiplicador = null;
+            this.sel = -1;
+            this.aviso = '';
+            this.enfocar();
+        },
+
+        async refrescarPrecios() {
+            const ids = [...new Set(this.lineas.map((l) => l.id))];
+            if (!ids.length) return;
+            try {
+                const r = await fetch(`${this.cfg.urlPorIds}?ids=${ids.join(',')}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                if (!r.ok) return;
+                const { articulos } = await r.json();
+                const porId = Object.fromEntries(articulos.map((a) => [a.id, a]));
+                const antes = this.lineas.length;
+                this.lineas = this.lineas.filter((l) => porId[l.id]);
+                let cambios = antes !== this.lineas.length;
+                this.lineas.forEach((l) => {
+                    const a = porId[l.id];
+                    if (JSON.stringify(l.precios) !== JSON.stringify(a.precios)) cambios = true;
+                    l.precios = a.precios;
+                    l.descripcion = a.descripcion;
+                    l.existencia = a.existencia;
+                });
+                if (cambios) this.avisar('Se actualizaron precios o artículos de esta venta.', 'info', 6000);
+            } catch { /* si falla, el servidor revalida al cobrar */ }
+        },
+
+        // ─── Búsqueda por descripción (F2) ──────────────────────────────────────────
+        abrirBusqueda(texto = '', resultados = []) {
+            this.busqueda = { texto, resultados, cargando: false, enfocado: 0 };
+            this.modal = 'buscar';
+            this.$nextTick(() => this.$refs.buscarTexto?.focus());
+        },
+
+        async buscarTexto() {
+            const texto = this.busqueda.texto.trim();
+            if (texto.length < 2) { this.busqueda.resultados = []; return; }
+            this.busqueda.cargando = true;
+            try {
+                const { articulos } = await this.consultar(texto);
+                if (texto === this.busqueda.texto.trim()) { this.busqueda.resultados = articulos; this.busqueda.enfocado = 0; }
+            } catch (e) {
+                this.avisar(e.message, 'error');
+            }
+            this.busqueda.cargando = false;
+        },
+
+        elegirResultado(a) {
+            this.modal = null;
+            this.agregar(a, this.multiplicador);
+            this.multiplicador = null;
+            this.enfocar();
+        },
+
+        // ─── Descuentos ─────────────────────────────────────────────────────────────
+        abrirDescuentoGeneral() {
+            if (!this.cfg.puedeDescuento) { this.avisar('No tienes permiso para dar descuentos.', 'error'); return; }
+            if (!this.lineas.length) return;
+            this.modal = 'descuento';
+            this.$nextTick(() => this.$refs.descValor?.focus());
+        },
+
+        aplicarDescuentoGeneral() {
+            const v = parseFloat(this.descGlobal.valor);
+            if (!(v > 0)) this.descGlobal = { tipo: '', valor: '' };
+            else if (this.descGlobal.tipo === 'pct' && v > 100) { this.avisar('El descuento no puede pasar de 100%.', 'error'); return; }
+            this.modal = null;
+            this.enfocar();
+        },
+
+        quitarDescuentoGeneral() {
+            this.descGlobal = { tipo: '', valor: '' };
+            this.modal = null;
+            this.enfocar();
+        },
+
+        abrirDescuentoLinea(i) {
+            if (!this.cfg.puedeDescuento) { this.avisar('No tienes permiso para dar descuentos.', 'error'); return; }
+            const l = this.lineas[i];
+            this.descLinea = { indice: i, tipo: l.descTipo || 'pct', valor: l.descValor || '' };
+            this.modal = 'descLinea';
+            this.$nextTick(() => this.$refs.descLineaValor?.focus());
+        },
+
+        aplicarDescuentoLinea() {
+            const l = this.lineas[this.descLinea.indice];
+            const v = parseFloat(this.descLinea.valor);
+            if (!l) return;
+            if (!(v > 0)) { l.descTipo = ''; l.descValor = ''; }
+            else if (this.descLinea.tipo === 'pct' && v > 100) { this.avisar('El descuento no puede pasar de 100%.', 'error'); return; }
+            else { l.descTipo = this.descLinea.tipo; l.descValor = String(v); }
+            this.modal = null;
+            this.enfocar();
+        },
+
+        // ─── Cobro ──────────────────────────────────────────────────────────────────
+        payload() {
+            return this.lineas.map((l) => ({
+                articulo_id: l.id,
+                cantidad: String(l.cantidad),
+                descuento_tipo: l.descTipo || null,
+                descuento_valor: l.descTipo ? String(l.descValor) : null,
+            }));
+        },
+
+        descuentoPayload() {
+            return this.descGlobal.tipo && parseFloat(this.descGlobal.valor) > 0
+                ? { tipo: this.descGlobal.tipo, valor: String(this.descGlobal.valor) }
+                : {};
+        },
+
+        async abrirCobro() {
+            if (!this.lineas.length) { this.avisar('Agrega al menos un artículo.', 'error'); return; }
+            this.cobro = { pagos: [], procesando: true, error: '', totalServidor: null };
+            this.modal = 'cobro';
+
+            try {
+                const r = await this.$wire.previsualizar(this.payload(), this.descuentoPayload(), this.cfg.lista);
+                if (!r.ok) { this.cobro.error = r.mensaje; this.cobro.procesando = false; return; }
+                this.cobro.totalServidor = aCentavos(r.total);
+                this.cobro.pagos = [{ forma: 'efectivo', monto: r.total, referencia: '' }];
+                if (this.cobro.totalServidor !== this.total) this.avisar('El total se recalculó con los precios actuales.', 'info', 5000);
+            } catch (e) {
+                this.cobro.error = 'No se pudo conectar con el servidor. Revisa tu internet.';
+            }
+            this.cobro.procesando = false;
+            this.$nextTick(() => this.$refs.montoCobro?.select?.());
+        },
+
+        get totalCobro() {
+            return this.cobro.totalServidor ?? this.total;
+        },
+        get sinEfectivo() {
+            return this.cobro.pagos.filter((p) => p.forma !== 'efectivo').reduce((s, p) => s + aCentavos(p.monto), 0);
+        },
+        get efectivoRecibido() {
+            return this.cobro.pagos.filter((p) => p.forma === 'efectivo').reduce((s, p) => s + aCentavos(p.monto), 0);
+        },
+        get efectivoNecesario() {
+            return Math.max(this.totalCobro - this.sinEfectivo, 0);
+        },
+        get faltante() {
+            return Math.max(this.efectivoNecesario - this.efectivoRecibido, 0);
+        },
+        get cambio() {
+            return Math.max(this.efectivoRecibido - this.efectivoNecesario, 0);
+        },
+        get puedeConfirmar() {
+            return !this.cobro.procesando
+                && this.cobro.totalServidor !== null
+                && this.sinEfectivo <= this.totalCobro
+                && this.faltante === 0
+                && !(this.efectivoNecesario === 0 && this.efectivoRecibido > 0);
+        },
+
+        agregarPago(forma) {
+            const restante = Math.max(this.totalCobro - this.sinEfectivo - this.efectivoRecibido, 0);
+            this.cobro.pagos.push({ forma, monto: (restante / 100).toFixed(2), referencia: '' });
+        },
+        quitarPago(i) {
+            this.cobro.pagos.splice(i, 1);
+        },
+        fijarEfectivo(centavos) {
+            const fila = this.cobro.pagos.find((p) => p.forma === 'efectivo');
+            const monto = (Math.max(centavos, this.efectivoNecesario) / 100).toFixed(2);
+            if (fila) fila.monto = monto;
+            else this.cobro.pagos.push({ forma: 'efectivo', monto, referencia: '' });
+        },
+        get billetes() {
+            return [50, 100, 200, 500, 1000].map((b) => b * 100).filter((b) => b >= this.efectivoNecesario && this.efectivoNecesario > 0).slice(0, 4);
+        },
+
+        async confirmarCobro() {
+            if (!this.puedeConfirmar) return;
+            this.cobro.procesando = true;
+            this.cobro.error = '';
+
+            try {
+                const pagos = this.cobro.pagos
+                    .filter((p) => aCentavos(p.monto) > 0)
+                    .map((p) => ({ forma: p.forma, monto: String(p.monto), referencia: p.referencia || null }));
+
+                const r = await this.$wire.cobrar(this.payload(), pagos, this.descuentoPayload(), this.cfg.lista);
+
+                if (!r.ok) {
+                    this.cobro.error = r.mensaje;
+                    this.cobro.procesando = false;
+                    return;
+                }
+
+                this.exito = r;
+                this.limpiarVenta();
+                this.modal = 'exito';
+                if (this.cfg.autoImprimir) this.imprimirTicket(r.id);
+            } catch (e) {
+                this.cobro.error = 'No se pudo conectar con el servidor. La venta NO se registró: revisa tu internet e inténtalo de nuevo.';
+            }
+            this.cobro.procesando = false;
+        },
+
+        imprimirTicket(id) {
+            const marco = document.createElement('iframe');
+            marco.style.cssText = 'position:fixed;width:0;height:0;border:0;visibility:hidden';
+            marco.src = this.cfg.urlTicket.replace('__ID__', id) + '?imprimir=1';
+            document.body.appendChild(marco);
+            setTimeout(() => marco.remove(), 60000);
+        },
+
+        nuevaVenta() {
+            this.exito = null;
+            this.modal = null;
+            this.enfocar();
+        },
+
+        // ─── Ventas en espera ───────────────────────────────────────────────────────
+        async guardarEnEspera() {
+            if (!this.lineas.length) { this.avisar('No hay nada que guardar.', 'error'); return; }
+            const r = await this.$wire.guardarEspera(this.lineas, this.descGlobal, this.esperas.nombre || null);
+            if (!r.ok) { this.avisar(r.mensaje, 'error'); return; }
+            this.limpiarVenta();
+            this.modal = null;
+            this.esperas.nombre = '';
+            this.avisar('Venta guardada en espera. Ya puedes atender a otro cliente.', 'ok');
+        },
+
+        async abrirEsperas() {
+            this.modal = 'esperas';
+            this.esperas.cargando = true;
+            this.esperas.lista = await this.$wire.listarEsperas();
+            this.esperas.cargando = false;
+        },
+
+        async recuperarEspera(id) {
+            if (this.lineas.length) { this.avisar('Termina o guarda la venta actual antes de recuperar otra.', 'error'); return; }
+            const r = await this.$wire.recuperarEspera(id);
+            if (!r.ok) { this.avisar(r.mensaje, 'error'); return; }
+            this.lineas = r.lineas.map((l) => ({ ...l, uid: ++uid }));
+            this.descGlobal = r.descGlobal || { tipo: '', valor: '' };
+            this.modal = null;
+            await this.refrescarPrecios();
+            this.avisar('Venta recuperada.', 'ok');
+            this.enfocar();
+        },
+
+        async descartarEspera(id) {
+            if (!confirm('¿Descartar esta venta en espera?')) return;
+            await this.$wire.descartarEspera(id);
+            this.esperas.lista = this.esperas.lista.filter((e) => e.id !== id);
+        },
+
+        // ─── Alta rápida ────────────────────────────────────────────────────────────
+        abrirAlta(clave = '') {
+            this.alta = { ...this.alta, clave, descripcion: '', precio: '', error: '', guardando: false };
+            this.modal = 'alta';
+            this.$nextTick(() => this.$refs.altaDescripcion?.focus());
+        },
+
+        async guardarAlta() {
+            this.alta.guardando = true;
+            this.alta.error = '';
+            const r = await this.$wire.altaRapida({
+                clave: this.alta.clave,
+                descripcion: this.alta.descripcion,
+                precio: this.alta.precio,
+                departamento_id: this.alta.departamento_id,
+                unidad_medida_id: this.alta.unidad_medida_id,
+                iva_id: this.alta.iva_id,
+            });
+            this.alta.guardando = false;
+            if (!r.ok) { this.alta.error = r.mensaje; return; }
+            this.modal = null;
+            this.agregar(r.articulo, this.multiplicador);
+            this.multiplicador = null;
+            this.avisar(`Artículo «${r.articulo.descripcion}» creado y agregado.`, 'ok');
+            this.enfocar();
+        },
+
+        // ─── Teclado ────────────────────────────────────────────────────────────────
+        teclado(e) {
+            const enModal = this.modal !== null;
+
+            if (e.key === 'Escape') {
+                if (enModal && this.modal !== 'exito') { this.modal = null; this.enfocar(); e.preventDefault(); }
+                else if (this.modal === 'exito') this.nuevaVenta();
+                else if (this.multiplicador) { this.multiplicador = null; this.aviso = ''; }
+                return;
+            }
+
+            if (this.modal === 'exito' && e.key === 'Enter') { e.preventDefault(); this.nuevaVenta(); return; }
+            if (this.modal === 'cobro' && e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); this.confirmarCobro(); return; }
+
+            const teclas = {
+                F2: () => this.abrirBusqueda(),
+                F3: () => (this.lineas.length ? (this.modal = 'espera-guardar') : this.avisar('No hay nada que guardar.', 'error')),
+                F4: () => this.abrirEsperas(),
+                F6: () => this.abrirDescuentoGeneral(),
+                F8: () => this.abrirCobro(),
+            };
+
+            if (teclas[e.key]) { e.preventDefault(); if (!e.repeat && !enModal) teclas[e.key](); return; }
+            if (e.key === 'Enter' && e.ctrlKey && !enModal) { e.preventDefault(); this.abrirCobro(); return; }
+            if (enModal) return;
+
+            const vacio = this.entrada === '';
+            if (e.key === 'ArrowDown' && this.lineas.length) { e.preventDefault(); this.sel = Math.min(this.sel + 1, this.lineas.length - 1); }
+            else if (e.key === 'ArrowUp' && this.lineas.length) { e.preventDefault(); this.sel = Math.max(this.sel - 1, 0); }
+            else if (e.key === 'Delete' && vacio && this.sel >= 0) { e.preventDefault(); this.quitar(this.sel); }
+            else if ((e.key === '+' || e.key === 'Add') && vacio && this.sel >= 0) { e.preventDefault(); this.cambiarCantidad(this.sel, 1); }
+            else if ((e.key === '-' || e.key === 'Subtract') && vacio && this.sel >= 0) { e.preventDefault(); this.cambiarCantidad(this.sel, -1); }
+        },
+    }));
+}

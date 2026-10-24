@@ -16,14 +16,15 @@ final class Folios
             throw new \LogicException('Los folios deben generarse dentro de una transacción.');
         }
 
-        DB::table('folios')->insertOrIgnore(['serie' => $serie, 'ultimo' => 0]);
+        // El UPDATE toma directo el candado de escritura (sin pasar por uno de lectura), lo que evita bloqueos cruzados entre cobros simultáneos.
+        $filas = DB::table('folios')->where('serie', $serie)->increment('ultimo');
 
-        $actual = (int) DB::table('folios')->where('serie', $serie)->lockForUpdate()->value('ultimo');
-        $siguiente = $actual + 1;
+        if ($filas === 0) {
+            DB::table('folios')->insertOrIgnore(['serie' => $serie, 'ultimo' => 0]);
+            DB::table('folios')->where('serie', $serie)->increment('ultimo');
+        }
 
-        DB::table('folios')->where('serie', $serie)->update(['ultimo' => $siguiente]);
-
-        return $siguiente;
+        return (int) DB::table('folios')->where('serie', $serie)->value('ultimo');
     }
 
     public static function formato(string $serie, int $numero): string

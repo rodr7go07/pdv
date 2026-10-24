@@ -77,7 +77,15 @@ class RegistrarDevolucion
             throw ValidationException::withMessages(['motivo' => 'Escribe el motivo de la devolución (máximo 255 caracteres).']);
         }
 
-        $items = collect($items)->filter(fn ($i) => isset($i['cantidad']) && is_numeric($i['cantidad']) && (float) $i['cantidad'] > 0)->values()->all();
+        // Una misma partida repetida (o con el id escrito de otra forma) se suma, para validarla una sola vez contra lo disponible.
+        $items = collect($items)
+            ->filter(fn ($i) => isset($i['partida_id'], $i['cantidad']) && is_numeric($i['cantidad']) && (float) $i['cantidad'] > 0)
+            ->groupBy(fn ($i) => (int) $i['partida_id'])
+            ->map(fn ($grupo, $id) => [
+                'partida_id' => $id,
+                'cantidad' => (string) $grupo->reduce(fn (BigDecimal $c, $i) => $c->plus(trim((string) $i['cantidad'])), BigDecimal::zero()),
+            ])
+            ->values()->all();
 
         if ($items === []) {
             throw ValidationException::withMessages(['items' => 'Indica cuántas piezas se devuelven.']);
@@ -121,9 +129,17 @@ class RegistrarDevolucion
                     throw ValidationException::withMessages(["items.$i" => "«{$partida->descripcion}» solo admite piezas completas."]);
                 }
 
+                // Monto acumulado: lo que corresponde a todo lo devuelto hasta ahora menos lo ya reembolsado.
+                // Así el redondeo de cada devolución parcial nunca hace que se pague más de lo cobrado.
+                $pendiente = BigDecimal::of((string) $partida->total)->minus((string) $partida->monto_devuelto);
                 $monto = $cantidad->isEqualTo($disponible)
-                    ? BigDecimal::of((string) $partida->total)->minus((string) $partida->monto_devuelto)
-                    : BigDecimal::of((string) $partida->total)->multipliedBy($cantidad)->dividedBy((string) $partida->cantidad, 2, RoundingMode::HalfUp);
+                    ? $pendiente
+                    : BigDecimal::of((string) $partida->total)
+                        ->multipliedBy(BigDecimal::of((string) $partida->cantidad_devuelta)->plus($cantidad))
+                        ->dividedBy((string) $partida->cantidad, 2, RoundingMode::HalfUp)
+                        ->minus((string) $partida->monto_devuelto);
+
+                $monto = $monto->isNegative() ? BigDecimal::zero() : ($monto->isGreaterThan($pendiente) ? $pendiente : $monto);
 
                 $renglones[] = ['partida' => $partida, 'cantidad' => $cantidad, 'monto' => $monto->toScale(2, RoundingMode::HalfUp)];
                 $total = $total->plus($monto);
@@ -145,6 +161,9 @@ class RegistrarDevolucion
             if ($montoCredito->isPositive()) {
                 ($this->cuenta)($venta->cliente_id, 'devolucion', (string) $montoCredito, $usuario, $venta, $turno->id, nota: $devolucion->folio);
             }
+
+            // Se bloquean los artículos en orden de id, igual que al vender, para evitar bloqueos cruzados.
+            usort($renglones, fn (array $a, array $b) => $a['partida']->articulo_id <=> $b['partida']->articulo_id);
 
             foreach ($renglones as $r) {
                 /** @var VentaPartida $partida */

@@ -70,6 +70,9 @@ class RegistrarVenta
                 }
 
                 $lista = $cliente->lista_precios;
+            } else {
+                // Sin cliente solo existe el precio 1: el mayoreo es una decisión del dueño (lista del cliente).
+                $lista = 1;
             }
 
             // Bloqueo en orden fijo para que dos ventas simultáneas no se crucen.
@@ -170,7 +173,7 @@ class RegistrarVenta
      */
     public function calcular(User $usuario, array $lineas, array $descuentoGlobal = [], int $lista = 1, ?Cliente $cliente = null): array
     {
-        $lista = $cliente?->lista_precios ?? $lista;
+        $lista = $cliente?->lista_precios ?? 1;
         $this->autorizar($usuario, $lineas, $descuentoGlobal);
         $this->validarLineas($lineas, $descuentoGlobal, $lista);
 

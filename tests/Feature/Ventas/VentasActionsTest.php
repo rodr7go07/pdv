@@ -100,11 +100,17 @@ it('ignora los precios de la pantalla y usa los de la base de datos', function (
     expect($venta->total)->toBe('25.00');
 });
 
-it('usa la lista de precios elegida y cae al precio 1 si no existe', function () {
-    $v2 = venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '23')], lista: 2);
-    $v3 = venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '25')], lista: 3); // sin precio 3
+it('sin cliente siempre cobra el precio 1; con cliente usa su lista y cae al precio 1 si no existe', function () {
+    $sin = venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '25')], lista: 2);
 
-    expect($v2->total)->toBe('23.00')->and($v3->total)->toBe('25.00');
+    $caja = $this->caja;
+    $mayorista = \App\Models\Cliente::factory()->create(['lista_precios' => 2]);
+    $con2 = app(RegistrarVenta::class)($caja, $this->cajero, [['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '23')], [], 1, $mayorista);
+
+    $sinPrecio3 = \App\Models\Cliente::factory()->create(['lista_precios' => 3]);
+    $con3 = app(RegistrarVenta::class)($caja, $this->cajero, [['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '25')], [], 1, $sinPrecio3);
+
+    expect($sin->total)->toBe('25.00')->and($con2->total)->toBe('23.00')->and($con3->total)->toBe('25.00');
 });
 
 it('vende a granel con decimales y respeta unidades enteras', function () {

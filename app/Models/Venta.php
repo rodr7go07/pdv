@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'serie', 'numero', 'folio', 'caja_id', 'user_id', 'estado', 'lista_precios',
+    'serie', 'numero', 'folio', 'caja_id', 'turno_id', 'user_id', 'estado', 'lista_precios',
     'subtotal', 'descuento', 'impuestos', 'total', 'efectivo_recibido', 'cambio',
     'cancelada_at', 'cancelada_por', 'motivo_cancelacion',
 ])]
@@ -34,6 +34,11 @@ class Venta extends Model
     public function caja(): BelongsTo
     {
         return $this->belongsTo(Caja::class)->withTrashed();
+    }
+
+    public function turno(): BelongsTo
+    {
+        return $this->belongsTo(Turno::class);
     }
 
     public function cajero(): BelongsTo

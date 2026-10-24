@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table('devoluciones')]
-#[Fillable(['folio', 'venta_id', 'user_id', 'motivo', 'total', 'forma'])]
+#[Fillable(['folio', 'venta_id', 'turno_id', 'user_id', 'motivo', 'total', 'forma'])]
 class Devolucion extends Model
 {
     protected function casts(): array
@@ -20,6 +20,11 @@ class Devolucion extends Model
     public function venta(): BelongsTo
     {
         return $this->belongsTo(Venta::class);
+    }
+
+    public function turno(): BelongsTo
+    {
+        return $this->belongsTo(Turno::class);
     }
 
     public function usuario(): BelongsTo

@@ -32,6 +32,8 @@ enum Permiso: string
     case CajaAbrir = 'caja.abrir';
     case CajaRetiro = 'caja.retiro';
     case CajaCorte = 'caja.corte';
+    case CajaSupervisar = 'caja.supervisar';
+    case CajasAdministrar = 'cajas.administrar';
 
     case ReportesVer = 'reportes.ver';
 

@@ -142,11 +142,12 @@ new #[Layout('layouts.app')] class extends Component
 
 <div>
     <x-slot name="titulo">Reportes</x-slot>
-    <x-slot name="acciones">
+    {{-- Va dentro del componente (no en el encabezado del layout) para que siga la pestaña y las fechas elegidas --}}
+    <div class="mb-4 flex justify-end">
         <a href="{{ $this->urlExportar() }}" class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
             <x-phosphor-file-xls-bold class="size-4" /> Exportar a Excel
         </a>
-    </x-slot>
+    </div>
 
     @php
         $m = fn ($v) => '$'.number_format((float) $v, 2);

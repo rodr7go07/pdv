@@ -58,7 +58,7 @@ export function registrarPos(Alpine) {
         init() {
             const previo = guardado.leer(this.claveGuardado());
             if (previo && Array.isArray(previo.lineas) && previo.lineas.length) {
-                this.lineas = previo.lineas;
+                this.lineas = previo.lineas.map((l) => ({ ...l, uid: ++uid }));
                 this.descGlobal = previo.descGlobal || { tipo: '', valor: '' };
                 this.cliente = this.cfg.puedeCliente ? (previo.cliente || null) : null;
                 this.refrescarPrecios();
@@ -67,6 +67,16 @@ export function registrarPos(Alpine) {
             this.$watch('lineas', () => this.persistir());
             this.$watch('descGlobal', () => this.persistir());
             this.$watch('cliente', () => this.persistir());
+            // Al abrir una ventana, el cursor pasa a su primer campo (con un respiro para que termine de mostrarse).
+            this.$watch('modal', (nombre) => {
+                if (!nombre || nombre === 'exito' || nombre === 'esperas') return;
+                setTimeout(() => {
+                    if (this.modal !== nombre) return;
+                    const ventana = [...document.querySelectorAll('[x-show]')].find((el) => el.getAttribute('x-show') === `modal === '${nombre}'`);
+                    const campo = ventana && [...ventana.querySelectorAll('input:not([type=hidden]), textarea')].find((c) => c.offsetParent !== null);
+                    if (campo) { campo.focus(); campo.select?.(); }
+                }, 80);
+            });
             this.enfocar();
         },
 

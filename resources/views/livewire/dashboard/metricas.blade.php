@@ -126,7 +126,7 @@ new class extends Component
         </div>
     </section>
 
-    <div class="grid items-start gap-6 lg:grid-cols-2">
+    <div class="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-2">
         <x-card titulo="Lo más vendido hoy" :padding="false">
             @if ($this->top->isEmpty())
                 <div class="p-5"><p class="text-sm text-anil-700">Todavía no hay ventas hoy.</p></div>
@@ -162,7 +162,7 @@ new class extends Component
         </x-card>
     </div>
 
-    <div class="grid items-start gap-6 lg:grid-cols-2">
+    <div class="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-2">
         <x-card titulo="Cajas abiertas" :padding="false">
             @if ($this->turnosAbiertos->isEmpty())
                 <div class="p-5"><p class="text-sm text-anil-700">No hay ningún turno abierto.</p></div>

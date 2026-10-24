@@ -101,7 +101,7 @@ new #[Layout('layouts.app')] class extends Component
         <p class="mb-5 flex items-start gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200" role="status"><x-phosphor-check-circle-bold class="mt-0.5 size-5 shrink-0" /> {{ $exito }}</p>
     @endif
 
-    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <x-card :padding="false">
             <ul class="divide-y divide-anil-50">
                 @foreach ($this->lista as $u)

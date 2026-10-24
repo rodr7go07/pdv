@@ -295,7 +295,8 @@
                 elseif ($tipo === 'tabla') { foreach ($valor as $fila) { $partes[] = implode(' ', $fila); } }
             }
         }
-        return mb_strtolower(strip_tags(str_replace('**', '', implode(' ', $partes))));
+        // Sin acentos y en minúsculas: el buscador compara contra este texto igual de simplificado.
+        return mb_strtolower(\Illuminate\Support\Str::ascii(strip_tags(str_replace('**', '', implode(' ', $partes)))));
     };
 
     // **negritas** y *cursivas* sencillas, con el texto escapado.
@@ -311,7 +312,7 @@
 <x-app-layout>
     <x-slot name="titulo">Guía de uso</x-slot>
 
-    <div x-data="{ q: '', n(t) { return (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }, visibles() { return [...$refs.secciones.querySelectorAll('[data-seccion]')].filter(e => e.style.display !== 'none').length; } }" class="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
+    <div x-data="{ q: '', get qn() { return this.q.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }, vistas: 1, filtrar() { let n = 0; this.$refs.secciones.querySelectorAll('[data-seccion]').forEach((e) => { const ok = this.qn === '' || e.dataset.texto.includes(this.qn); e.style.display = ok ? '' : 'none'; if (ok) n++; }); this.vistas = n; } }" x-effect="filtrar()" class="grid items-start gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
 
         {{-- Índice --}}
         <aside class="lg:sticky lg:top-8">
@@ -341,9 +342,7 @@
 
             <div x-ref="secciones" class="space-y-6">
                 @foreach ($secciones as $s)
-                    <section id="{{ $s['id'] }}" data-seccion data-texto="{{ $texto($s) }}"
-                             x-show="n(q) === '' || n($el.dataset.texto).includes(n(q))"
-                             class="scroll-mt-6 rounded-2xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)] sm:p-7">
+                    <section id="{{ $s['id'] }}" data-seccion data-texto="{{ $texto($s) }}"                             class="scroll-mt-6 rounded-2xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)] sm:p-7">
                         <header class="mb-4 flex items-start gap-4">
                             <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-anil-900 text-rosa-400">{{ svg('phosphor-'.$s['icono'].'-fill', 'size-6') }}</span>
                             <div class="min-w-0">
@@ -415,7 +414,7 @@
                 @endforeach
             </div>
 
-            <div x-show="q.trim() !== '' && visibles() === 0" x-cloak class="mt-4">
+            <div x-show="qn !== '' && vistas === 0" x-cloak class="mt-4">
                 <x-empty icono="magnifying-glass" titulo="No encontramos nada con esa palabra" texto="Prueba con otra palabra más sencilla, como «cobrar», «cerrar», «cliente» o «precio»." />
             </div>
 

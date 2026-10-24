@@ -10,6 +10,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('layouts.partials.head', ['titulo' => $tituloPagina])
+        @livewireStyles
     </head>
     <body class="bg-papel antialiased">
 
@@ -184,5 +185,6 @@
                 </div>
             @endif
         </div>
+        @livewireScripts
     </body>
 </html>

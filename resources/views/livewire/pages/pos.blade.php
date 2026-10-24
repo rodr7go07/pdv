@@ -489,7 +489,7 @@ new #[Layout('layouts.pos')] class extends Component
                     </div>
                 </div>
                 <div class="flex items-center gap-2 px-4 pb-3 lg:flex-col-reverse lg:items-stretch lg:px-5 lg:pb-5">
-                    <button type="button" x-on:click="vaciar()" x-show="lineas.length" x-cloak class="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-peligro hover:bg-red-50">
+                    <button type="button" x-on:click="vaciar()" x-show="lineas.length" x-cloak aria-label="Vaciar la venta" class="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-peligro hover:bg-red-50">
                         <x-phosphor-trash-bold class="size-4" /> <span class="hidden sm:inline lg:inline">Vaciar</span>
                     </button>
                     <button type="button" x-on:click="abrirCobro()" :disabled="!lineas.length"

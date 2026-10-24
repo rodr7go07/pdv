@@ -104,7 +104,7 @@ new #[Layout('layouts.app')] class extends Component
         </div>
     @endif
 
-    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div class="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="space-y-6">
             <x-card titulo="Artículos" :padding="false">
                 <div class="overflow-x-auto">

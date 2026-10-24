@@ -44,8 +44,8 @@ new #[Layout('layouts.app')] class extends Component
     public function turnos()
     {
         return Turno::query()->with(['caja', 'usuario:id,name'])
-            ->when($this->desde !== '', fn ($q) => $q->whereDate('abierto_at', '>=', $this->desde))
-            ->when($this->hasta !== '', fn ($q) => $q->whereDate('abierto_at', '<=', $this->hasta))
+            ->when(\App\Support\Fecha::inicio($this->desde), fn ($q, $d) => $q->where('abierto_at', '>=', $d))
+            ->when(\App\Support\Fecha::fin($this->hasta), fn ($q, $h) => $q->where('abierto_at', '<=', $h))
             ->when($this->caja !== '', fn ($q) => $q->where('caja_id', $this->caja))
             ->when($this->estado !== '', fn ($q) => $q->where('estado', $this->estado))
             ->latest('abierto_at')->paginate(20);

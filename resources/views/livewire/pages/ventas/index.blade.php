@@ -68,8 +68,8 @@ new #[Layout('layouts.app')] class extends Component
         return Venta::query()
             ->when(! $this->veTodas, fn ($q) => $q->where('user_id', auth()->id()))
             ->when($this->buscar !== '', fn ($q) => $q->where('folio', 'like', '%'.addcslashes($this->buscar, '%_\\').'%'))
-            ->when($this->desde !== '', fn ($q) => $q->whereDate('created_at', '>=', $this->desde))
-            ->when($this->hasta !== '', fn ($q) => $q->whereDate('created_at', '<=', $this->hasta))
+            ->when(\App\Support\Fecha::inicio($this->desde), fn ($q, $d) => $q->where('created_at', '>=', $d))
+            ->when(\App\Support\Fecha::fin($this->hasta), fn ($q, $h) => $q->where('created_at', '<=', $h))
             ->when($this->caja !== '', fn ($q) => $q->where('caja_id', $this->caja))
             ->when($this->veTodas && $this->cajero !== '', fn ($q) => $q->where('user_id', $this->cajero))
             ->when($this->estado !== '', fn ($q) => $q->where('estado', $this->estado));

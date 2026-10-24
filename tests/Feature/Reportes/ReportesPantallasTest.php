@@ -6,6 +6,7 @@ use App\Models\Articulo;
 use App\Models\Caja;
 use App\Models\User;
 use App\Models\Venta;
+use App\Services\ReporteVentas;
 use Database\Seeders\CatalogosBaseSeeder;
 use Database\Seeders\RolesYPermisosSeeder;
 use Livewire\Volt\Volt;
@@ -119,4 +120,12 @@ it('el tablero tolera un negocio sin ventas', function () {
     Venta::query()->delete();
 
     $this->actingAs($nuevo)->get('/dashboard')->assertOk()->assertSee('Todavía no hay ventas hoy');
+});
+
+it('unas fechas inválidas no rompen los reportes ni los listados', function () {
+    $this->actingAs($this->admin)->get('/reportes?desde=abc&hasta=2026-99-99')->assertOk();
+    $this->actingAs($this->admin)->get('/ventas?desde=abc')->assertOk();
+
+    // Una fecha inválida se reemplaza por hoy en lugar de dar error.
+    expect((new ReporteVentas('abc', 'xyz'))->desde->isToday())->toBeTrue();
 });

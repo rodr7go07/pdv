@@ -54,8 +54,8 @@ new #[Layout('layouts.app')] class extends Component
                 ->orWhere('factura', 'like', '%'.addcslashes($this->buscar, '%_\\').'%')))
             ->when($this->proveedor !== '', fn ($q) => $q->where('proveedor_id', $this->proveedor))
             ->when($this->estado !== '', fn ($q) => $q->where('estado', $this->estado))
-            ->when($this->desde !== '', fn ($q) => $q->whereDate('fecha', '>=', $this->desde))
-            ->when($this->hasta !== '', fn ($q) => $q->whereDate('fecha', '<=', $this->hasta))
+            ->when(\App\Support\Fecha::dia($this->desde), fn ($q, $d) => $q->where('fecha', '>=', $d->toDateString()))
+            ->when(\App\Support\Fecha::dia($this->hasta), fn ($q, $h) => $q->where('fecha', '<=', $h->toDateString()))
             ->latest('fecha')->latest('id')
             ->paginate(15);
     }

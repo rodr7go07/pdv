@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Fecha;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Carbon\CarbonImmutable;
@@ -28,8 +29,8 @@ final class ReporteVentas
         public ?int $cajaId = null,
         public ?int $userId = null,
     ) {
-        $this->desde = CarbonImmutable::parse($desde)->startOfDay();
-        $this->hasta = CarbonImmutable::parse($hasta)->endOfDay();
+        $this->desde = Fecha::inicio($desde) ?? CarbonImmutable::today();
+        $this->hasta = Fecha::fin($hasta) ?? CarbonImmutable::today()->endOfDay();
     }
 
     /** Partidas de ventas completadas del periodo y filtros. */

@@ -46,8 +46,8 @@ new #[Layout('layouts.app')] class extends Component
         return $this->articulo->movimientos()
             ->with('usuario:id,name', 'referencia')
             ->when($this->tipo !== '', fn ($q) => $q->where('tipo', $this->tipo))
-            ->when($this->desde !== '', fn ($q) => $q->whereDate('created_at', '>=', $this->desde))
-            ->when($this->hasta !== '', fn ($q) => $q->whereDate('created_at', '<=', $this->hasta))
+            ->when(\App\Support\Fecha::inicio($this->desde), fn ($q, $d) => $q->where('created_at', '>=', $d))
+            ->when(\App\Support\Fecha::fin($this->hasta), fn ($q, $h) => $q->where('created_at', '<=', $h))
             ->paginate(25);
     }
 

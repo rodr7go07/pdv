@@ -25,7 +25,7 @@ it('trae todos los archivos de despliegue', function (string $archivo) {
 ]);
 
 it('los scripts no tienen finales de línea de Windows (romperían en Linux)', function (string $script) {
-    expect(file_get_contents(base_path($script)))->not->toContain("\r");
+    expect(file_get_contents(base_path("deploy/scripts/{$script}.sh")))->not->toContain("\r");
 })->with(['provision', 'desplegar', 'respaldo', 'restaurar', 'salud'])->group('despliegue');
 
 it('la plantilla de producción apaga el modo de depuración y exige cookies seguras', function () {

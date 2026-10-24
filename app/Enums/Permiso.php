@@ -24,6 +24,7 @@ enum Permiso: string
     case ProveedoresAdministrar = 'proveedores.administrar';
 
     case VentasCobrar = 'ventas.cobrar';
+    case VentasVerTodas = 'ventas.ver_todas';
     case VentasDescuento = 'ventas.descuento';
     case VentasCancelar = 'ventas.cancelar';
     case VentasDevolver = 'ventas.devolver';

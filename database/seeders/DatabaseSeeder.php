@@ -11,7 +11,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
+        $this->call([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class, CajasSeeder::class]);
 
         Configuracion::actual();
 

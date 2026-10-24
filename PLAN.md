@@ -1,4 +1,4 @@
-﻿# Plan de trabajo — Punto de Venta (inspirado en SICAR)
+# Plan de trabajo — Punto de Venta (inspirado en SICAR)
 
 Sistema de punto de venta web para **una tienda** (la tienda de un amigo; él es el usuario final y quien resuelve las dudas de negocio), usable desde PC de caja, tablet y teléfono.
 Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router con failover 4G/5G) para mitigar caídas.
@@ -40,6 +40,12 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 21. **Folios:** tabla `folios` por serie, leída con `lockForUpdate` dentro de la transacción del documento (`App\Services\Folios`). Compras usan la serie `C` (`C-000001`).
 22. **Conteo físico:** al contar se guarda lo que decía el sistema; al aplicar se ajusta solo la *diferencia* (contado − sistema al contar), así las ventas hechas durante el conteo no se pierden. Se puede contar solo una parte del inventario.
 23. **Cancelar una compra** regresa las existencias (movimiento `cancelacion_compra`) pero no revierte los costos; el siguiente movimiento de compra los recalcula.
+24. **Caja (punto de venta):** el carrito vive en el navegador (Alpine) para que escanear sea instantáneo; al cobrar, el servidor vuelve a leer precios, impuestos y existencias de la base (con los artículos bloqueados) y recalcula todo. Nunca se confía en los precios que manda la pantalla. El dinero en el navegador se maneja en enteros (centavos) para coincidir con el servidor.
+25. **Descuentos:** por partida y general, por porcentaje o monto, siempre con permiso `ventas.descuento` (verificado en el servidor). El descuento general se reparte entre las partidas en proporción a su importe y la última absorbe el redondeo. Una venta no puede quedar en $0.
+26. **Pagos:** efectivo, tarjeta y transferencia, solos o mezclados. Tarjeta y transferencia se cobran exactos; solo el efectivo genera cambio. En `venta_pagos` el efectivo se guarda por lo aplicado a la venta; lo recibido y el cambio van en `ventas`.
+27. **Cancelar una venta:** requiere `ventas.cancelar` y motivo; regresa el inventario; no se permite si la venta ya tiene devoluciones. La venta no se borra (queda con quién, cuándo y por qué).
+28. **Devoluciones:** parciales por partida; reembolsan lo realmente cobrado (precio con su descuento); la última pieza absorbe el redondeo para que el total devuelto nunca pase de lo cobrado. El dinero se regresa en efectivo y las piezas vuelven al inventario.
+29. **Ticket:** HTML con CSS de impresión para 58 u 80 mm según la caja (`window.print()`); lo reimprime su cajero o quien tenga `ventas.ver_todas`. Las ventas en espera se guardan en base de datos por caja (máximo 30).
 
 ## Pendientes por decidir
 
@@ -90,19 +96,19 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 ## Fase 3 — Punto de venta (pantalla de caja)
 
-- [ ] Pantalla de venta optimizada para teclado y escáner: campo de captura siempre con foco, Enter agrega el artículo
-- [ ] Multiplicador de cantidad (ej. `5*` + código) y captura de peso para granel
-- [ ] Búsqueda por descripción (F-key o botón) cuando no hay código
-- [ ] Editar cantidad, eliminar partida, descuento por partida y global (con permiso)
-- [ ] Artículo no encontrado: aviso claro y, con permiso, alta rápida
-- [ ] Cobro: efectivo, tarjeta, transferencia y pago mixto; cálculo de cambio
-- [ ] Generación de folio y registro atómico (venta + partidas + movimientos de inventario + pago)
-- [ ] Ventas en espera (dejar una venta pendiente y atender a otro cliente)
-- [ ] Cancelación de venta con permiso y motivo (regresa inventario)
-- [ ] Devoluciones parciales
-- [ ] Reimpresión de ticket
-- [ ] Atajos de teclado documentados en pantalla
-- [ ] Prueba de carga básica: agregar 50 partidas sin degradación perceptible
+- [x] Pantalla de venta optimizada para teclado y escáner: campo de captura siempre con foco, Enter agrega el artículo
+- [x] Multiplicador de cantidad (ej. `5*` + código) y captura de peso para granel
+- [x] Búsqueda por descripción (F-key o botón) cuando no hay código
+- [x] Editar cantidad, eliminar partida, descuento por partida y global (con permiso)
+- [x] Artículo no encontrado: aviso claro y, con permiso, alta rápida
+- [x] Cobro: efectivo, tarjeta, transferencia y pago mixto; cálculo de cambio
+- [x] Generación de folio y registro atómico (venta + partidas + movimientos de inventario + pago)
+- [x] Ventas en espera (dejar una venta pendiente y atender a otro cliente)
+- [x] Cancelación de venta con permiso y motivo (regresa inventario)
+- [x] Devoluciones parciales
+- [x] Reimpresión de ticket
+- [x] Atajos de teclado documentados en pantalla
+- [x] Prueba de carga básica: agregar 50 partidas sin degradación perceptible
 
 **Entregable:** se puede vender de punta a punta con escáner.
 

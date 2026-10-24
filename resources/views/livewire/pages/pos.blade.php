@@ -470,6 +470,11 @@ new #[Layout('layouts.pos')] class extends Component
                 <p class="text-sm text-anil-700">Se vende a granel. ¿Cuánto es? <span x-text="peso.articulo ? '(' + peso.articulo.unidad + ')' : ''"></span></p>
                 <input x-model="peso.valor" x-on:keydown.enter.prevent="confirmarPeso()" x-effect="modal === 'peso' && $nextTick(() => $el.focus())" type="text" inputmode="decimal" autocomplete="off"
                        class="mt-4 block w-full rounded-lg border-2 border-anil-200 px-4 py-3 text-center font-mono text-3xl focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none" placeholder="0.000">
+                <button type="button" x-show="'serial' in navigator" x-cloak x-on:click="leerBascula()" :disabled="pesoLeyendo"
+                        class="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-anil-300 text-sm font-semibold text-anil-700 hover:bg-anil-50 disabled:opacity-50">
+                    <x-phosphor-scales-bold class="size-4" /> <span x-text="pesoLeyendo ? 'Leyendo…' : 'Leer de la báscula'"></span>
+                </button>
+                <p x-show="pesoError" x-text="pesoError" x-cloak class="mt-2 text-sm font-medium text-peligro" role="alert"></p>
                 <div class="mt-4 flex justify-end gap-3">
                     <x-secondary-button x-on:click="modal = null; enfocar()">Cancelar</x-secondary-button>
                     <x-primary-button type="button" x-on:click="confirmarPeso()">Agregar</x-primary-button>

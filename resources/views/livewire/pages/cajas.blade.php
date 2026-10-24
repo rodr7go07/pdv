@@ -117,6 +117,7 @@ new #[Layout('layouts.app')] class extends Component
                         </div>
                         @if ($c->turno_abierto)<x-badge tono="aviso">Turno abierto</x-badge>@endif
                         <x-badge :tono="$c->activa ? 'ok' : 'gris'">{{ $c->activa ? 'Activa' : 'Inactiva' }}</x-badge>
+                        <a href="{{ route('cajas.prueba', $c) }}" target="_blank" rel="noopener" class="grid size-11 place-items-center rounded-lg text-anil-700 hover:bg-anil-50" aria-label="Imprimir prueba de {{ $c->nombre }}" title="Imprimir prueba"><x-phosphor-printer-bold class="size-5" /></a>
                         <button type="button" wire:click="editar({{ $c->id }})" class="grid size-11 place-items-center rounded-lg text-anil-700 hover:bg-anil-50" aria-label="Editar {{ $c->nombre }}"><x-phosphor-pencil-simple-bold class="size-5" /></button>
                     </li>
                 @endforeach

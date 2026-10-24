@@ -84,6 +84,10 @@ new #[Layout('layouts.app')] class extends Component
 <div>
     <x-slot name="titulo">Artículos</x-slot>
     <x-slot name="acciones">
+        <a href="{{ route('articulos.etiquetas') }}" wire:navigate
+           class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
+            <x-phosphor-tag-bold class="size-4" /> Etiquetas
+        </a>
         @can('articulos.importar')
             <a href="{{ route('articulos.importar') }}" wire:navigate
                class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">

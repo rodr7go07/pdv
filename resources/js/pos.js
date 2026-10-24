@@ -45,6 +45,8 @@ export function registrarPos(Alpine) {
         descGlobal: { tipo: '', valor: '' },
         descLinea: { indice: -1, tipo: 'pct', valor: '' },
         peso: { articulo: null, valor: '' },
+        pesoError: '',
+        pesoLeyendo: false,
         alta: { clave: '', descripcion: '', precio: '', departamento_id: '', unidad_medida_id: '', iva_id: '', error: '', guardando: false },
         esperas: { lista: [], cargando: false, nombre: '' },
         cobro: { pagos: [], procesando: false, error: '', totalServidor: null },
@@ -239,6 +241,49 @@ export function registrarPos(Alpine) {
                 const fila = this.$refs.lista?.querySelector('[data-sel="true"]');
                 fila?.scrollIntoView({ block: 'nearest' });
             });
+        },
+
+        /*
+         * Lectura de báscula por puerto serie (Web Serial, solo Chrome o Edge). EXPERIMENTAL: no se ha
+         * probado con una báscula real. Toma el primer número que se repite dos veces seguidas
+         * (lectura estable). La velocidad (baudios) se puede cambiar guardando 'bascula-baud' en el navegador.
+         */
+        async leerBascula() {
+            this.pesoError = '';
+            if (!('serial' in navigator)) { this.pesoError = 'Este navegador no puede leer básculas. Usa Chrome o Edge.'; return; }
+
+            this.pesoLeyendo = true;
+            let puerto;
+            try {
+                puerto = await navigator.serial.requestPort();
+                await puerto.open({ baudRate: Number(localStorage.getItem('bascula-baud')) || 9600 });
+
+                const decodificador = new TextDecoderStream();
+                const cierre = puerto.readable.pipeTo(decodificador.writable).catch(() => {});
+                const lector = decodificador.readable.getReader();
+                const limite = Date.now() + 5000;
+                let texto = '';
+                let leido = '';
+
+                while (!leido && Date.now() < limite) {
+                    const { value, done } = await lector.read();
+                    if (done) break;
+                    texto += value;
+                    const numeros = [...texto.matchAll(/(\d+(?:[.,]\d+)?)/g)].map((m) => m[1].replace(',', '.'));
+                    if (numeros.length >= 2 && numeros.at(-1) === numeros.at(-2)) leido = numeros.at(-1);
+                }
+
+                await lector.cancel().catch(() => {});
+                await cierre;
+
+                if (leido && parseFloat(leido) > 0) this.peso.valor = String(parseFloat(leido));
+                else this.pesoError = 'No se obtuvo una lectura estable. Revisa que haya peso en la báscula.';
+            } catch (e) {
+                if (e.name !== 'NotFoundError') this.pesoError = 'No se pudo leer la báscula. Revisa el cable y la velocidad (baudios).';
+            } finally {
+                try { await puerto?.close(); } catch { /* ya estaba cerrado */ }
+                this.pesoLeyendo = false;
+            }
         },
 
         confirmarPeso() {

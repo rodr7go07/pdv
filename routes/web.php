@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CajaPruebaController;
 use App\Http\Controllers\CerrarSesionController;
 use App\Http\Controllers\CorteController;
 use App\Http\Controllers\PosController;
@@ -23,6 +24,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Volt::route('/', 'pages.articulos.index')->middleware('can:articulos.ver')->name('index');
         Volt::route('crear', 'pages.articulos.formulario')->middleware('can:articulos.crear')->name('crear');
         Volt::route('importar', 'pages.articulos.importar')->middleware('can:articulos.importar')->name('importar');
+        Volt::route('etiquetas', 'pages.articulos.etiquetas')->middleware('can:articulos.ver')->name('etiquetas');
         Volt::route('{articulo}/editar', 'pages.articulos.formulario')->middleware('can:articulos.editar')->name('editar');
     });
 
@@ -45,6 +47,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('cortes/{corte}', CorteController::class)->name('.corte');
     });
     Volt::route('cajas', 'pages.cajas')->middleware('can:cajas.administrar')->name('cajas');
+    Route::get('cajas/{caja}/prueba', CajaPruebaController::class)->middleware('can:cajas.administrar')->name('cajas.prueba');
 
     // Inventario y compras (Fase 2)
     Route::prefix('inventario')->name('inventario.')->group(function () {

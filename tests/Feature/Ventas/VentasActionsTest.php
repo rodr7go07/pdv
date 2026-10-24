@@ -22,6 +22,9 @@ beforeEach(function () {
     $this->caja = Caja::factory()->create(['serie' => 'A']);
     $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
+    $this->cajaEncargado = Caja::factory()->create(['serie' => 'E']);
+    abrirTurno($this->caja, $this->cajero);
+    abrirTurno($this->cajaEncargado, $this->encargado);
     $this->depto = Departamento::factory()->create();
     $this->pieza = UnidadMedida::factory()->create();
     $this->kilo = UnidadMedida::factory()->decimal()->create();
@@ -51,7 +54,10 @@ function pago(string $forma, string $monto, ?string $ref = null): array
 
 function venderTodo(array $lineas, array $pagos, array $global = [], ?User $usuario = null, int $lista = 1): Venta
 {
-    return app(RegistrarVenta::class)(test()->caja, $usuario ?? test()->cajero, $lineas, $pagos, $global, $lista);
+    $usuario ??= test()->cajero;
+    $caja = App\Models\Turno::abiertoDe($usuario)?->caja ?? test()->caja;
+
+    return app(RegistrarVenta::class)($caja, $usuario, $lineas, $pagos, $global, $lista);
 }
 
 // ─── Venta ───────────────────────────────────────────────────────────────────
@@ -177,14 +183,13 @@ it('no genera movimientos de inventario para artículos sin inventario', functio
 });
 
 it('asigna folios consecutivos por caja', function () {
-    $otra = Caja::factory()->create(['serie' => 'B']);
     $l = [['articulo_id' => $this->leche->id, 'cantidad' => '1']];
 
     $a1 = venderTodo($l, [pago('efectivo', '25')]);
     $a2 = venderTodo($l, [pago('efectivo', '25')]);
-    $b1 = app(RegistrarVenta::class)($otra, $this->cajero, $l, [pago('efectivo', '25')]);
+    $e1 = venderTodo($l, [pago('efectivo', '25')], usuario: $this->encargado);
 
-    expect([$a1->folio, $a2->folio, $b1->folio])->toBe(['A-000001', 'A-000002', 'B-000001']);
+    expect([$a1->folio, $a2->folio, $e1->folio])->toBe(['A-000001', 'A-000002', 'E-000001']);
 });
 
 it('revierte todo si algo falla a la mitad', function () {

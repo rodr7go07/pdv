@@ -20,6 +20,9 @@ beforeEach(function () {
     $this->admin = User::factory()->conRol(Rol::Administrador)->create();
     $this->cajero = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Cajero Uno']);
     $this->otroCajero = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Cajero Dos']);
+    $this->caja2 = Caja::factory()->create(['serie' => 'C', 'nombre' => 'Caja 2']);
+    abrirTurno($this->caja, $this->cajero);
+    abrirTurno($this->caja2, $this->otroCajero);
     $this->leche = Articulo::factory()->create([
         'clave' => '7501', 'descripcion' => 'LECHE ENTERA', 'precio_1' => '25', 'costo' => '15',
         'unidad_medida_id' => UnidadMedida::where('abreviatura', 'pza')->value('id'),
@@ -31,7 +34,7 @@ beforeEach(function () {
 function ventaDe(User $cajero, string $cantidad = '2'): Venta
 {
     return app(RegistrarVenta::class)(
-        Caja::first(), $cajero,
+        App\Models\Turno::abiertoDe($cajero)->caja, $cajero,
         [['articulo_id' => Articulo::first()->id, 'cantidad' => $cantidad]],
         [['forma' => 'efectivo', 'monto' => '500']],
     );
@@ -126,10 +129,12 @@ it('al cobrar con error no guarda nada y devuelve el mensaje', function () {
     expect($r['ok'])->toBeFalse()->and($r['mensaje'])->toContain('Falta dinero')->and(Venta::count())->toBe(0);
 });
 
-it('la caja sin cajas activas muestra un aviso', function () {
-    $this->caja->update(['activa' => false]);
+it('la caja sin turno abierto pide abrirlo', function () {
+    $sinTurno = User::factory()->conRol(Rol::Cajero)->create();
 
-    Volt::actingAs($this->cajero)->test('pages.pos')->assertSee('No hay una caja activa');
+    Volt::actingAs($sinTurno)->test('pages.pos')->assertSee('Abre tu turno')->assertSee('Abrir mi turno');
+    $c = Volt::actingAs($sinTurno)->test('pages.pos')->instance();
+    expect($c->cobrar([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [['forma' => 'efectivo', 'monto' => '50']], [], 1)['ok'])->toBeFalse();
 });
 
 it('ventas en espera: guardar, listar, recuperar y descartar', function () {

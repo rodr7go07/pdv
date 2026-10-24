@@ -44,7 +44,18 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Abre un turno de caja para que un usuario pueda vender (la venta exige turno abierto).
+ */
+function abrirTurno(App\Models\Caja $caja, App\Models\User $usuario, string $fondo = '0'): App\Models\Turno
 {
-    // ..
+    return App\Models\Turno::query()->create([
+        'caja_id' => $caja->id,
+        'user_id' => $usuario->id,
+        'estado' => 'abierto',
+        'fondo_inicial' => $fondo,
+        'abierto_at' => now(),
+        'caja_abierta_id' => $caja->id,
+        'usuario_abierto_id' => $usuario->id,
+    ]);
 }

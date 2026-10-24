@@ -174,7 +174,7 @@ it('el efectivo esperado suma fondo, ventas en efectivo y entradas y resta retir
     $r = ResumenTurno::calcular($t);
 
     expect($r['ventas'])->toMatchArray(['cantidad' => 3, 'total' => '300.00'])
-        ->and($r['pagos'])->toBe(['efectivo' => '150.00', 'tarjeta' => '100.00', 'transferencia' => '50.00'])
+        ->and($r['pagos'])->toBe(['efectivo' => '150.00', 'tarjeta' => '100.00', 'transferencia' => '50.00', 'credito' => '0.00'])
         ->and($r['efectivo_esperado'])->toBe('300.00'); // 200 + 150 + 30 − 80
 });
 

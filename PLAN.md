@@ -51,6 +51,8 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 32. **Cancelación vs. devolución:** una venta solo se cancela mientras su turno sigue abierto (así ningún corte cerrado cambia); después se usa una devolución. Una devolución sale del cajón del turno de quien la procesa (o, si no tiene turno, del turno aún abierto de la venta); sin ningún turno abierto no se puede devolver dinero.
 33. **Cortes:** el corte X (parcial) guarda una foto de las cifras sin cerrar; el Z (final) pide el efectivo contado (arqueo), calcula sobrante o faltante, guarda la foto y cierra el turno. Los cortes guardados no cambian aunque después se registren más movimientos. El cajero no ve el efectivo esperado (corte "ciego"); solo quien tiene `caja.supervisar`.
 34. **Cajas:** la serie de una caja con ventas no se puede cambiar y una caja con turno abierto no se desactiva. Cada caja define el ancho de papel (58 u 80 mm) y si imprime sola.
+35. **Impresión:** tickets y cortes se imprimen con HTML y CSS de impresión del navegador (58 u 80 mm según la caja). Para imprimir sin diálogo se recomienda abrir la caja con Chrome `--kiosk-printing` y la impresora de tickets como predeterminada. QZ Tray (ESC/POS directo, necesario solo para abrir el cajón) quedó **evaluado, no integrado**; el análisis y la recomendación están en `docs/impresion.md`. Por eso no se guardan por caja el nombre de la impresora ni «abrir cajón»: hoy no se usarían.
+36. **Hardware opcional:** las etiquetas de precio (EAN-13 o Code 128 con JsBarcode, rollo 50×30 mm o carta) están listas. La lectura de báscula por Web Serial es **experimental y no se probó con una báscula real**.
 
 ## Pendientes por decidir
 
@@ -131,11 +133,11 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 ## Fase 5 — Impresión y hardware
 
-- [ ] Ticket de venta en formato 58mm y 80mm vía `window.print()` con CSS de impresión (primera versión)
-- [ ] Evaluar QZ Tray para impresión directa ESC/POS sin diálogo y apertura de cajón de dinero
-- [ ] Configuración por caja: ancho de papel, impresora, imprimir automáticamente sí/no
-- [ ] (Opcional) Lectura de báscula vía Web Serial en Chrome
-- [ ] (Opcional) Etiquetas de precio / códigos de barras para artículos sin código
+- [x] Ticket de venta en formato 58mm y 80mm vía `window.print()` con CSS de impresión (primera versión)
+- [x] Evaluar QZ Tray para impresión directa ESC/POS sin diálogo y apertura de cajón de dinero — evaluado en `docs/impresion.md` (no integrado)
+- [x] Configuración por caja: ancho de papel, impresora, imprimir automáticamente sí/no
+- [x] (Opcional) Lectura de báscula vía Web Serial en Chrome — **experimental, sin probar con una báscula real**
+- [x] (Opcional) Etiquetas de precio / códigos de barras para artículos sin código
 
 **Entregable:** tickets impresos de forma confiable en la impresora de la tienda.
 

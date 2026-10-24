@@ -13,6 +13,7 @@ enum Permiso: string
     case ArticulosEditar = 'articulos.editar';
     case ArticulosEditarPrecio = 'articulos.editar_precio';
     case ArticulosImportar = 'articulos.importar';
+    case CatalogosAdministrar = 'catalogos.administrar';
 
     case InventarioVer = 'inventario.ver';
     case InventarioAjustar = 'inventario.ajustar';

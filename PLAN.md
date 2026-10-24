@@ -35,11 +35,16 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 16. **Claves:** la clave principal y las alternas son únicas en todo el sistema, incluso contra artículos eliminados (la clave queda reservada). Un artículo lleva como máximo un IVA y puede llevar varios IEPS.
 17. **Catálogos:** departamentos, unidades e impuestos no se eliminan, se desactivan. Un artículo ligado a un catálogo desactivado sigue siendo editable.
 18. **Importación de Excel:** de todo o nada. Si alguna fila tiene error no se guarda ninguna y se reporta fila por fila. Si la clave ya existe se actualiza ese artículo y las celdas vacías conservan el valor actual. Los departamentos nuevos se crean; unidades e impuestos deben existir.
+19. **Costeo (provisional):** cada compra guarda el **último costo** y el **costo promedio ponderado** del artículo (el promedio ignora existencia negativa o cero). En Configuración se elige cuál es el *costo vigente* (el de `articulos.costo`, usado para márgenes, utilidad y valor del inventario); por defecto, promedio. Cambiar el método aplica desde la siguiente compra. Cada cambio del costo vigente por compra queda en `historial_precios` con origen `compra`.
+20. **Inventario:** `RegistrarMovimientoInventario` es la única vía que cambia `articulos.existencia`; la columna no es asignable en masa. Los artículos no inventariables no generan movimientos. Existencia negativa permitida por defecto (`configuracion.vender_sin_existencia`).
+21. **Folios:** tabla `folios` por serie, leída con `lockForUpdate` dentro de la transacción del documento (`App\Services\Folios`). Compras usan la serie `C` (`C-000001`).
+22. **Conteo físico:** al contar se guarda lo que decía el sistema; al aplicar se ajusta solo la *diferencia* (contado − sistema al contar), así las ventas hechas durante el conteo no se pierden. Se puede contar solo una parte del inventario.
+23. **Cancelar una compra** regresa las existencias (movimiento `cancelacion_compra`) pero no revierte los costos; el siguiente movimiento de compra los recalcula.
 
 ## Pendientes por decidir
 
-- [ ] **Método de costeo (bloquea Fase 2):** definir si el costo de los artículos se maneja como **último costo** o como **costo promedio**. Afecta la recepción de compras, el valor del inventario y la utilidad en reportes. Claude Code debe recordarlo y preguntar antes de implementar la Fase 2.
-  - Estado: consultado con el dueño de la tienda, en espera de su respuesta.
+- [x] **Método de costeo (bloqueaba Fase 2) — resuelto de forma PROVISIONAL, por confirmar con el dueño:** definir si el costo de los artículos se maneja como **último costo** o como **costo promedio**. Afecta la recepción de compras, el valor del inventario y la utilidad en reportes. Claude Code debe recordarlo y preguntar antes de implementar la Fase 2.
+  - Estado: el dueño aún no responde. Se implementó la opción propuesta abajo para no frenar el desarrollo; cambiar de método es solo un ajuste en Configuración y no pierde datos (ver decisión 19).
   - Opción a considerar: guardar ambos costos en cada compra (último y promedio) y definir cuál se usa para sugerir el precio de venta y cuál para utilidad y valor del inventario.
 
 ---
@@ -73,13 +78,13 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 ## Fase 2 — Inventario y compras
 
-- [ ] Tabla `movimientos_inventario` (kardex): artículo, tipo, cantidad (+/−), costo, existencia resultante, referencia (venta, compra, ajuste…), usuario, fecha
-- [ ] Proveedores
-- [ ] Compras / recepción de mercancía: proveedor, folio de factura, partidas (escaneando), actualización de costo según el método definido en "Pendientes por decidir"
-- [ ] Ajustes de inventario con motivo (merma, caducidad, robo, corrección)
-- [ ] Conteo físico: capturar conteo (escáner o teclado, funcional desde teléfono), mostrar diferencias, aplicar ajuste
-- [ ] Kardex por artículo
-- [ ] Alerta de artículos bajo mínimo
+- [x] Tabla `movimientos_inventario` (kardex): artículo, tipo, cantidad (+/−), costo, existencia resultante, referencia (venta, compra, ajuste…), usuario, fecha
+- [x] Proveedores
+- [x] Compras / recepción de mercancía: proveedor, folio de factura, partidas (escaneando), actualización de costo según el método definido en "Pendientes por decidir"
+- [x] Ajustes de inventario con motivo (merma, caducidad, robo, corrección)
+- [x] Conteo físico: capturar conteo (escáner o teclado, funcional desde teléfono), mostrar diferencias, aplicar ajuste
+- [x] Kardex por artículo
+- [x] Alerta de artículos bajo mínimo
 
 **Entregable:** el inventario se mueve solo por movimientos trazables; se pueden registrar compras y conteos.
 

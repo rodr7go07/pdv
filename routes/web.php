@@ -15,6 +15,16 @@ Route::middleware(['auth', 'activo'])->group(function () {
         ->middleware('can:configuracion.editar')
         ->name('configuracion');
 
+    // Catálogo de artículos (Fase 1)
+    Route::prefix('articulos')->name('articulos.')->group(function () {
+        Volt::route('/', 'pages.articulos.index')->middleware('can:articulos.ver')->name('index');
+        Volt::route('crear', 'pages.articulos.formulario')->middleware('can:articulos.crear')->name('crear');
+        Volt::route('importar', 'pages.articulos.importar')->middleware('can:articulos.importar')->name('importar');
+        Volt::route('{articulo}/editar', 'pages.articulos.formulario')->middleware('can:articulos.editar')->name('editar');
+    });
+
+    Route::view('catalogos', 'catalogos')->middleware('can:catalogos.administrar')->name('catalogos');
+
     Route::post('logout', CerrarSesionController::class)->name('logout');
 });
 

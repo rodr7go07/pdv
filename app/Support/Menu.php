@@ -28,6 +28,22 @@ final class Menu
                 'permiso' => null,
             ],
             [
+                'etiqueta' => 'Artículos',
+                'descripcion' => 'Catálogo de productos, precios y claves.',
+                'ruta' => 'articulos.index',
+                'icono' => 'package',
+                'coincide' => 'articulos.*',
+                'permiso' => Permiso::ArticulosVer,
+            ],
+            [
+                'etiqueta' => 'Catálogos',
+                'descripcion' => 'Departamentos, unidades e impuestos.',
+                'ruta' => 'catalogos',
+                'icono' => 'folders',
+                'coincide' => 'catalogos',
+                'permiso' => Permiso::CatalogosAdministrar,
+            ],
+            [
                 'etiqueta' => 'Configuración',
                 'descripcion' => 'Datos de la tienda y encabezado del ticket.',
                 'ruta' => 'configuracion',

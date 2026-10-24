@@ -64,6 +64,8 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 45. **Despliegue:** todo lo necesario está en `deploy/` (manual paso a paso, aprovisionamiento, despliegue, respaldo, restauración, salud, Nginx, Supervisor y cron). Ruta del servidor `/var/www/punto-de-venta`, usuario `deploy`, MySQL en el mismo droplet (una base gestionada se justifica al crecer a varias sucursales). **Lo preparado no se ha ejecutado en un servidor real**; los scripts de respaldo y restauración sí se probaron contra MySQL local.
 46. **Hora:** la app usa `America/Mexico_City` y la conexión MySQL fija `DB_TIMEZONE=-06:00` (México no tiene horario de verano desde 2022). El droplet se pone en la misma zona.
 47. **Respaldos:** diarios a las 2:30 a.m., comprimidos y verificados, subidos a DigitalOcean Spaces con retención de 30 días (7 en el servidor). `restaurar.sh --probar` restaura en una base temporal y compara cifras; se recomienda hacerlo al instalar y cada mes.
+48. **Usuarios:** el administrador da de alta cajeros y encargados en la pantalla Usuarios (usuario en minúsculas, contraseña mínima de 8 caracteres, rol). Un usuario no se borra, se desactiva. Nadie puede desactivarse a sí mismo y la tienda nunca se queda sin un administrador activo. La pantalla explica en palabras sencillas qué puede hacer cada rol (`Permiso::etiqueta()`).
+49. **Guía de uso:** vive dentro de la aplicación (menú → Ayuda) escrita en lenguaje sencillo, con buscador, índice y pasos numerados; la versión detallada está en `docs/GUIA_DETALLADA.md`. Cualquier cambio de flujo o de atajos debe actualizar ambas (hay pruebas que comparan los atajos con la pantalla de venta).
 
 ## Pendientes por decidir
 

@@ -1,58 +1,79 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Punto de Venta
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de punto de venta web para **una tienda de abarrotes**: caja con escáner, inventario con kardex, compras, turnos y cortes, clientes con crédito, reportes y exportación a Excel. Se usa desde la computadora de la caja, una tablet o el teléfono.
 
-## About Laravel
+> Escrito en español (interfaz, base de datos y comentarios). La guía para el personal está dentro de la aplicación, en **Guía de uso**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Qué incluye
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Área | Qué hace |
+|---|---|
+| **Artículos** | Catálogo con claves alternas, impuestos (IVA/IEPS), precios 1–3, costo/margen enlazados, historial de precios, importación desde Excel y etiquetas con código de barras |
+| **Inventario y compras** | Existencia que solo cambia por movimientos (kardex), compras con costo promedio y último costo, ajustes con motivo, conteo físico, alertas de mínimos |
+| **Caja** | Pantalla de venta para escáner y teclado, granel, descuentos, pagos mixtos, ventas en espera, tickets de 58/80 mm, cancelaciones y devoluciones |
+| **Turnos y cortes** | Fondo inicial, entradas y retiros, corte X y Z con arqueo, cajas con serie de folios |
+| **Clientes** | Crédito con límite, abonos, estado de cuenta, lista de precios por cliente |
+| **Reportes** | Tablero del día, ventas por periodo/departamento/artículo/cajero/forma de pago, utilidad bruta, valor del inventario, Excel |
+| **Administración** | Usuarios y roles (Administrador, Encargado, Cajero), configuración de la tienda, PWA instalable |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tecnología
 
-## Learning Laravel
+Laravel 13 · PHP 8.3 · Livewire 3 + Volt · Alpine.js · Tailwind CSS 4 · MySQL 8 · Spatie Permission · Maatwebsite Excel · Pest. Dinero con `brick/math` (nunca `float`).
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Instalación local (Windows + Laragon)
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Requisitos: Laragon con PHP 8.3 y MySQL 8, Composer y Node 22.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```powershell
+git clone https://github.com/rodr7go07/pdv.git punto-de-venta
+cd punto-de-venta
+composer install
+npm install
+copy .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Crea la base de datos `punto_venta` (utf8mb4) en MySQL, revisa `DB_*` en `.env` y ejecuta:
 
-## Contributing
+```powershell
+php artisan migrate --seed          # roles, catálogos base, caja inicial y usuarios de prueba (solo en entorno local)
+php artisan db:seed --class=DemoSeeder   # opcional: artículos, proveedor y compra de demostración
+npm run build                       # o `npm run dev` mientras desarrollas
+php artisan storage:link
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Abre `http://punto-de-venta.test` (Laragon → Reload) o ejecuta `php artisan serve`. Los usuarios de prueba y su contraseña local están en `database/seeders/DatabaseSeeder.php`; **en producción la contraseña del administrador viene de `ADMIN_PASSWORD`**.
 
-## Code of Conduct
+> Si en tu terminal `php -v` muestra una versión menor a 8.3, usa el PHP 8.3 de Laragon en esa sesión: `$env:Path = 'C:\laragon\bin\php\php-8.3.8-nts-Win32-vs16-x64;' + $env:Path`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Comandos útiles
 
-## Security Vulnerabilities
+```powershell
+php artisan test                    # todas las pruebas (SQLite en memoria; no tocan tu base MySQL)
+php vendor\bin\pint                 # formato de código
+php artisan db:seed --class=RolesYPermisosSeeder   # sincronizar permisos nuevos (idempotente)
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Estructura
 
-## License
+```
+app/Actions/      Lógica de negocio (ventas, compras, caja, inventario, clientes…)
+app/Services/     Cálculos puros (precios, importes de venta, reportes, folios, resumen de turno)
+app/Enums/        Permisos, roles y catálogos fijos
+resources/views/livewire/   Pantallas (Livewire Volt); los componentes solo orquestan la interfaz
+resources/js/     Caja (pos.js), etiquetas y registro del service worker
+deploy/           Manual y scripts para DigitalOcean (Nginx, Supervisor, cron, respaldos)
+docs/             Guía detallada, impresión y hardware
+PLAN.md           Fases, tareas y decisiones técnicas
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Documentación
+
+- [`PLAN.md`](PLAN.md): fases, estado y las 49 decisiones técnicas.
+- [`docs/GUIA_DETALLADA.md`](docs/GUIA_DETALLADA.md): manual completo de uso.
+- [`docs/impresion.md`](docs/impresion.md): impresión de tickets, QZ Tray, báscula y etiquetas.
+- [`deploy/README.md`](deploy/README.md): puesta en producción paso a paso.
+
+## Estado
+
+Fases 0 a 8 implementadas (la Fase 8 queda **preparada pero sin ejecutar en un servidor real**) y la Fase 9 (CFDI, multi-sucursal, operación sin internet) sigue como trabajo futuro. Pendientes de confirmar con el dueño de la tienda: método de costeo (hoy configurable, por defecto promedio) y que los precios de venta incluyan impuestos. Ver `PLAN.md`.

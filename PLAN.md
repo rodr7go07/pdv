@@ -53,6 +53,11 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 34. **Cajas:** la serie de una caja con ventas no se puede cambiar y una caja con turno abierto no se desactiva. Cada caja define el ancho de papel (58 u 80 mm) y si imprime sola.
 35. **Impresión:** tickets y cortes se imprimen con HTML y CSS de impresión del navegador (58 u 80 mm según la caja). Para imprimir sin diálogo se recomienda abrir la caja con Chrome `--kiosk-printing` y la impresora de tickets como predeterminada. QZ Tray (ESC/POS directo, necesario solo para abrir el cajón) quedó **evaluado, no integrado**; el análisis y la recomendación están en `docs/impresion.md`. Por eso no se guardan por caja el nombre de la impresora ni «abrir cajón»: hoy no se usarían.
 36. **Hardware opcional:** las etiquetas de precio (EAN-13 o Code 128 con JsBarcode, rollo 50×30 mm o carta) están listas. La lectura de báscula por Web Serial es **experimental y no se probó con una báscula real**.
+37. **Crédito:** el saldo del cliente (`clientes.saldo`) solo cambia mediante `RegistrarMovimientoCliente` (cargo, abono, cancelación, devolución), con el cliente bloqueado y el saldo resultante guardado en cada movimiento. El saldo nunca queda negativo. Una venta puede pagarse parcial o totalmente a crédito si el cliente está activo y tiene límite y disponible suficientes; lo fiado no entra al cajón ni al efectivo esperado.
+38. **Lista de precios por cliente:** al elegir un cliente en la caja, sus precios (1, 2 o 3) mandan sobre los demás; si el artículo no tiene ese precio se usa el precio 1. Solo quien tiene `clientes.credito` fija el límite de crédito y la lista de precios.
+39. **Abonos:** requieren `clientes.abonar`. Un abono en efectivo exige turno abierto de quien lo recibe y aparece en su corte (suma al efectivo esperado); un abono con tarjeta o transferencia no. No se puede abonar más de lo que se debe.
+40. **Cancelar o devolver una venta a crédito:** la parte fiada baja la deuda en lugar de mover efectivo. En una devolución esa parte es proporcional a lo fiado y nunca pasa de lo que el cliente todavía debe ni de lo fiado pendiente de devolver; el resto sale en efectivo. Si el cliente ya había abonado, la cancelación solo baja lo que todavía debe.
+41. **Pagos de una venta** se listan en el orden en que se guardaron (`venta_pagos.id`). Las ventas en espera no conservan el cliente: se vuelve a elegir al recuperarlas.
 
 ## Pendientes por decidir
 
@@ -143,10 +148,10 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 ## Fase 6 — Clientes y crédito (opcional)
 
-- [ ] Catálogo de clientes
-- [ ] Venta a crédito con límite
-- [ ] Abonos y estado de cuenta
-- [ ] Asignar lista de precios (precio 1/2/3) por cliente
+- [x] Catálogo de clientes
+- [x] Venta a crédito con límite
+- [x] Abonos y estado de cuenta
+- [x] Asignar lista de precios (precio 1/2/3) por cliente
 
 ## Fase 7 — Reportes y tablero
 

@@ -317,3 +317,17 @@ it('detecta artículos bajo el mínimo', function () {
         ->and($bajo->refresh()->estaBajoMinimo())->toBeTrue()
         ->and($bien->refresh()->estaBajoMinimo())->toBeFalse();
 });
+
+it('al recapturar, el conteo se compara con la existencia de ese momento', function () {
+    ($this->movimiento)($this->articulo, TipoMovimiento::Ajuste, '10');
+    $gestor = app(GestionarConteo::class);
+    $conteo = $gestor->crear('Recaptura', $this->usuario);
+
+    $gestor->capturar($conteo, $this->articulo, '10');           // sistema 10
+    ($this->movimiento)($this->articulo, TipoMovimiento::Venta, '-4'); // sistema 6
+    $gestor->capturar($conteo, $this->articulo, '6');            // vuelve a contar: 6 en el estante
+
+    $gestor->aplicar($conteo, $this->usuario);
+
+    expect($this->articulo->refresh()->existencia)->toBe('6.000'); // sin ajuste fantasma de -4
+});

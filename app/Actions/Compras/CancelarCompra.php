@@ -33,7 +33,7 @@ class CancelarCompra
                 throw ValidationException::withMessages(['compra' => 'Esta compra ya estaba cancelada.']);
             }
 
-            foreach ($compra->partidas as $partida) {
+            foreach ($compra->partidas->sortBy('articulo_id') as $partida) {
                 ($this->movimiento)(
                     $partida->articulo_id,
                     TipoMovimiento::CancelacionCompra,

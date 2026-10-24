@@ -8,6 +8,7 @@ use App\Enums\Rol;
 use App\Enums\TipoMovimiento;
 use App\Models\Articulo;
 use App\Models\Caja;
+use App\Models\Cliente;
 use App\Models\Configuracion;
 use App\Models\Departamento;
 use App\Models\Impuesto;
@@ -104,10 +105,10 @@ it('sin cliente siempre cobra el precio 1; con cliente usa su lista y cae al pre
     $sin = venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '25')], lista: 2);
 
     $caja = $this->caja;
-    $mayorista = \App\Models\Cliente::factory()->create(['lista_precios' => 2]);
+    $mayorista = Cliente::factory()->create(['lista_precios' => 2]);
     $con2 = app(RegistrarVenta::class)($caja, $this->cajero, [['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '23')], [], 1, $mayorista);
 
-    $sinPrecio3 = \App\Models\Cliente::factory()->create(['lista_precios' => 3]);
+    $sinPrecio3 = Cliente::factory()->create(['lista_precios' => 3]);
     $con3 = app(RegistrarVenta::class)($caja, $this->cajero, [['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '25')], [], 1, $sinPrecio3);
 
     expect($sin->total)->toBe('25.00')->and($con2->total)->toBe('23.00')->and($con3->total)->toBe('25.00');

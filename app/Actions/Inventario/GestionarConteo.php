@@ -57,13 +57,14 @@ class GestionarConteo
 
             $partida = $conteo->partidas()->where('articulo_id', $articulo->id)->first();
 
+            $existencia = Articulo::query()->whereKey($articulo->id)->value('existencia');
+
+            // Al recapturar, la cuenta nueva se compara con la existencia de ahora, no con la de la primera captura.
             if ($partida) {
-                $partida->update(['cantidad_contada' => $cantidad]);
+                $partida->update(['cantidad_contada' => $cantidad, 'existencia_sistema' => $existencia]);
 
                 return $partida;
             }
-
-            $existencia = Articulo::query()->whereKey($articulo->id)->value('existencia');
 
             return $conteo->partidas()->create([
                 'articulo_id' => $articulo->id,
@@ -93,7 +94,7 @@ class GestionarConteo
             $ajustados = 0;
             $sinDiferencia = 0;
 
-            foreach ($conteo->partidas()->orderBy('id')->get() as $partida) {
+            foreach ($conteo->partidas()->orderBy('articulo_id')->get() as $partida) {
                 $diferencia = BigDecimal::of((string) $partida->cantidad_contada)->minus((string) $partida->existencia_sistema);
 
                 if ($diferencia->isZero()) {

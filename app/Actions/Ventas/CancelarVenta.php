@@ -73,7 +73,7 @@ class CancelarVenta
                 }
             }
 
-            foreach ($venta->partidas as $partida) {
+            foreach ($venta->partidas->sortBy('articulo_id') as $partida) {
                 ($this->movimiento)(
                     $partida->articulo_id,
                     TipoMovimiento::CancelacionVenta,

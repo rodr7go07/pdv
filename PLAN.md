@@ -30,7 +30,11 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 11. **Acceso:** login por usuario o correo (columna `usuario` única, correo opcional). Sin registro público ni recuperación por correo: el administrador da de alta a los usuarios y restablece contraseñas. Los usuarios tienen `activo`; uno desactivado pierde la sesión de inmediato.
 12. **Permisos:** catálogo en el enum `App\Enums\Permiso` y asignación por rol en `App\Enums\Rol`. `RolesYPermisosSeeder` es idempotente y se ejecuta en cada despliegue. Cada fase nueva agrega sus permisos al enum.
 13. **Front-end:** Tailwind v4 (tokens en `resources/css/app.css`), fuentes autoalojadas con Fontsource, iconos Phosphor (`codeat3/blade-phosphor-icons`). Identidad visual: rótulo añil + acento rosa mexicano + motivo de ticket térmico.
-14. **Caché:** Laravel 13 no deserializa objetos desde la caché; se guardan arreglos de atributos, no modelos.
+14. **Caché:**Laravel 13 no deserializa objetos desde la caché; se guardan arreglos de atributos, no modelos.
+15. **Precios e impuestos:** el costo se captura **sin** impuestos y los precios de venta (1, 2 y 3) **con** impuestos incluidos, como se maneja al público en México. El margen es la utilidad sobre el costo usando el precio sin impuestos; las tasas de IVA e IEPS se suman. Cálculos en `App\Services\CalculadoraPrecios` con `brick/math`, redondeo a centavos hacia arriba. *Por confirmar con el dueño.*
+16. **Claves:** la clave principal y las alternas son únicas en todo el sistema, incluso contra artículos eliminados (la clave queda reservada). Un artículo lleva como máximo un IVA y puede llevar varios IEPS.
+17. **Catálogos:** departamentos, unidades e impuestos no se eliminan, se desactivan. Un artículo ligado a un catálogo desactivado sigue siendo editable.
+18. **Importación de Excel:** de todo o nada. Si alguna fila tiene error no se guarda ninguna y se reporta fila por fila. Si la clave ya existe se actualiza ese artículo y las celdas vacías conservan el valor actual. Los departamentos nuevos se crean; unidades e impuestos deben existir.
 
 ## Pendientes por decidir
 
@@ -55,15 +59,15 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 ## Fase 1 — Catálogo de artículos
 
-- [ ] Departamentos / categorías
-- [ ] Unidades de medida (pieza, kg, litro, caja…)
-- [ ] Impuestos (IVA 16%, IVA 0%, exento, IEPS) configurables por artículo
-- [ ] Artículos: clave principal, **claves alternas** (tabla aparte, varios códigos por artículo, únicos globalmente), descripción, departamento, unidad, costo, precio de venta (precio 1 y opcional precio 2/3 por mayoreo), margen de utilidad, inventariable sí/no, granel sí/no, existencia mínima y máxima, imagen opcional, activo/inactivo
-- [ ] Cálculo automático: al cambiar costo o margen se sugiere el precio (y viceversa)
-- [ ] Búsqueda rápida por clave, clave alterna o descripción
-- [ ] Captura de clave con escáner (el campo recibe el código + Enter)
-- [ ] Importación desde Excel con plantilla descargable y reporte de errores por fila
-- [ ] Historial de cambios de precio
+- [x] Departamentos / categorías
+- [x] Unidades de medida (pieza, kg, litro, caja…)
+- [x] Impuestos (IVA 16%, IVA 0%, exento, IEPS) configurables por artículo
+- [x] Artículos: clave principal, **claves alternas** (tabla aparte, varios códigos por artículo, únicos globalmente), descripción, departamento, unidad, costo, precio de venta (precio 1 y opcional precio 2/3 por mayoreo), margen de utilidad, inventariable sí/no, granel sí/no, existencia mínima y máxima, imagen opcional, activo/inactivo
+- [x] Cálculo automático: al cambiar costo o margen se sugiere el precio (y viceversa)
+- [x] Búsqueda rápida por clave, clave alterna o descripción
+- [x] Captura de clave con escáner (el campo recibe el código + Enter)
+- [x] Importación desde Excel con plantilla descargable y reporte de errores por fila
+- [x] Historial de cambios de precio
 
 **Entregable:** catálogo completo administrable, importable desde Excel.
 

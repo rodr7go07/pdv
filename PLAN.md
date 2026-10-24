@@ -61,6 +61,9 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 42. **Reportes:** `App\Services\ReporteVentas` concentra las cifras. Solo cuentan ventas completadas; la **utilidad bruta** es el precio de venta sin impuestos menos el costo guardado en cada partida (no el costo actual); las devoluciones se restan en el periodo de la venta original, con su costo e impuestos proporcionales. El departamento que se reporta es el actual del artículo. El «valor del inventario» usa el costo vigente y solo artículos con inventario y existencia mayor que cero.
 43. **Tablero:** quien tiene `reportes.ver` ve ventas de hoy contra ayer, ticket promedio, utilidad, últimos 7 días, lo más vendido, artículos por reabastecer, cajas abiertas y cuentas por cobrar (se actualiza solo cada 60 s). El cajero ve solo su turno. Todas las pantallas de reportes se exportan a Excel con los mismos filtros.
 44. **Índices revisados (Fase 7):** con 4,000 ventas y 12,000 partidas en MySQL, las consultas de reportes tardan entre 13 y 70 ms y `EXPLAIN` muestra `ventas_estado_created_at_index` y el índice de la llave foránea de `venta_partidas`. No hizo falta agregar índices; conviene repetir la medición si el volumen supera unas 100,000 ventas.
+45. **Despliegue:** todo lo necesario está en `deploy/` (manual paso a paso, aprovisionamiento, despliegue, respaldo, restauración, salud, Nginx, Supervisor y cron). Ruta del servidor `/var/www/punto-de-venta`, usuario `deploy`, MySQL en el mismo droplet (una base gestionada se justifica al crecer a varias sucursales). **Lo preparado no se ha ejecutado en un servidor real**; los scripts de respaldo y restauración sí se probaron contra MySQL local.
+46. **Hora:** la app usa `America/Mexico_City` y la conexión MySQL fija `DB_TIMEZONE=-06:00` (México no tiene horario de verano desde 2022). El droplet se pone en la misma zona.
+47. **Respaldos:** diarios a las 2:30 a.m., comprimidos y verificados, subidos a DigitalOcean Spaces con retención de 30 días (7 en el servidor). `restaurar.sh --probar` restaura en una base temporal y compara cifras; se recomienda hacerlo al instalar y cada mes.
 
 ## Pendientes por decidir
 
@@ -167,14 +170,14 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 ## Fase 8 — Despliegue en DigitalOcean
 
-- [ ] Droplet (Ubuntu LTS), usuario no root, firewall (UFW), SSH por llave
-- [ ] PHP-FPM, Nginx, MySQL (en el droplet o cluster gestionado — decidir por costo)
-- [ ] Certbot SSL y dominio
-- [ ] Supervisor para colas y cron para el scheduler
-- [ ] Script de despliegue (git pull, composer, migraciones, build de assets, cachés, reinicio de colas)
-- [ ] Respaldos automáticos diarios de la base de datos a DigitalOcean Spaces (con retención) y prueba de restauración
-- [ ] Monitoreo básico (uptime y errores en logs)
-- [ ] Zona horaria `America/Mexico_City` en app y base de datos
+- [ ] Droplet (Ubuntu LTS), usuario no root, firewall (UFW), SSH por llave — **preparado en `deploy/`, falta ejecutarlo en el servidor** (`provision.sh`)
+- [ ] PHP-FPM, Nginx, MySQL (en el droplet o cluster gestionado — decidir por costo) — **preparado en `deploy/`, falta ejecutarlo en el servidor**. Decisión por costo: MySQL en el droplet
+- [ ] Certbot SSL y dominio — **preparado en `deploy/`, falta ejecutarlo en el servidor** (`deploy/README.md`, sección 4)
+- [ ] Supervisor para colas y cron para el scheduler — **preparado en `deploy/`, falta ejecutarlo en el servidor**
+- [x] Script de despliegue (git pull, composer, migraciones, build de assets, cachés, reinicio de colas) — `deploy/scripts/desplegar.sh`
+- [ ] Respaldos automáticos diarios de la base de datos a DigitalOcean Spaces (con retención) y prueba de restauración — scripts listos; **respaldo y restauración probados contra MySQL local, falta probar la subida a Spaces real**
+- [ ] Monitoreo básico (uptime y errores en logs) — **preparado en `deploy/`, falta ejecutarlo en el servidor** (`salud.sh`, ruta `/up`)
+- [x] Zona horaria `America/Mexico_City` en app y base de datos
 
 ## Fase 9 — Futuro
 

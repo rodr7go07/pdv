@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\Compras\RegistrarCompra;
+use App\Actions\Inventario\RegistrarMovimientoInventario;
 use App\Enums\MetodoCosteo;
 use App\Enums\Rol;
 use App\Enums\TipoMovimiento;
@@ -81,8 +83,8 @@ it('el selector solo de inventariables rechaza servicios', function () {
 it('muestra existencias, alertas y filtros en el inventario', function () {
     $bajo = Articulo::factory()->create(['descripcion' => 'ARROZ BAJO', 'existencia_minima' => '5']);
     $ok = Articulo::factory()->create(['descripcion' => 'FRIJOL SUFICIENTE', 'existencia_minima' => '5']);
-    app(App\Actions\Inventario\RegistrarMovimientoInventario::class)($bajo, TipoMovimiento::Ajuste, '2');
-    app(App\Actions\Inventario\RegistrarMovimientoInventario::class)($ok, TipoMovimiento::Ajuste, '20');
+    app(RegistrarMovimientoInventario::class)($bajo, TipoMovimiento::Ajuste, '2');
+    app(RegistrarMovimientoInventario::class)($ok, TipoMovimiento::Ajuste, '20');
 
     Volt::actingAs($this->admin)->test('pages.inventario.index')
         ->assertSee('ARROZ BAJO')->assertSee('FRIJOL SUFICIENTE')
@@ -91,7 +93,7 @@ it('muestra existencias, alertas y filtros en el inventario', function () {
 });
 
 it('el kardex lista los movimientos y permite filtrar', function () {
-    $mov = app(App\Actions\Inventario\RegistrarMovimientoInventario::class);
+    $mov = app(RegistrarMovimientoInventario::class);
     $mov($this->articulo, TipoMovimiento::Ajuste, '10', motivo: 'correccion', nota: 'Inventario inicial');
     $mov($this->articulo, TipoMovimiento::Venta, '-2');
 
@@ -105,7 +107,7 @@ it('el kardex lista los movimientos y permite filtrar', function () {
 // ─── Ajustes ─────────────────────────────────────────────────────────────────
 
 it('guarda un ajuste desde la pantalla', function () {
-    app(App\Actions\Inventario\RegistrarMovimientoInventario::class)($this->articulo, TipoMovimiento::Ajuste, '10');
+    app(RegistrarMovimientoInventario::class)($this->articulo, TipoMovimiento::Ajuste, '10');
 
     Volt::actingAs($this->admin)->test('pages.inventario.ajustes')
         ->dispatch('articulo-elegido', id: $this->articulo->id)
@@ -140,7 +142,7 @@ it('forzar la salida cuando el motivo es merma', function () {
 // ─── Conteo ──────────────────────────────────────────────────────────────────
 
 it('flujo completo de conteo físico', function () {
-    app(App\Actions\Inventario\RegistrarMovimientoInventario::class)($this->articulo, TipoMovimiento::Ajuste, '10');
+    app(RegistrarMovimientoInventario::class)($this->articulo, TipoMovimiento::Ajuste, '10');
 
     Volt::actingAs($this->admin)->test('pages.inventario.conteos')
         ->set('nombre', 'Conteo de prueba')
@@ -232,7 +234,7 @@ it('la compra exige proveedor y al menos un artículo', function () {
 it('la lista de compras filtra por folio y proveedor', function () {
     $p1 = Proveedor::factory()->create(['nombre' => 'PROVEEDOR UNO']);
     $p2 = Proveedor::factory()->create(['nombre' => 'PROVEEDOR DOS']);
-    $compra = fn ($p) => app(App\Actions\Compras\RegistrarCompra::class)(
+    $compra = fn ($p) => app(RegistrarCompra::class)(
         ['proveedor_id' => $p->id, 'fecha' => now()->toDateString()],
         [['articulo_id' => $this->articulo->id, 'cantidad' => '1', 'costo_unitario' => '5']],
         $this->admin,
@@ -247,7 +249,7 @@ it('la lista de compras filtra por folio y proveedor', function () {
 });
 
 it('solo quien tiene permiso cancela compras', function () {
-    $compra = app(App\Actions\Compras\RegistrarCompra::class)(
+    $compra = app(RegistrarCompra::class)(
         ['proveedor_id' => Proveedor::factory()->create()->id, 'fecha' => now()->toDateString()],
         [['articulo_id' => $this->articulo->id, 'cantidad' => '1', 'costo_unitario' => '5']],
         $this->admin,

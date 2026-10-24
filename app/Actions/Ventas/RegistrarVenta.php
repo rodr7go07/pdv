@@ -2,10 +2,10 @@
 
 namespace App\Actions\Ventas;
 
+use App\Actions\Clientes\RegistrarMovimientoCliente;
 use App\Actions\Inventario\RegistrarMovimientoInventario;
 use App\Enums\TipoMovimiento;
 use App\Models\Articulo;
-use App\Actions\Clientes\RegistrarMovimientoCliente;
 use App\Models\Caja;
 use App\Models\Cliente;
 use App\Models\Configuracion;
@@ -18,6 +18,7 @@ use App\Services\CalculadoraVenta;
 use App\Services\Folios;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -191,7 +192,7 @@ class RegistrarVenta
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, Articulo>  $articulos
+     * @param  Collection<int, Articulo>  $articulos
      * @param  list<array<string, mixed>>  $lineas
      * @return list<array<string, mixed>>
      */
@@ -295,7 +296,7 @@ class RegistrarVenta
         })->validate();
     }
 
-    /** @param  \Illuminate\Support\Collection<int, Articulo>  $articulos */
+    /** @param  Collection<int, Articulo>  $articulos */
     private function validarArticulos($articulos, array $lineas): void
     {
         foreach ($lineas as $i => $l) {
@@ -355,7 +356,7 @@ class RegistrarVenta
      * y lo que sobre se regresa como cambio.
      *
      * @param  list<array{forma: string, monto: string, referencia?: ?string}>  $pagos
-     * @return array{0: list<array<string, mixed>>, 1: BigDecimal, 2: BigDecimal, 3: BigDecimal}  pagos, efectivo recibido, cambio y total a crédito
+     * @return array{0: list<array<string, mixed>>, 1: BigDecimal, 2: BigDecimal, 3: BigDecimal} pagos, efectivo recibido, cambio y total a crédito
      *
      * @throws ValidationException
      */

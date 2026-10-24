@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Caja;
+use App\Models\Turno;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,9 +50,9 @@ expect()->extend('toBeOne', function () {
 /**
  * Abre un turno de caja para que un usuario pueda vender (la venta exige turno abierto).
  */
-function abrirTurno(App\Models\Caja $caja, App\Models\User $usuario, string $fondo = '0'): App\Models\Turno
+function abrirTurno(Caja $caja, User $usuario, string $fondo = '0'): Turno
 {
-    return App\Models\Turno::query()->create([
+    return Turno::query()->create([
         'caja_id' => $caja->id,
         'user_id' => $usuario->id,
         'estado' => 'abierto',

@@ -8,6 +8,7 @@ use App\Models\Articulo;
 use App\Models\Caja;
 use App\Models\Departamento;
 use App\Models\Impuesto;
+use App\Models\Turno;
 use App\Models\User;
 use App\Models\Venta;
 use App\Services\ReporteVentas;
@@ -35,7 +36,7 @@ beforeEach(function () {
     $this->b = Articulo::factory()->create(['descripcion' => 'ARTICULO B', 'departamento_id' => $abarrotes->id, 'precio_1' => '20', 'costo' => '8']);
 
     $this->venderComo = fn (User $u, array $lineas, string $pago = '1000') => app(RegistrarVenta::class)(
-        App\Models\Turno::abiertoDe($u)->caja, $u,
+        Turno::abiertoDe($u)->caja, $u,
         collect($lineas)->map(fn ($c, $id) => ['articulo_id' => $id, 'cantidad' => (string) $c])->values()->all(),
         [['forma' => 'efectivo', 'monto' => $pago]],
     );

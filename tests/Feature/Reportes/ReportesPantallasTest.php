@@ -5,6 +5,7 @@ use App\Enums\Rol;
 use App\Models\Articulo;
 use App\Models\Caja;
 use App\Models\User;
+use App\Models\Venta;
 use Database\Seeders\CatalogosBaseSeeder;
 use Database\Seeders\RolesYPermisosSeeder;
 use Livewire\Volt\Volt;
@@ -115,7 +116,7 @@ it('el cajero ve su turno y no el tablero del negocio', function () {
 
 it('el tablero tolera un negocio sin ventas', function () {
     $nuevo = User::factory()->conRol(Rol::Administrador)->create();
-    App\Models\Venta::query()->delete();
+    Venta::query()->delete();
 
     $this->actingAs($nuevo)->get('/dashboard')->assertOk()->assertSee('Todavía no hay ventas hoy');
 });

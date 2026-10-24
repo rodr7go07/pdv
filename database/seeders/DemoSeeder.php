@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Actions\Articulos\GuardarArticulo;
 use App\Actions\Compras\RegistrarCompra;
+use App\Actions\Inventario\RegistrarMovimientoInventario;
+use App\Enums\TipoMovimiento;
 use App\Models\Articulo;
 use App\Models\Departamento;
 use App\Models\Impuesto;
@@ -116,8 +118,8 @@ class DemoSeeder extends Seeder
         // Dos artículos cerca del mínimo para ver las alertas
         $conAlerta = Articulo::query()->whereIn('clave', ['7501055300075', 'HUEVO-KG'])->get();
         foreach ($conAlerta as $a) {
-            app(\App\Actions\Inventario\RegistrarMovimientoInventario::class)(
-                $a, \App\Enums\TipoMovimiento::Ajuste, (string) -((float) $a->existencia - (float) $a->existencia_minima + 1),
+            app(RegistrarMovimientoInventario::class)(
+                $a, TipoMovimiento::Ajuste, (string) -((float) $a->existencia - (float) $a->existencia_minima + 1),
                 usuario: $usuario, motivo: 'correccion', nota: 'Demostración de alerta',
             );
         }

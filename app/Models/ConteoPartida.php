@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Brick\Math\BigDecimal;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -32,7 +33,7 @@ class ConteoPartida extends Model
     /** Diferencia entre lo contado y lo que decía el sistema (negativa = faltante). */
     public function diferencia(): string
     {
-        return (string) \Brick\Math\BigDecimal::of((string) $this->cantidad_contada)
+        return (string) BigDecimal::of((string) $this->cantidad_contada)
             ->minus((string) $this->existencia_sistema)
             ->toScale(3);
     }

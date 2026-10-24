@@ -27,7 +27,7 @@ beforeEach(function () {
     $this->movimiento = app(RegistrarMovimientoInventario::class);
 });
 
-function comprar(array $partidas, ?Proveedor $proveedor = null, string $fecha = null): Compra
+function comprar(array $partidas, ?Proveedor $proveedor = null, ?string $fecha = null): Compra
 {
     return app(RegistrarCompra::class)([
         'proveedor_id' => ($proveedor ?? test()->proveedor)->id,

@@ -2,9 +2,9 @@
 
 namespace App\Actions\Articulos;
 
+use App\Enums\TipoImpuesto;
 use App\Models\Articulo;
 use App\Models\ArticuloClaveAlterna;
-use App\Enums\TipoImpuesto;
 use App\Models\HistorialPrecio;
 use App\Models\Impuesto;
 use App\Models\UnidadMedida;

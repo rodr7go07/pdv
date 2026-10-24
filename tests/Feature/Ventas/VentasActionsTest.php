@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Inventario\RegistrarMovimientoInventario;
 use App\Actions\Ventas\CancelarVenta;
 use App\Actions\Ventas\RegistrarDevolucion;
 use App\Actions\Ventas\RegistrarVenta;
@@ -11,11 +12,13 @@ use App\Models\Configuracion;
 use App\Models\Departamento;
 use App\Models\Impuesto;
 use App\Models\MovimientoInventario;
+use App\Models\Turno;
 use App\Models\UnidadMedida;
 use App\Models\User;
 use App\Models\Venta;
 use Database\Seeders\RolesYPermisosSeeder;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
     $this->seed(RolesYPermisosSeeder::class);
@@ -55,7 +58,7 @@ function pago(string $forma, string $monto, ?string $ref = null): array
 function venderTodo(array $lineas, array $pagos, array $global = [], ?User $usuario = null, int $lista = 1): Venta
 {
     $usuario ??= test()->cajero;
-    $caja = App\Models\Turno::abiertoDe($usuario)?->caja ?? test()->caja;
+    $caja = Turno::abiertoDe($usuario)?->caja ?? test()->caja;
 
     return app(RegistrarVenta::class)($caja, $usuario, $lineas, $pagos, $global, $lista);
 }
@@ -165,7 +168,7 @@ it('puede impedir ventas sin existencia', function () {
 
     expect(fn () => venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '50')]))->toThrow(ValidationException::class);
 
-    app(App\Actions\Inventario\RegistrarMovimientoInventario::class)($this->leche, TipoMovimiento::Ajuste, '3');
+    app(RegistrarMovimientoInventario::class)($this->leche, TipoMovimiento::Ajuste, '3');
 
     expect(fn () => venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '2'], ['articulo_id' => $this->leche->id, 'cantidad' => '2']], [pago('efectivo', '100')]))
         ->toThrow(ValidationException::class); // 4 > 3 entre las dos partidas
@@ -212,7 +215,9 @@ it('registra una venta de 50 partidas sin degradación', function () {
     $lineas = $articulos->map(fn ($a) => ['articulo_id' => $a->id, 'cantidad' => '2'])->all();
 
     $consultas = 0;
-    DB::listen(function () use (&$consultas) { $consultas++; });
+    DB::listen(function () use (&$consultas) {
+        $consultas++;
+    });
 
     $inicio = microtime(true);
     $venta = venderTodo($lineas, [pago('efectivo', '2000')]);
@@ -257,7 +262,7 @@ it('quien no puede cobrar recibe un 403', function () {
     $sinPermiso = User::factory()->create();
 
     expect(fn () => venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '50')], usuario: $sinPermiso))
-        ->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+        ->toThrow(HttpException::class);
 });
 
 // ─── Cancelación ─────────────────────────────────────────────────────────────
@@ -277,7 +282,7 @@ it('cancela una venta regresando el inventario y dejando motivo, usuario y fecha
 it('la cancelación exige permiso, motivo y no se repite', function () {
     $venta = venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '25')]);
 
-    expect(fn () => app(CancelarVenta::class)($venta, 'x', $this->cajero))->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class)
+    expect(fn () => app(CancelarVenta::class)($venta, 'x', $this->cajero))->toThrow(HttpException::class)
         ->and(fn () => app(CancelarVenta::class)($venta, '   ', $this->encargado))->toThrow(ValidationException::class);
 
     app(CancelarVenta::class)($venta, 'Error', $this->encargado);
@@ -342,7 +347,7 @@ it('no se devuelve una venta cancelada y exige permiso', function () {
     $venta = venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '1']], [pago('efectivo', '25')]);
     $id = $venta->partidas[0]->id;
 
-    expect(fn () => app(RegistrarDevolucion::class)($venta, [['partida_id' => $id, 'cantidad' => '1']], 'x', $this->cajero))->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect(fn () => app(RegistrarDevolucion::class)($venta, [['partida_id' => $id, 'cantidad' => '1']], 'x', $this->cajero))->toThrow(HttpException::class);
 
     app(CancelarVenta::class)($venta, 'Error', $this->encargado);
 

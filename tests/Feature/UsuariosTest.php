@@ -8,6 +8,7 @@ use Database\Seeders\RolesYPermisosSeeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Livewire\Volt\Volt;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
     $this->seed(RolesYPermisosSeeder::class);
@@ -113,7 +114,7 @@ it('un administrador desactivado no cuenta como otro administrador', function ()
 it('sin permiso no se administran usuarios aunque se llame a la acción', function () {
     $cajero = User::factory()->conRol(Rol::Cajero)->create();
 
-    expect(fn () => ($this->guardar)(null, datosUsuario(), $cajero))->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect(fn () => ($this->guardar)(null, datosUsuario(), $cajero))->toThrow(HttpException::class);
 });
 
 it('la pantalla crea y edita usuarios y muestra los errores', function () {

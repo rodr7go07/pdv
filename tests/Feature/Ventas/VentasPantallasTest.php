@@ -1,11 +1,13 @@
 <?php
 
+use App\Actions\Ventas\CancelarVenta;
 use App\Actions\Ventas\RegistrarVenta;
 use App\Enums\Rol;
 use App\Models\Articulo;
 use App\Models\Caja;
 use App\Models\Departamento;
 use App\Models\Impuesto;
+use App\Models\Turno;
 use App\Models\UnidadMedida;
 use App\Models\User;
 use App\Models\Venta;
@@ -34,7 +36,7 @@ beforeEach(function () {
 function ventaDe(User $cajero, string $cantidad = '2'): Venta
 {
     return app(RegistrarVenta::class)(
-        App\Models\Turno::abiertoDe($cajero)->caja, $cajero,
+        Turno::abiertoDe($cajero)->caja, $cajero,
         [['articulo_id' => Articulo::first()->id, 'cantidad' => $cantidad]],
         [['forma' => 'efectivo', 'monto' => '500']],
     );
@@ -221,7 +223,7 @@ it('el cajero reimprime su propio ticket', function () {
 it('el ticket de una venta cancelada lo indica y usa el ancho de la caja', function () {
     $venta = ventaDe($this->cajero);
     $this->caja->update(['ancho_papel' => 58]);
-    app(App\Actions\Ventas\CancelarVenta::class)($venta, 'Error', $this->admin);
+    app(CancelarVenta::class)($venta, 'Error', $this->admin);
 
     $this->actingAs($this->admin)->get("/ventas/{$venta->id}/ticket")->assertSee('VENTA CANCELADA')->assertSee('58mm', false);
 });
@@ -230,7 +232,7 @@ it('imprime automáticamente solo cuando se pide', function () {
     $venta = ventaDe($this->cajero);
 
     $this->actingAs($this->cajero)->get("/ventas/{$venta->id}/ticket")->assertDontSee('setTimeout(() => window.print()', false)->assertSee('onclick="window.print()"', false);
-    $this->actingAs($this->cajero)->get("/ventas/{$venta->id}/ticket?imprimir=1")->assertSee("setTimeout(() => window.print()", false);
+    $this->actingAs($this->cajero)->get("/ventas/{$venta->id}/ticket?imprimir=1")->assertSee('setTimeout(() => window.print()', false);
 });
 
 it('cancela una venta desde el detalle', function () {

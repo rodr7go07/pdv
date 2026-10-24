@@ -16,9 +16,10 @@ use App\Models\Venta;
 use App\Services\ResumenTurno;
 use Database\Seeders\CatalogosBaseSeeder;
 use Database\Seeders\RolesYPermisosSeeder;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
-use Livewire\Volt\Component;
 use Livewire\Volt\Volt;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
@@ -69,7 +70,7 @@ it('la base de datos también lo garantiza', function () {
     expect(fn () => Turno::query()->create([
         'caja_id' => $this->caja->id, 'user_id' => $this->otro->id, 'estado' => 'abierto', 'fondo_inicial' => 0,
         'abierto_at' => now(), 'caja_abierta_id' => $this->caja->id, 'usuario_abierto_id' => $this->otro->id,
-    ]))->toThrow(Illuminate\Database\QueryException::class);
+    ]))->toThrow(QueryException::class);
 });
 
 it('no abre turno en una caja desactivada ni sin permiso', function () {
@@ -77,7 +78,7 @@ it('no abre turno en una caja desactivada ni sin permiso', function () {
     expect(fn () => ($this->abrir)($this->caja, $this->cajero, '0'))->toThrow(ValidationException::class);
 
     $sinPermiso = User::factory()->create();
-    expect(fn () => ($this->abrir)($this->caja2, $sinPermiso, '0'))->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect(fn () => ($this->abrir)($this->caja2, $sinPermiso, '0'))->toThrow(HttpException::class);
 });
 
 // ─── Venta exige turno ───────────────────────────────────────────────────────
@@ -147,7 +148,7 @@ it('el cajero no mueve efectivo del turno de otro; el encargado sí', function (
     $t = ($this->abrir)($this->caja, $this->cajero, '100');
 
     // El cajero normal tiene caja.retiro? No: solo caja.abrir y caja.corte
-    expect(fn () => app(RegistrarMovimientoCaja::class)($t, 'retiro', '10', 'x', $this->cajero))->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect(fn () => app(RegistrarMovimientoCaja::class)($t, 'retiro', '10', 'x', $this->cajero))->toThrow(HttpException::class);
 
     app(RegistrarMovimientoCaja::class)($t, 'retiro', '10', 'Supervisor', $this->encargado);
     expect(ResumenTurno::calcular($t)['retiros'])->toBe('10.00');
@@ -286,7 +287,7 @@ it('no se cierra dos veces ni con un arqueo inválido', function () {
 it('un cajero no cierra el turno de otro; el encargado sí', function () {
     $t = ($this->abrir)($this->caja, $this->cajero, '0');
 
-    expect(fn () => app(CerrarTurno::class)->cerrar($t, '0', $this->otro))->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect(fn () => app(CerrarTurno::class)->cerrar($t, '0', $this->otro))->toThrow(HttpException::class);
 
     app(CerrarTurno::class)->cerrar($t, '0', $this->encargado);
     expect($t->refresh()->cerrado_por)->toBe($this->encargado->id);

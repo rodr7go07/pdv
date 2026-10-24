@@ -2,7 +2,8 @@
 
 @php
     $m = fn ($v) => '$'.number_format((float) $v, 2);
-    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia'];
+    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'A crédito (sin cobrar)'];
+    $abonosTotal = array_sum(array_map('floatval', $resumen['abonos'] ?? []));
 @endphp
 
 <div {{ $attributes->class(['space-y-5']) }}>
@@ -31,9 +32,12 @@
         <dl class="space-y-2 rounded-xl border border-anil-100 bg-white p-4 text-sm">
             <p class="rotulo mb-2">Cobrado por forma de pago</p>
             @foreach ($formas as $clave => $etiqueta)
-                <div class="flex justify-between"><dt class="text-anil-700">{{ $etiqueta }}</dt><dd class="font-mono font-semibold">{{ $m($resumen['pagos'][$clave]) }}</dd></div>
+                <div class="flex justify-between"><dt class="text-anil-700">{{ $etiqueta }}</dt><dd class="font-mono font-semibold">{{ $m($resumen['pagos'][$clave] ?? 0) }}</dd></div>
             @endforeach
-            <div class="flex justify-between border-t border-anil-100 pt-2"><dt class="font-semibold">Total cobrado</dt><dd class="font-mono font-extrabold">{{ $m($resumen['ventas']['total']) }}</dd></div>
+            <div class="flex justify-between border-t border-anil-100 pt-2"><dt class="font-semibold">Total vendido</dt><dd class="font-mono font-extrabold">{{ $m($resumen['ventas']['total']) }}</dd></div>
+            @if ($abonosTotal > 0)
+                <div class="flex justify-between pt-1"><dt class="text-anil-700">Abonos de clientes</dt><dd class="font-mono font-semibold">{{ $m($abonosTotal) }}</dd></div>
+            @endif
             <p class="pt-1 text-xs text-anil-600">Incluye {{ $m($resumen['ventas']['impuestos']) }} de impuestos y descuentos por {{ $m($resumen['ventas']['descuento']) }}.</p>
         </dl>
 
@@ -41,9 +45,12 @@
             <p class="rotulo mb-2">Movimientos del cajón</p>
             <div class="flex justify-between"><dt class="text-anil-700">Fondo inicial</dt><dd class="font-mono">{{ $m($resumen['fondo_inicial']) }}</dd></div>
             <div class="flex justify-between"><dt class="text-anil-700">+ Efectivo de ventas</dt><dd class="font-mono">{{ $m($resumen['pagos']['efectivo']) }}</dd></div>
+            @if ((float) ($resumen['abonos']['efectivo'] ?? 0) > 0)
+                <div class="flex justify-between"><dt class="text-anil-700">+ Abonos en efectivo</dt><dd class="font-mono">{{ $m($resumen['abonos']['efectivo']) }}</dd></div>
+            @endif
             <div class="flex justify-between"><dt class="text-anil-700">+ Entradas de efectivo</dt><dd class="font-mono">{{ $m($resumen['entradas']) }}</dd></div>
             <div class="flex justify-between"><dt class="text-anil-700">− Retiros</dt><dd class="font-mono">{{ $m($resumen['retiros']) }}</dd></div>
-            <div class="flex justify-between"><dt class="text-anil-700">− Devoluciones ({{ $resumen['devoluciones']['cantidad'] }})</dt><dd class="font-mono">{{ $m($resumen['devoluciones']['total']) }}</dd></div>
+            <div class="flex justify-between"><dt class="text-anil-700">− Devoluciones ({{ $resumen['devoluciones']['cantidad'] }})</dt><dd class="font-mono">{{ $m($resumen['devoluciones']['efectivo'] ?? $resumen['devoluciones']['total']) }}</dd></div>
             @if ($mostrarEsperado)
                 <div class="flex justify-between border-t border-anil-100 pt-2"><dt class="font-semibold">Efectivo esperado</dt><dd class="font-mono font-extrabold">{{ $m($resumen['efectivo_esperado']) }}</dd></div>
             @endif

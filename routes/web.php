@@ -3,6 +3,7 @@
 use App\Http\Controllers\CajaPruebaController;
 use App\Http\Controllers\CerrarSesionController;
 use App\Http\Controllers\CorteController;
+use App\Http\Controllers\EstadoCuentaController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\VentaTicketController;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,13 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Volt::route('/', 'pages.ventas.index')->name('index');
         Volt::route('{venta}', 'pages.ventas.ver')->name('ver');
         Route::get('{venta}/ticket', VentaTicketController::class)->name('ticket');
+    });
+
+    // Clientes y crédito (Fase 6)
+    Route::prefix('clientes')->name('clientes.')->middleware('can:clientes.ver')->group(function () {
+        Volt::route('/', 'pages.clientes.index')->name('index');
+        Volt::route('{cliente}', 'pages.clientes.cuenta')->name('cuenta');
+        Route::get('{cliente}/estado-de-cuenta', EstadoCuentaController::class)->name('estado');
     });
 
     // Caja y cortes (Fase 4)

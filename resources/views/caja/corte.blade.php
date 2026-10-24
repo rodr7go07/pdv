@@ -1,6 +1,6 @@
 @php
     $m = fn ($v) => '$'.number_format((float) $v, 2);
-    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia'];
+    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'A credito (sin cobrar)'];
 @endphp
 <!doctype html>
 <html lang="es-MX">
@@ -63,9 +63,12 @@
     <table>
         <tr><td>Fondo inicial</td><td class="der">{{ $m($d['fondo_inicial']) }}</td></tr>
         <tr><td>+ Ventas en efectivo</td><td class="der">{{ $m($d['pagos']['efectivo'] ?? 0) }}</td></tr>
+        @if ((float) ($d['abonos']['efectivo'] ?? 0) > 0)
+            <tr><td>+ Abonos en efectivo</td><td class="der">{{ $m($d['abonos']['efectivo']) }}</td></tr>
+        @endif
         <tr><td>+ Entradas</td><td class="der">{{ $m($d['entradas']) }}</td></tr>
         <tr><td>- Retiros</td><td class="der">{{ $m($d['retiros']) }}</td></tr>
-        <tr><td>- Devoluciones ({{ $d['devoluciones']['cantidad'] }})</td><td class="der">{{ $m($d['devoluciones']['total']) }}</td></tr>
+        <tr><td>- Devoluciones ({{ $d['devoluciones']['cantidad'] }})</td><td class="der">{{ $m($d['devoluciones']['efectivo'] ?? $d['devoluciones']['total']) }}</td></tr>
         <tr class="negrita"><td>Efectivo esperado</td><td class="der">{{ $m($d['efectivo_esperado']) }}</td></tr>
         @if (isset($d['efectivo_contado']))
             <tr><td>Efectivo contado</td><td class="der">{{ $m($d['efectivo_contado']) }}</td></tr>

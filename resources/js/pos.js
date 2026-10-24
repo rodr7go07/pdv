@@ -41,6 +41,8 @@ export function registrarPos(Alpine) {
         cola: [],
         modal: null,
 
+        cliente: null,
+        clientes: { texto: '', resultados: [], cargando: false },
         busqueda: { texto: '', resultados: [], cargando: false, enfocado: 0 },
         descGlobal: { tipo: '', valor: '' },
         descLinea: { indice: -1, tipo: 'pct', valor: '' },
@@ -58,11 +60,13 @@ export function registrarPos(Alpine) {
             if (previo && Array.isArray(previo.lineas) && previo.lineas.length) {
                 this.lineas = previo.lineas;
                 this.descGlobal = previo.descGlobal || { tipo: '', valor: '' };
+                this.cliente = this.cfg.puedeCliente ? (previo.cliente || null) : null;
                 this.refrescarPrecios();
             }
 
             this.$watch('lineas', () => this.persistir());
             this.$watch('descGlobal', () => this.persistir());
+            this.$watch('cliente', () => this.persistir());
             this.enfocar();
         },
 
@@ -71,7 +75,7 @@ export function registrarPos(Alpine) {
         },
 
         persistir() {
-            guardado.escribir(this.claveGuardado(), this.lineas.length ? { lineas: this.lineas, descGlobal: this.descGlobal } : null);
+            guardado.escribir(this.claveGuardado(), this.lineas.length ? { lineas: this.lineas, descGlobal: this.descGlobal, cliente: this.cliente } : null);
         },
 
         enfocar() {
@@ -80,8 +84,12 @@ export function registrarPos(Alpine) {
         },
 
         // ─── Dinero ─────────────────────────────────────────────────────────────────
+        /** Lista de precios vigente: la del cliente elegido o la 1. */
+        get listaActual() {
+            return this.cliente?.lista ?? this.cfg.lista ?? 1;
+        },
         precioCents(l) {
-            const lista = this.cfg.lista;
+            const lista = this.listaActual;
             return aCentavos(l.precios[lista - 1] ?? l.precios[0]);
         },
         brutoLinea(l) {
@@ -325,6 +333,7 @@ export function registrarPos(Alpine) {
 
         limpiarVenta() {
             this.lineas = [];
+            this.cliente = null;
             this.descGlobal = { tipo: '', valor: '' };
             this.multiplicador = null;
             this.sel = -1;
@@ -378,6 +387,40 @@ export function registrarPos(Alpine) {
             this.modal = null;
             this.agregar(a, this.multiplicador);
             this.multiplicador = null;
+            this.enfocar();
+        },
+
+        // ─── Cliente (F7) ───────────────────────────────────────────────────────────
+        abrirClientes() {
+            if (!this.cfg.puedeCliente) { this.avisar('No tienes permiso para elegir clientes.', 'error'); return; }
+            this.clientes = { texto: '', resultados: [], cargando: false };
+            this.modal = 'cliente';
+            this.$nextTick(() => this.$refs.clienteTexto?.focus());
+        },
+
+        async buscarClientes() {
+            const texto = this.clientes.texto.trim();
+            if (texto.length < 2) { this.clientes.resultados = []; return; }
+            this.clientes.cargando = true;
+            try {
+                const r = await this.$wire.buscarClientes(texto);
+                if (texto === this.clientes.texto.trim()) this.clientes.resultados = r;
+            } catch (e) {
+                this.avisar('No se pudo buscar clientes.', 'error');
+            }
+            this.clientes.cargando = false;
+        },
+
+        elegirCliente(c) {
+            this.cliente = { id: c.id, nombre: c.nombre, lista: c.lista, credito: c.credito, disponible: c.disponible };
+            this.modal = null;
+            this.avisar(`Cliente: ${c.nombre}` + (c.lista > 1 ? ` · precio ${c.lista}` : ''), 'ok');
+            this.enfocar();
+        },
+
+        quitarCliente() {
+            this.cliente = null;
+            this.modal = null;
             this.enfocar();
         },
 
@@ -440,13 +483,14 @@ export function registrarPos(Alpine) {
 
         async abrirCobro() {
             if (!this.lineas.length) { this.avisar('Agrega al menos un artículo.', 'error'); return; }
-            this.cobro = { pagos: [], procesando: true, error: '', totalServidor: null };
+            this.cobro = { pagos: [], procesando: true, error: '', totalServidor: null, disponible: 0 };
             this.modal = 'cobro';
 
             try {
-                const r = await this.$wire.previsualizar(this.payload(), this.descuentoPayload(), this.cfg.lista);
+                const r = await this.$wire.previsualizar(this.payload(), this.descuentoPayload(), this.listaActual, this.cliente?.id ?? null);
                 if (!r.ok) { this.cobro.error = r.mensaje; this.cobro.procesando = false; return; }
                 this.cobro.totalServidor = aCentavos(r.total);
+                this.cobro.disponible = aCentavos(r.disponible);
                 this.cobro.pagos = [{ forma: 'efectivo', monto: r.total, referencia: '' }];
                 if (this.cobro.totalServidor !== this.total) this.avisar('El total se recalculó con los precios actuales.', 'info', 5000);
             } catch (e) {
@@ -474,16 +518,21 @@ export function registrarPos(Alpine) {
         get cambio() {
             return Math.max(this.efectivoRecibido - this.efectivoNecesario, 0);
         },
+        get creditoUsado() {
+            return this.cobro.pagos.filter((p) => p.forma === 'credito').reduce((s, p) => s + aCentavos(p.monto), 0);
+        },
         get puedeConfirmar() {
             return !this.cobro.procesando
                 && this.cobro.totalServidor !== null
+                && this.creditoUsado <= (this.cobro.disponible || 0)
                 && this.sinEfectivo <= this.totalCobro
                 && this.faltante === 0
                 && !(this.efectivoNecesario === 0 && this.efectivoRecibido > 0);
         },
 
         agregarPago(forma) {
-            const restante = Math.max(this.totalCobro - this.sinEfectivo - this.efectivoRecibido, 0);
+            let restante = Math.max(this.totalCobro - this.sinEfectivo - this.efectivoRecibido, 0);
+            if (forma === 'credito') restante = Math.min(restante, Math.max((this.cobro.disponible || 0) - this.creditoUsado, 0));
             this.cobro.pagos.push({ forma, monto: (restante / 100).toFixed(2), referencia: '' });
         },
         quitarPago(i) {
@@ -509,7 +558,7 @@ export function registrarPos(Alpine) {
                     .filter((p) => aCentavos(p.monto) > 0)
                     .map((p) => ({ forma: p.forma, monto: String(p.monto), referencia: p.referencia || null }));
 
-                const r = await this.$wire.cobrar(this.payload(), pagos, this.descuentoPayload(), this.cfg.lista);
+                const r = await this.$wire.cobrar(this.payload(), pagos, this.descuentoPayload(), this.listaActual, this.cliente?.id ?? null);
 
                 if (!r.ok) {
                     this.cobro.error = r.mensaje;
@@ -623,6 +672,7 @@ export function registrarPos(Alpine) {
                 F3: () => (this.lineas.length ? (this.modal = 'espera-guardar') : this.avisar('No hay nada que guardar.', 'error')),
                 F4: () => this.abrirEsperas(),
                 F6: () => this.abrirDescuentoGeneral(),
+                F7: () => this.abrirClientes(),
                 F8: () => this.abrirCobro(),
             };
 

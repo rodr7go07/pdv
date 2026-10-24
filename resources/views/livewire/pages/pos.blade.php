@@ -5,6 +5,7 @@ use App\Actions\Ventas\RegistrarVenta;
 use App\Enums\TipoImpuesto;
 use App\Http\Controllers\PosController;
 use App\Models\Caja;
+use App\Models\Cliente;
 use App\Models\Configuracion;
 use App\Models\Departamento;
 use App\Models\Turno;
@@ -79,6 +80,7 @@ new #[Layout('layouts.pos')] class extends Component
             'urlPorIds' => route('pos.por-ids'),
             'urlTicket' => route('ventas.ticket', ['venta' => '__ID__']),
             'puedeDescuento' => auth()->user()->can('ventas.descuento'),
+            'puedeCliente' => auth()->user()->can('clientes.ver'),
             'puedeAlta' => $this->puedeAlta,
             'autoImprimir' => (bool) $this->caja?->imprimir_automatico,
             'venderSinExistencia' => (bool) Configuracion::actual()->vender_sin_existencia,
@@ -89,18 +91,22 @@ new #[Layout('layouts.pos')] class extends Component
     }
 
     /** Totales exactos del servidor para mostrar en la pantalla de cobro. */
-    public function previsualizar(array $lineas, array $descuento, int $lista): array
+    public function previsualizar(array $lineas, array $descuento, int $lista, ?int $clienteId = null): array
     {
         try {
-            $r = app(RegistrarVenta::class)->calcular(auth()->user(), $this->limpiarLineas($lineas), $this->limpiarDescuento($descuento), $lista);
+            $cliente = $this->cliente($clienteId);
+            $r = app(RegistrarVenta::class)->calcular(auth()->user(), $this->limpiarLineas($lineas), $this->limpiarDescuento($descuento), $lista, $cliente);
         } catch (ValidationException|HttpException $e) {
             return ['ok' => false, 'mensaje' => $this->mensaje($e)];
         }
 
-        return ['ok' => true, 'total' => $r['total'], 'descuento' => $r['descuento'], 'subtotal' => $r['subtotal'], 'impuestos' => $r['impuestos']];
+        return [
+            'ok' => true, 'total' => $r['total'], 'descuento' => $r['descuento'], 'subtotal' => $r['subtotal'], 'impuestos' => $r['impuestos'],
+            'disponible' => $cliente?->tieneCredito() ? $cliente->disponible() : '0.00',
+        ];
     }
 
-    public function cobrar(array $lineas, array $pagos, array $descuento, int $lista): array
+    public function cobrar(array $lineas, array $pagos, array $descuento, int $lista, ?int $clienteId = null): array
     {
         $caja = $this->caja;
 
@@ -116,6 +122,7 @@ new #[Layout('layouts.pos')] class extends Component
                 $this->limpiarPagos($pagos),
                 $this->limpiarDescuento($descuento),
                 $lista,
+                $this->cliente($clienteId),
             );
         } catch (ValidationException|HttpException $e) {
             return ['ok' => false, 'mensaje' => $this->mensaje($e)];
@@ -129,6 +136,54 @@ new #[Layout('layouts.pos')] class extends Component
             'recibido' => $venta->efectivo_recibido,
             'cambio' => $venta->cambio,
         ];
+    }
+
+    // ─── Clientes ───────────────────────────────────────────────────────────────
+    /** Búsqueda de clientes para la venta (por nombre o teléfono). */
+    public function buscarClientes(string $texto): array
+    {
+        if (! auth()->user()->can('clientes.ver')) {
+            return [];
+        }
+
+        $texto = trim($texto);
+
+        if (mb_strlen($texto) < 2) {
+            return [];
+        }
+
+        $patron = '%'.addcslashes($texto, '%_\\').'%';
+
+        return Cliente::query()->activos()
+            ->where(fn ($q) => $q->where('nombre', 'like', $patron)->orWhere('telefono', 'like', $patron))
+            ->orderBy('nombre')->limit(10)->get()
+            ->map(fn (Cliente $c) => [
+                'id' => $c->id,
+                'nombre' => $c->nombre,
+                'telefono' => $c->telefono,
+                'lista' => $c->lista_precios,
+                'credito' => $c->tieneCredito(),
+                'saldo' => $c->saldo,
+                'disponible' => $c->tieneCredito() ? $c->disponible() : '0.00',
+            ])->all();
+    }
+
+    /** @throws ValidationException */
+    private function cliente(?int $id): ?Cliente
+    {
+        if (! $id) {
+            return null;
+        }
+
+        abort_unless(auth()->user()->can('clientes.ver'), 403, 'No tienes permiso para vender a clientes.');
+
+        $cliente = Cliente::query()->activos()->find($id);
+
+        if (! $cliente) {
+            throw ValidationException::withMessages(['cliente' => 'Ese cliente ya no está disponible.']);
+        }
+
+        return $cliente;
     }
 
     // ─── Ventas en espera ───────────────────────────────────────────────────────
@@ -387,7 +442,7 @@ new #[Layout('layouts.pos')] class extends Component
 
             {{-- Resumen y acciones --}}
             <aside class="shrink-0 border-t border-anil-100 bg-white lg:flex lg:w-[22rem] lg:flex-col lg:border-l lg:border-t-0">
-                <div class="grid grid-cols-4 gap-1.5 border-b border-anil-50 p-2 lg:grid-cols-2 lg:gap-2 lg:p-4">
+                <div class="grid grid-cols-5 gap-1.5 border-b border-anil-50 p-2 lg:grid-cols-2 lg:gap-2 lg:p-4">
                     <button type="button" x-on:click="abrirBusqueda()" class="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg border border-anil-200 text-[0.6875rem] font-semibold text-anil-800 active:bg-anil-100 lg:min-h-11 lg:flex-row lg:gap-2 lg:text-sm">
                         <x-phosphor-magnifying-glass-bold class="size-5" /> Buscar <span class="hidden font-mono text-anil-500 lg:inline">F2</span>
                     </button>
@@ -400,6 +455,20 @@ new #[Layout('layouts.pos')] class extends Component
                     <button type="button" x-on:click="abrirDescuentoGeneral()" x-show="cfg.puedeDescuento" class="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg border border-anil-200 text-[0.6875rem] font-semibold text-anil-800 active:bg-anil-100 lg:min-h-11 lg:flex-row lg:gap-2 lg:text-sm">
                         <x-phosphor-percent-bold class="size-5" /> Descuento <span class="hidden font-mono text-anil-500 lg:inline">F6</span>
                     </button>
+                    <button type="button" x-on:click="abrirClientes()" x-show="cfg.puedeCliente" :class="cliente ? 'border-rosa-300 bg-rosa-50 text-rosa-700' : 'border-anil-200 text-anil-800'" class="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg border text-[0.6875rem] font-semibold active:bg-anil-100 lg:min-h-11 lg:flex-row lg:gap-2 lg:text-sm">
+                        <x-phosphor-user-circle-bold class="size-5" /> Cliente <span class="hidden font-mono text-anil-500 lg:inline">F7</span>
+                    </button>
+                </div>
+
+                <div x-show="cliente" x-cloak class="mx-2 mt-2 flex items-center justify-between gap-2 rounded-lg bg-rosa-50 px-3 py-2 text-sm lg:mx-4">
+                    <div class="min-w-0">
+                        <p class="truncate font-semibold text-rosa-700" x-text="cliente?.nombre"></p>
+                        <p class="text-xs text-anil-700">
+                            <span x-text="'Precio ' + (cliente?.lista || 1)"></span>
+                            <span x-show="cliente?.credito"> · Crédito disponible <strong x-text="cliente ? dinero(Math.round(parseFloat(cliente.disponible) * 100)) : ''"></strong></span>
+                        </p>
+                    </div>
+                    <button type="button" x-on:click="quitarCliente()" class="grid size-9 shrink-0 place-items-center rounded-lg text-anil-600 hover:bg-white" aria-label="Quitar cliente"><x-phosphor-x-bold class="size-4" /></button>
                 </div>
 
                 <div class="flex items-end justify-between gap-3 px-4 pb-1 pt-3 lg:mt-auto lg:flex-col lg:items-stretch lg:gap-1 lg:px-5 lg:pt-5">
@@ -479,6 +548,39 @@ new #[Layout('layouts.pos')] class extends Component
                     <x-secondary-button x-on:click="modal = null; enfocar()">Cancelar</x-secondary-button>
                     <x-primary-button type="button" x-on:click="confirmarPeso()">Agregar</x-primary-button>
                 </div>
+            </div>
+
+            {{-- Cliente --}}
+            <div x-show="modal === 'cliente'" x-cloak class="relative flex max-h-[92dvh] w-full flex-col rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl">
+                <header class="flex items-center justify-between border-b border-anil-100 px-5 py-4">
+                    <h2 class="text-lg font-extrabold">Elegir cliente</h2>
+                    <button type="button" x-on:click="modal = null; enfocar()" class="grid size-10 place-items-center rounded-lg text-anil-600 hover:bg-anil-50" aria-label="Cerrar"><x-phosphor-x-bold class="size-5" /></button>
+                </header>
+                <div class="border-b border-anil-100 p-4">
+                    <input x-ref="clienteTexto" x-model="clientes.texto" x-on:input.debounce.250ms="buscarClientes()" type="search" placeholder="Nombre o teléfono del cliente" autocomplete="off"
+                           class="block w-full rounded-lg border border-anil-200 px-3.5 py-3 text-base focus:border-anil-500 focus:ring-4 focus:ring-anil-500/15 focus:outline-none">
+                </div>
+                <ul class="min-h-0 flex-1 divide-y divide-anil-50 overflow-y-auto">
+                    <template x-for="c in clientes.resultados" :key="c.id">
+                        <li>
+                            <button type="button" x-on:click="elegirCliente(c)" class="flex min-h-14 w-full items-center justify-between gap-3 px-5 py-2.5 text-left hover:bg-anil-50">
+                                <span class="min-w-0">
+                                    <span class="block truncate font-semibold" x-text="c.nombre"></span>
+                                    <span class="block text-xs text-anil-600" x-text="(c.telefono || 'Sin teléfono') + ' · Precio ' + c.lista"></span>
+                                </span>
+                                <span class="shrink-0 text-right text-xs" x-show="c.credito">
+                                    <span class="block text-anil-600">Disponible</span>
+                                    <span class="block font-display text-sm font-extrabold" x-text="dinero(Math.round(parseFloat(c.disponible) * 100))"></span>
+                                </span>
+                            </button>
+                        </li>
+                    </template>
+                    <li x-show="!clientes.resultados.length && clientes.texto.trim().length >= 2 && !clientes.cargando" class="px-5 py-8 text-center text-sm text-anil-700">No se encontró ningún cliente.</li>
+                    <li x-show="clientes.texto.trim().length < 2" class="px-5 py-8 text-center text-sm text-anil-600">Escribe al menos 2 letras.</li>
+                </ul>
+                <footer class="border-t border-anil-100 p-3" x-show="cliente">
+                    <button type="button" x-on:click="quitarCliente()" class="min-h-11 w-full rounded-lg text-sm font-semibold text-peligro hover:bg-red-50">Quitar el cliente de esta venta</button>
+                </footer>
             </div>
 
             {{-- Descuento general --}}
@@ -608,6 +710,7 @@ new #[Layout('layouts.pos')] class extends Component
                                         <option value="efectivo">Efectivo</option>
                                         <option value="tarjeta">Tarjeta</option>
                                         <option value="transferencia">Transferencia</option>
+                                        <option value="credito" x-show="cliente?.credito" :disabled="!cliente?.credito">A crédito</option>
                                     </select>
                                     <input x-ref="montoCobro" x-model="p.monto" type="text" inputmode="decimal" autocomplete="off" aria-label="Monto"
                                            class="min-w-0 flex-1 rounded-lg border-2 border-anil-200 px-3 py-2 text-right font-mono text-xl font-bold focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
@@ -627,6 +730,7 @@ new #[Layout('layouts.pos')] class extends Component
                         <div class="flex flex-wrap gap-2">
                             <button type="button" x-on:click="agregarPago('tarjeta')" class="min-h-10 rounded-lg border border-dashed border-anil-300 px-3 text-sm font-semibold text-anil-700 hover:bg-anil-50">+ Tarjeta</button>
                             <button type="button" x-on:click="agregarPago('transferencia')" class="min-h-10 rounded-lg border border-dashed border-anil-300 px-3 text-sm font-semibold text-anil-700 hover:bg-anil-50">+ Transferencia</button>
+                            <button type="button" x-on:click="agregarPago('credito')" x-show="cliente?.credito && !cobro.pagos.some(p => p.forma === 'credito')" class="min-h-10 rounded-lg border border-dashed border-rosa-300 px-3 text-sm font-semibold text-rosa-700 hover:bg-rosa-50">+ A crédito</button>
                             <button type="button" x-on:click="agregarPago('efectivo')" x-show="!cobro.pagos.some(p => p.forma === 'efectivo')" class="min-h-10 rounded-lg border border-dashed border-anil-300 px-3 text-sm font-semibold text-anil-700 hover:bg-anil-50">+ Efectivo</button>
                         </div>
 
@@ -637,7 +741,8 @@ new #[Layout('layouts.pos')] class extends Component
                             <template x-if="faltante === 0 && sinEfectivo <= totalCobro">
                                 <p class="flex items-baseline justify-between font-semibold text-emerald-900"><span>Cambio</span><span class="font-display text-3xl font-extrabold" x-text="dinero(cambio)"></span></p>
                             </template>
-                            <p x-show="sinEfectivo > totalCobro" class="text-sm font-semibold text-red-800">Los pagos con tarjeta o transferencia no pueden pasar del total.</p>
+                            <p x-show="sinEfectivo > totalCobro" class="text-sm font-semibold text-red-800">Los pagos con tarjeta, transferencia o crédito no pueden pasar del total.</p>
+                            <p x-show="creditoUsado > (cobro.disponible || 0)" class="text-sm font-semibold text-red-800">Excede el crédito disponible del cliente (<span x-text="dinero(cobro.disponible || 0)"></span>).</p>
                             <p x-show="efectivoNecesario === 0 && efectivoRecibido > 0" class="text-sm font-semibold text-red-800">El total ya está cubierto: quita el efectivo.</p>
                         </div>
                     </div>
@@ -685,6 +790,7 @@ new #[Layout('layouts.pos')] class extends Component
                         ['F3', 'Dejar la venta en espera'],
                         ['F4', 'Recuperar una venta en espera'],
                         ['F6', 'Descuento a toda la venta'],
+                        ['F7', 'Elegir cliente (su lista de precios y su crédito)'],
                         ['F8  o  Ctrl+Enter', 'Cobrar'],
                         ['↑  ↓', 'Moverte entre los artículos'],
                         ['+  y  −', 'Subir o bajar la cantidad seleccionada'],

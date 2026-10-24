@@ -41,6 +41,8 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('{venta}/ticket', VentaTicketController::class)->name('ticket');
     });
 
+    Volt::route('usuarios', 'pages.usuarios')->middleware('can:usuarios.administrar')->name('usuarios');
+
     // Reportes y tablero (Fase 7)
     Volt::route('reportes', 'pages.reportes.index')->middleware('can:reportes.ver')->name('reportes');
     Route::get('reportes/exportar/{seccion}', ReporteExportController::class)->middleware('can:reportes.ver')->name('reportes.exportar');

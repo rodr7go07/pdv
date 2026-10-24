@@ -35,6 +35,11 @@ enum Permiso: string
     case CajaSupervisar = 'caja.supervisar';
     case CajasAdministrar = 'cajas.administrar';
 
+    case ClientesVer = 'clientes.ver';
+    case ClientesAdministrar = 'clientes.administrar';
+    case ClientesCredito = 'clientes.credito';
+    case ClientesAbonar = 'clientes.abonar';
+
     case ReportesVer = 'reportes.ver';
 
     case ConfiguracionEditar = 'configuracion.editar';

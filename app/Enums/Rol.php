@@ -28,6 +28,8 @@ enum Rol: string
                 Permiso::VentasCobrar,
                 Permiso::CajaAbrir,
                 Permiso::CajaCorte,
+                Permiso::ClientesVer,
+                Permiso::ClientesAbonar,
             ],
         };
     }

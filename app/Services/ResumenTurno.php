@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class ResumenTurno
 {
-    public const FORMAS = ['efectivo', 'tarjeta', 'transferencia'];
+    public const FORMAS = ['efectivo', 'tarjeta', 'transferencia', 'credito'];
 
     /**
      * @return array{
@@ -24,7 +24,8 @@ final class ResumenTurno
      *   ventas: array{cantidad: int, total: string, subtotal: string, impuestos: string, descuento: string},
      *   pagos: array<string, string>,
      *   canceladas: array{cantidad: int, total: string},
-     *   devoluciones: array{cantidad: int, total: string},
+     *   devoluciones: array{cantidad: int, total: string, efectivo: string},
+     *   abonos: array<string, string>,
      *   entradas: string,
      *   retiros: string,
      *   efectivo_esperado: string
@@ -46,8 +47,12 @@ final class ResumenTurno
             ->selectRaw('venta_pagos.forma as forma, SUM(venta_pagos.monto) as monto')
             ->pluck('monto', 'forma');
 
+        // Del total devuelto, la parte "a crédito" baja la deuda del cliente y no sale del cajón.
         $devoluciones = DB::table('devoluciones')->where('turno_id', $turno->id)
-            ->selectRaw('COUNT(*) as cantidad, COALESCE(SUM(total),0) as total')->first();
+            ->selectRaw('COUNT(*) as cantidad, COALESCE(SUM(total),0) as total, COALESCE(SUM(total - monto_credito),0) as efectivo')->first();
+
+        $abonos = DB::table('cliente_movimientos')->where('turno_id', $turno->id)->where('tipo', 'abono')
+            ->groupBy('forma')->selectRaw('forma, SUM(monto) as monto')->pluck('monto', 'forma');
 
         $movimientos = DB::table('movimientos_caja')->where('turno_id', $turno->id)
             ->groupBy('tipo')->selectRaw('tipo, SUM(monto) as monto')->pluck('monto', 'tipo');
@@ -59,11 +64,17 @@ final class ResumenTurno
             $porForma[$forma] = $dinero($pagos[$forma] ?? 0);
         }
 
+        $abonosPorForma = [];
+        foreach (['efectivo', 'tarjeta', 'transferencia'] as $forma) {
+            $abonosPorForma[$forma] = $dinero($abonos[$forma] ?? 0);
+        }
+
         $esperado = BigDecimal::of((string) $turno->fondo_inicial)
             ->plus($porForma['efectivo'])
+            ->plus($abonosPorForma['efectivo'])
             ->plus($dinero($movimientos['entrada'] ?? 0))
             ->minus($dinero($movimientos['retiro'] ?? 0))
-            ->minus($dinero($devoluciones->total));
+            ->minus($dinero($devoluciones->efectivo));
 
         return [
             'fondo_inicial' => $dinero($turno->fondo_inicial),
@@ -76,7 +87,12 @@ final class ResumenTurno
             ],
             'pagos' => $porForma,
             'canceladas' => ['cantidad' => (int) $canceladas->cantidad, 'total' => $dinero($canceladas->total)],
-            'devoluciones' => ['cantidad' => (int) $devoluciones->cantidad, 'total' => $dinero($devoluciones->total)],
+            'devoluciones' => [
+                'cantidad' => (int) $devoluciones->cantidad,
+                'total' => $dinero($devoluciones->total),
+                'efectivo' => $dinero($devoluciones->efectivo),
+            ],
+            'abonos' => $abonosPorForma,
             'entradas' => $dinero($movimientos['entrada'] ?? 0),
             'retiros' => $dinero($movimientos['retiro'] ?? 0),
             'efectivo_esperado' => (string) $esperado->toScale(2, RoundingMode::HalfUp),

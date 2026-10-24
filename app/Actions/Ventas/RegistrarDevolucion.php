@@ -2,7 +2,9 @@
 
 namespace App\Actions\Ventas;
 
+use App\Actions\Clientes\RegistrarMovimientoCliente;
 use App\Actions\Inventario\RegistrarMovimientoInventario;
+use App\Models\Cliente;
 use App\Enums\TipoMovimiento;
 use App\Models\Devolucion;
 use App\Models\Turno;
@@ -23,7 +25,42 @@ use Illuminate\Validation\ValidationException;
  */
 class RegistrarDevolucion
 {
-    public function __construct(private readonly RegistrarMovimientoInventario $movimiento) {}
+    public function __construct(
+        private readonly RegistrarMovimientoInventario $movimiento,
+        private readonly RegistrarMovimientoCliente $cuenta,
+    ) {}
+
+    /**
+     * Si la venta fue (en parte) a crédito, esa parte de la devolución baja la deuda del cliente
+     * en lugar de sacar efectivo del cajón. Se calcula proporcional a lo que se pagó a crédito y
+     * nunca pasa de lo que todavía se debe ni de lo que falta por devolver del crédito.
+     */
+    private function parteDeCredito(Venta $venta, BigDecimal $total): BigDecimal
+    {
+        $cero = BigDecimal::zero()->toScale(2);
+
+        if (! $venta->cliente_id) {
+            return $cero;
+        }
+
+        $credito = BigDecimal::of((string) $venta->pagos()->where('forma', 'credito')->sum('monto'));
+
+        if (! $credito->isPositive()) {
+            return $cero;
+        }
+
+        $yaDevuelto = BigDecimal::of((string) $venta->devoluciones()->sum('monto_credito'));
+        $pendiente = $credito->minus($yaDevuelto);
+        $saldo = BigDecimal::of((string) Cliente::withTrashed()->lockForUpdate()->whereKey($venta->cliente_id)->value('saldo'));
+
+        $parte = $total->multipliedBy($credito)->dividedBy((string) $venta->total, 2, RoundingMode::HalfUp);
+
+        foreach ([$pendiente, $saldo] as $tope) {
+            $parte = $parte->isGreaterThan($tope) ? $tope : $parte;
+        }
+
+        return $parte->isNegative() ? $cero : $parte->toScale(2, RoundingMode::HalfUp);
+    }
 
     /**
      * @param  list<array{partida_id: int|string, cantidad: string}>  $items
@@ -92,6 +129,8 @@ class RegistrarDevolucion
                 $total = $total->plus($monto);
             }
 
+            $montoCredito = $this->parteDeCredito($venta, $total);
+
             $devolucion = Devolucion::query()->create([
                 'folio' => Folios::formato('D', Folios::siguiente('D')),
                 'venta_id' => $venta->id,
@@ -99,8 +138,13 @@ class RegistrarDevolucion
                 'user_id' => $usuario->id,
                 'motivo' => $motivo,
                 'total' => (string) $total->toScale(2),
+                'monto_credito' => (string) $montoCredito,
                 'forma' => 'efectivo',
             ]);
+
+            if ($montoCredito->isPositive()) {
+                ($this->cuenta)($venta->cliente_id, 'devolucion', (string) $montoCredito, $usuario, $venta, $turno->id, nota: $devolucion->folio);
+            }
 
             foreach ($renglones as $r) {
                 /** @var VentaPartida $partida */

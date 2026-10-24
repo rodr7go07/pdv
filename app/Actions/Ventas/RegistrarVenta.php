@@ -5,7 +5,9 @@ namespace App\Actions\Ventas;
 use App\Actions\Inventario\RegistrarMovimientoInventario;
 use App\Enums\TipoMovimiento;
 use App\Models\Articulo;
+use App\Actions\Clientes\RegistrarMovimientoCliente;
 use App\Models\Caja;
+use App\Models\Cliente;
 use App\Models\Configuracion;
 use App\Models\Impuesto;
 use App\Models\Turno;
@@ -29,9 +31,12 @@ use Illuminate\Validation\ValidationException;
  */
 class RegistrarVenta
 {
-    public const FORMAS_PAGO = ['efectivo', 'tarjeta', 'transferencia'];
+    public const FORMAS_PAGO = ['efectivo', 'tarjeta', 'transferencia', 'credito'];
 
-    public function __construct(private readonly RegistrarMovimientoInventario $movimiento) {}
+    public function __construct(
+        private readonly RegistrarMovimientoInventario $movimiento,
+        private readonly RegistrarMovimientoCliente $cuenta,
+    ) {}
 
     /**
      * @param  list<array{articulo_id: int|string, cantidad: string, descuento_tipo?: ?string, descuento_valor?: ?string}>  $lineas
@@ -40,12 +45,12 @@ class RegistrarVenta
      *
      * @throws ValidationException
      */
-    public function __invoke(Caja $caja, User $usuario, array $lineas, array $pagos, array $descuentoGlobal = [], int $lista = 1): Venta
+    public function __invoke(Caja $caja, User $usuario, array $lineas, array $pagos, array $descuentoGlobal = [], int $lista = 1, ?Cliente $cliente = null): Venta
     {
         $this->autorizar($usuario, $lineas, $descuentoGlobal);
         $this->validar($caja, $lineas, $pagos, $descuentoGlobal, $lista);
 
-        return DB::transaction(function () use ($caja, $usuario, $lineas, $pagos, $descuentoGlobal, $lista) {
+        return DB::transaction(function () use ($caja, $usuario, $lineas, $pagos, $descuentoGlobal, $lista, $cliente) {
             // Solo se vende con el turno propio abierto en esa caja; se bloquea para que no se cierre a medio cobro.
             $turno = Turno::query()->abiertos()
                 ->where('caja_id', $caja->id)->where('user_id', $usuario->id)
@@ -53,6 +58,17 @@ class RegistrarVenta
 
             if (! $turno) {
                 throw ValidationException::withMessages(['turno' => 'Abre tu turno de caja antes de vender.']);
+            }
+
+            // El cliente se bloquea (su saldo puede cambiar) y su lista de precios manda sobre la elegida.
+            if ($cliente) {
+                $cliente = Cliente::query()->lockForUpdate()->find($cliente->id);
+
+                if (! $cliente || ! $cliente->activo) {
+                    throw ValidationException::withMessages(['cliente' => 'Ese cliente ya no está disponible.']);
+                }
+
+                $lista = $cliente->lista_precios;
             }
 
             // Bloqueo en orden fijo para que dos ventas simultáneas no se crucen.
@@ -74,7 +90,8 @@ class RegistrarVenta
                 throw ValidationException::withMessages(['total' => 'El total de la venta debe ser mayor que cero.']);
             }
 
-            [$pagosAplicados, $recibido, $cambio] = $this->resolverPagos($pagos, $total);
+            [$pagosAplicados, $recibido, $cambio, $credito] = $this->resolverPagos($pagos, $total);
+            $this->validarCredito($cliente, $credito);
 
             $this->validarExistencias($articulos, $lineas);
 
@@ -87,6 +104,7 @@ class RegistrarVenta
                 'caja_id' => $caja->id,
                 'turno_id' => $turno->id,
                 'user_id' => $usuario->id,
+                'cliente_id' => $cliente?->id,
                 'estado' => 'completada',
                 'lista_precios' => $lista,
                 'subtotal' => $calculo['subtotal'],
@@ -131,7 +149,11 @@ class RegistrarVenta
                 $venta->pagos()->create($p);
             }
 
-            return $venta->load(['partidas', 'pagos', 'caja']);
+            if ($credito->isPositive()) {
+                ($this->cuenta)($cliente, 'cargo', (string) $credito, $usuario, $venta, $turno->id);
+            }
+
+            return $venta->load(['partidas', 'pagos', 'caja', 'cliente']);
         });
     }
 
@@ -145,8 +167,9 @@ class RegistrarVenta
      *
      * @throws ValidationException
      */
-    public function calcular(User $usuario, array $lineas, array $descuentoGlobal = [], int $lista = 1): array
+    public function calcular(User $usuario, array $lineas, array $descuentoGlobal = [], int $lista = 1, ?Cliente $cliente = null): array
     {
+        $lista = $cliente?->lista_precios ?? $lista;
         $this->autorizar($usuario, $lineas, $descuentoGlobal);
         $this->validarLineas($lineas, $descuentoGlobal, $lista);
 
@@ -332,7 +355,7 @@ class RegistrarVenta
      * y lo que sobre se regresa como cambio.
      *
      * @param  list<array{forma: string, monto: string, referencia?: ?string}>  $pagos
-     * @return array{0: list<array<string, mixed>>, 1: BigDecimal, 2: BigDecimal}
+     * @return array{0: list<array<string, mixed>>, 1: BigDecimal, 2: BigDecimal, 3: BigDecimal}  pagos, efectivo recibido, cambio y total a crédito
      *
      * @throws ValidationException
      */
@@ -340,6 +363,7 @@ class RegistrarVenta
     {
         $sinEfectivo = BigDecimal::zero();
         $recibido = BigDecimal::zero();
+        $credito = BigDecimal::zero()->toScale(2);
         $aplicados = [];
 
         foreach ($pagos as $p) {
@@ -351,12 +375,16 @@ class RegistrarVenta
                 continue;
             }
 
+            if ($p['forma'] === 'credito') {
+                $credito = $credito->plus($monto);
+            }
+
             $sinEfectivo = $sinEfectivo->plus($monto);
             $aplicados[] = ['forma' => $p['forma'], 'monto' => (string) $monto, 'referencia' => ($p['referencia'] ?? null) ?: null];
         }
 
         if ($sinEfectivo->isGreaterThan($total)) {
-            throw ValidationException::withMessages(['pagos' => 'Los pagos con tarjeta o transferencia no pueden ser mayores al total.']);
+            throw ValidationException::withMessages(['pagos' => 'Los pagos con tarjeta, transferencia o crédito no pueden ser mayores al total.']);
         }
 
         $efectivoAplicado = $total->minus($sinEfectivo);
@@ -373,6 +401,26 @@ class RegistrarVenta
             array_unshift($aplicados, ['forma' => 'efectivo', 'monto' => (string) $efectivoAplicado, 'referencia' => null]);
         }
 
-        return [$aplicados, $recibido, $recibido->minus($efectivoAplicado)];
+        return [$aplicados, $recibido, $recibido->minus($efectivoAplicado), $credito];
+    }
+
+    /** El crédito exige un cliente activo con límite y saldo suficiente (el cliente ya viene bloqueado). */
+    private function validarCredito(?Cliente $cliente, BigDecimal $credito): void
+    {
+        if (! $credito->isPositive()) {
+            return;
+        }
+
+        if (! $cliente) {
+            throw ValidationException::withMessages(['pagos' => 'Para vender a crédito elige primero al cliente.']);
+        }
+
+        if (! $cliente->tieneCredito()) {
+            throw ValidationException::withMessages(['pagos' => "{$cliente->nombre} no tiene crédito autorizado."]);
+        }
+
+        if ($credito->isGreaterThan($cliente->disponible())) {
+            throw ValidationException::withMessages(['pagos' => 'Excede el crédito disponible de '.$cliente->nombre.': le quedan $'.$cliente->disponible().'.']);
+        }
     }
 }

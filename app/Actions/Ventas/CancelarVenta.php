@@ -2,7 +2,9 @@
 
 namespace App\Actions\Ventas;
 
+use App\Actions\Clientes\RegistrarMovimientoCliente;
 use App\Actions\Inventario\RegistrarMovimientoInventario;
+use App\Models\Cliente;
 use App\Enums\TipoMovimiento;
 use App\Models\Turno;
 use App\Models\User;
@@ -17,7 +19,10 @@ use Illuminate\Validation\ValidationException;
  */
 class CancelarVenta
 {
-    public function __construct(private readonly RegistrarMovimientoInventario $movimiento) {}
+    public function __construct(
+        private readonly RegistrarMovimientoInventario $movimiento,
+        private readonly RegistrarMovimientoCliente $cuenta,
+    ) {}
 
     public function __invoke(Venta $venta, string $motivo, User $usuario): Venta
     {
@@ -50,6 +55,21 @@ class CancelarVenta
 
                 if (! $turno?->estaAbierto()) {
                     throw ValidationException::withMessages(['venta' => 'El turno de esta venta ya se cerró. Registra una devolución en lugar de cancelarla.']);
+                }
+            }
+
+            // La parte vendida a crédito se descuenta de la deuda del cliente (hasta lo que todavía debe).
+            $credito = BigDecimal::of((string) $venta->pagos()->where('forma', 'credito')->sum('monto'));
+
+            if ($venta->cliente_id && $credito->isPositive()) {
+                $saldo = BigDecimal::of((string) Cliente::withTrashed()->lockForUpdate()->whereKey($venta->cliente_id)->value('saldo'));
+                $aplicar = $credito->isGreaterThan($saldo) ? $saldo : $credito;
+
+                if ($aplicar->isPositive()) {
+                    ($this->cuenta)(
+                        $venta->cliente_id, 'cancelacion', (string) $aplicar, $usuario, $venta, $venta->turno_id,
+                        nota: $aplicar->isLessThan($credito) ? 'El cliente ya había abonado parte de esta venta.' : null,
+                    );
                 }
             }
 

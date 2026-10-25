@@ -28,6 +28,15 @@ new #[Layout('layouts.app')] class extends Component
     {
         $this->authorize('compras.registrar');
         $this->fecha = now()->toDateString();
+
+        // Cantidades que llegan desde la sugerencia de compra: [articulo_id => cantidad].
+        foreach (session()->pull('compra_sugerida', []) as $id => $cantidad) {
+            $articulo = Articulo::query()->with('unidad:id,abreviatura')->find((int) $id);
+
+            if ($articulo) {
+                $this->lineas[] = $this->nuevaLinea($articulo, str_contains((string) $cantidad, '.') ? rtrim(rtrim((string) $cantidad, '0'), '.') : (string) $cantidad);
+            }
+        }
     }
 
     #[Computed]
@@ -54,16 +63,22 @@ new #[Layout('layouts.app')] class extends Component
             }
         }
 
-        $this->lineas[] = [
+        $this->lineas[] = $this->nuevaLinea($articulo, '1');
+
+        $this->dispatch('enfocar-selector');
+    }
+
+    /** @return array{articulo_id: int, clave: string, descripcion: string, unidad: string, cantidad: string, costo_unitario: string} */
+    private function nuevaLinea(Articulo $articulo, string $cantidad): array
+    {
+        return [
             'articulo_id' => $articulo->id,
             'clave' => $articulo->clave,
             'descripcion' => $articulo->descripcion,
             'unidad' => $articulo->unidad->abreviatura,
-            'cantidad' => '1',
+            'cantidad' => $cantidad,
             'costo_unitario' => rtrim(rtrim((string) $articulo->ultimo_costo, '0'), '.') ?: (rtrim(rtrim((string) $articulo->costo, '0'), '.') ?: ''),
         ];
-
-        $this->dispatch('enfocar-selector');
     }
 
     public function quitar(int $indice): void

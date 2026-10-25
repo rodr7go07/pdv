@@ -73,6 +73,7 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 54. **Pruebas protegidas:** `tests/TestCase.php` se niega a correr si la conexión no es SQLite o si la configuración está en caché, para que `migrate:fresh` nunca toque MySQL.
 55. **Descuento general:** se reparte en centavos exactos (mayor fracción), sin partidas con descuento negativo ni mayor que su importe.
 56. **Cobro mixto:** el efectivo se calcula solo como lo que falta mientras no se escriba a mano.
+57. **Sugerencia de compra:** `App\Services\SugerenciaCompra` calcula qué comprar con lo vendido (neto de devoluciones, solo ventas completadas) en los últimos N días y los días de cobertura elegidos (15 por defecto), respetando mínimo y máximo del artículo. La pantalla está en `compras/sugerencia` (permiso `compras.ver`); *Crear compra* pasa las cantidades por sesión a `compras/crear` y exige `compras.registrar`. Los artículos no tienen proveedor, por eso se filtra por departamento y no por proveedor.
 
 ## Pendientes por decidir
 

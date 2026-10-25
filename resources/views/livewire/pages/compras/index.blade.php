@@ -64,6 +64,9 @@ new #[Layout('layouts.app')] class extends Component
 <div>
     <x-slot name="titulo">Compras</x-slot>
     <x-slot name="acciones">
+        <a href="{{ route('compras.sugerencia') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
+            <x-phosphor-lightbulb-bold class="size-4" /> Sugerencia de compra
+        </a>
         @can('proveedores.administrar')
             <a href="{{ route('proveedores') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
                 <x-phosphor-truck-bold class="size-4" /> Proveedores

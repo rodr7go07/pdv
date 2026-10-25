@@ -6,6 +6,7 @@ use App\Http\Controllers\CorteController;
 use App\Http\Controllers\EstadoCuentaController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReporteExportController;
+use App\Http\Controllers\SugerenciaCompraExportController;
 use App\Http\Controllers\VentaTicketController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -75,6 +76,8 @@ Route::middleware(['auth', 'activo'])->group(function () {
 
     Route::prefix('compras')->name('compras.')->group(function () {
         Volt::route('/', 'pages.compras.index')->middleware('can:compras.ver')->name('index');
+        Volt::route('sugerencia', 'pages.compras.sugerencia')->middleware('can:compras.ver')->name('sugerencia');
+        Route::get('sugerencia/exportar', SugerenciaCompraExportController::class)->middleware('can:compras.ver')->name('sugerencia.exportar');
         Volt::route('crear', 'pages.compras.crear')->middleware('can:compras.registrar')->name('crear');
         Volt::route('{compra}', 'pages.compras.ver')->middleware('can:compras.ver')->name('ver');
     });

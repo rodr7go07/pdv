@@ -126,6 +126,16 @@ Si no hay internet al cobrar, la venta **no se registra**: espera a que regrese 
 ### Compras
 *Compras → Nueva compra:* elige proveedor, factura y fecha; escanea la mercancía y captura cantidad y costo (sin impuestos). Al registrar: sube la existencia, se guarda el último costo y el costo promedio, y se actualiza el costo vigente según el método elegido en Configuración. Si te equivocas, *Cancelar compra* (con motivo) regresa las existencias.
 
+### Sugerencia de compra
+*Compras → Sugerencia de compra* (requiere `compras.ver`; **Crear compra** requiere `compras.registrar`). Por cada artículo activo con inventario calcula:
+- **Promedio diario** = (vendido − devuelto) de ventas completadas en los últimos N días (7, 15, 30, 60 o 90; por defecto 30) ÷ N. Las ventas canceladas no cuentan.
+- **Objetivo** = promedio × días de cobertura (por defecto 15, de 1 a 90). Nunca es menor que el **mínimo** del artículo y, si el artículo tiene **máximo**, no lo pasa (salvo para llegar al mínimo).
+- **Comprar** = objetivo − existencia, redondeado hacia arriba (enteros; con tres decimales en artículos a granel). Solo aparecen los que dan una cantidad mayor a cero.
+- **Alcanza** = días que dura la existencia actual al ritmo de venta. Estados: *Agotado*, *Bajo el mínimo* y *Cobertura baja*, en ese orden de prioridad.
+- **Costo estimado** con el último costo de compra (o el costo del artículo si nunca se compró).
+
+Se puede filtrar por departamento, **exportar a Excel** o **Crear compra**, que abre *Nueva compra* con las partidas y cantidades sugeridas para revisarlas. Un artículo nuevo, con pocos días a la venta, puede parecer de baja rotación porque el promedio se divide entre todo el periodo.
+
 ### Existencias
 *Inventario* muestra existencias, los artículos **bajo el mínimo** y **agotados**, y el valor de la mercancía. Cada artículo tiene su **kardex** con todos sus movimientos.
 

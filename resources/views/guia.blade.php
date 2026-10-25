@@ -82,6 +82,7 @@
                     'Toca **Registrar compra**.',
                 ]],
                 ['p' => '**¿Qué cambia solo?** Sube lo que tienes de cada producto y se actualiza cuánto te cuesta. Si te equivocaste, abre la compra y toca **Cancelar compra**: lo que entró vuelve a salir.'],
+                ['p' => '**¿Qué comprar?** En **Compras → Sugerencia de compra** el sistema te dice qué productos conviene pedir y cuántos. Mira lo que vendiste en los últimos días (30 por defecto) y calcula cuánto necesitas para que te alcance **15 días** (puedes cambiarlo), sin dejar nunca el producto debajo de su mínimo. Arriba eliges los días vendidos, los días que quieres cubrir y el departamento. Toca **Crear compra** para abrir una compra nueva con esos productos y cantidades ya puestos (los puedes corregir antes de registrar), o **Exportar a Excel** para llevarla al proveedor.'],
                 ['p' => '**Costo promedio o último costo.** Imagina que compraste 10 piezas a $10 y luego 10 a $20. El **último costo** dice $20. El **costo promedio** dice $15 (la mezcla). Tú eliges cuál usar en **Configuración**; el sistema guarda los dos siempre.'],
             ],
         ],

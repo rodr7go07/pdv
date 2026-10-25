@@ -184,7 +184,7 @@ new #[Layout('layouts.app')] class extends Component
                             @elseif ($e->articuloActual)
                                 <p class="flex flex-wrap items-center gap-x-2 gap-y-1">
                                     <span class="min-w-0 truncate text-sm font-semibold">{{ $e->articuloActual->descripcion }}</span>
-                                    <x-badge>Dado de alta después</x-badge>
+                                    <x-badge>Ya dado de alta</x-badge>
                                 </p>
                             @elseif ($e->encontrado)
                                 <p class="text-sm text-anil-600">Artículo eliminado</p>

@@ -167,7 +167,7 @@ it('un código escaneado antes de dar de alta el artículo muestra el artículo 
     $this->leche->clavesAlternas()->create(['clave' => 'ALT-9']);
 
     $pantalla = Volt::actingAs($this->admin)->test('pages.escaneos');
-    $pantalla->assertSee('BOLÍGRAFO VERDE')->assertSee('LECHE ENTERA 1 L')->assertSee('Dado de alta después');
+    $pantalla->assertSee('BOLÍGRAFO VERDE')->assertSee('LECHE ENTERA 1 L')->assertSee('Ya dado de alta');
     expect($pantalla->instance()->resumen)->toBe(['total' => 3, 'sin_articulo' => 1, 'camara' => 1]);
 
     $pantalla->set('resultado', 'sin_articulo')->assertSee('0000000000000')->assertDontSee('7506656903748')->assertDontSee('ALT-9')

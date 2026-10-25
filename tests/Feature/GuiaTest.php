@@ -35,6 +35,17 @@ it('la guía explica cada módulo del sistema', function (string $texto) {
     'problemas' => 'Si algo no funciona',
 ]);
 
+it('la guía explica las funciones de escaneo, foto, compra sugerida e instalación', function (string $texto) {
+    $this->actingAs(User::factory()->conRol(Rol::Administrador)->create())->get('/guia')->assertSee($texto, false);
+})->with([
+    'lector' => 'Con un lector de código de barras',
+    'cámara' => 'Usa la cámara del teléfono',
+    'foto' => 'Tomar foto',
+    'sugerencia' => 'Sugerencia de compra',
+    'escaneos' => '¿Qué se ha escaneado?',
+    'instalar' => 'Instálalo como una app',
+]);
+
 it('tiene buscador y un índice con anclas a cada sección', function () {
     $html = $this->actingAs(User::factory()->conRol(Rol::Administrador)->create())->get('/guia')->getContent();
 

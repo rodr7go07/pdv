@@ -1,6 +1,6 @@
 # Guía detallada del Punto de Venta
 
-Primera redacción de la guía de uso: completa y con los términos del sistema. La versión en lenguaje sencillo es la que se ve dentro de la aplicación, en **Guía de uso** (menú lateral).
+Manual completo de uso, con los términos del sistema. La versión en lenguaje sencillo es la que se ve dentro de la aplicación, en **Guía de uso** (menú lateral).
 
 ---
 
@@ -55,7 +55,7 @@ Haz estos pasos en orden:
 - **Precios 2 y 3 (mayoreo):** opcionales; se usan con clientes que tengan esa lista de precios.
 - **Inventario:** si el artículo se cuenta o no, existencia mínima (para las alertas) y máxima.
 - **Existencia inicial:** solo al crear (y con permiso de ajustar inventario): cuánto hay hoy. Se anota en el historial como «Existencia inicial»; después la existencia solo cambia con compras, ventas, ajustes y conteos.
-- **Imagen:** opcional. En teléfono y tableta hay dos botones: **Tomar foto** (abre la cámara trasera con `capture="environment"`) y **Elegir de la galería**; en computadora solo *Elegir archivo*. Antes de subirla, el navegador la reduce a máximo 1600 px por lado y la convierte a JPEG (calidad 85 %), porque el servidor acepta hasta 2 MB y una foto de celular pesa varios; las imágenes chicas se suben sin tocar. Formatos: PNG, JPG o WebP. *Quitar imagen* la elimina.
+- **Imagen:** opcional. En teléfono y tableta hay dos botones: **Tomar foto** (abre la cámara trasera) y **Elegir de la galería**; en computadora solo *Elegir archivo*. Antes de subirla, el navegador la reduce a máximo 1600 px por lado y la convierte a JPEG (calidad 85 %), porque el servidor acepta hasta 2 MB y una foto de celular pesa varios; las imágenes chicas se suben sin tocar. Formatos: PNG, JPG o WebP. *Quitar imagen* la elimina.
 - **A granel:** se vende por peso o medida; la unidad debe permitir decimales (kg, litro, metro).
 
 Cada cambio de costo o de precio queda en el **historial** al final de la pantalla.
@@ -82,7 +82,7 @@ Pantalla completa pensada para escáner y teclado. El cursor siempre está en el
 | Quieres… | Haz esto |
 |---|---|
 | Agregar un artículo | Escanea el código (o escríbelo) y Enter. Si lo escaneas otra vez suma una pieza. |
-| Escanear con la cámara | En teléfono y tableta (pantallas menores a 1024 px) hay un botón de cámara junto al campo de captura. Abre una ventana con la cámara trasera, lee EAN, UPC, Code 128/39, ITF, Codabar y QR, y agrega cada artículo sin cerrarse. Un código que sigue a la vista cuenta una sola vez; para sumar otra pieza hay que apartarlo ~2 s. Para evitar lecturas a medias al mover rápido la cámara, un código se acepta tras leerse **2 veces** dentro de 1.2 s (**3** si tiene 8 caracteres o menos), solo se leen formatos con dígito verificador o suma de control (EAN-13, EAN-8, UPC-A, UPC-E, Code 128 y QR; no Code 39, ITF ni Codabar) y, en la venta, un código que no existe o que solo coincide con el inicio de otra clave **no abre el alta solo**: muestra el botón *Dar de alta «código»* (12 s). Incluye linterna si el dispositivo la tiene. **Requiere HTTPS** (o `localhost`): en HTTP el navegador no da acceso a la cámara. Usa el `BarcodeDetector` del navegador (Chrome en Android) y, si no existe (iPhone), ZXing, que se descarga solo al abrir la cámara. |
+| Escanear con la cámara | En teléfono y tableta (menos de 1024 px) hay un botón de cámara junto al campo de captura. Abre una ventana con la cámara trasera y agrega cada artículo sin cerrarse. Un código que sigue a la vista cuenta una sola vez; para sumar otra pieza hay que apartarlo ~2 s. Incluye linterna si el dispositivo la tiene. Detalles en *Escanear con la cámara*, más abajo. |
 | Varias piezas | Escribe `5*` y escanea, o `5*7501055300075`. |
 | Vender a granel | Escanea el artículo e indica el peso. Si tu navegador lo permite, hay un botón para leer la báscula (experimental). |
 | Buscar por nombre | **F2** o el botón *Buscar*. |
@@ -94,6 +94,12 @@ Pantalla completa pensada para escáner y teclado. El cursor siempre está en el
 | Cobrar | **F8** o *Cobrar*. |
 
 **Artículo que no existe:** si tienes permiso, la pantalla te ofrece darlo de alta en el momento.
+
+### Escanear con la cámara en la venta
+- **Formatos:** EAN-13, EAN-8, UPC-A, UPC-E, Code 128 y QR. Son los que se autocomprueban; Code 39, ITF y Codabar no se leen con la cámara (se escriben o se leen con lector).
+- **Confirmación:** para evitar lecturas a medias al mover rápido la cámara, un código se acepta tras leerse **2 veces** dentro de 1.2 s (**3** si tiene 8 caracteres o menos). Hay que mantener el código a la vista un instante.
+- **Código que no existe** (o que solo coincide con el inicio de otra clave): no abre el alta ni la búsqueda; muestra «No se reconoció…» y el botón *Dar de alta «código»* durante 12 s. Con el lector o el teclado, en cambio, el alta se ofrece de inmediato.
+- **Requisitos:** HTTPS (o `localhost`) y permiso de cámara para el sitio. Usa el `BarcodeDetector` del navegador (Chrome en Android) y, si no existe (iPhone), ZXing, que se descarga solo al abrir la cámara. La cámara se apaga al cerrar la ventana o salir de la pantalla.
 
 ### Cobrar
 La ventana de cobro muestra el total exacto. Puedes cobrar con **efectivo, tarjeta, transferencia o a crédito**, solos o mezclados:
@@ -138,14 +144,25 @@ Si no hay internet al cobrar, la venta **no se registra**: espera a que regrese 
 
 Se puede filtrar por departamento, **exportar a Excel** (`sugerencia-de-compra-AAAA-MM-DD.xlsx`) o **Crear compra**, que abre *Nueva compra* con las partidas y cantidades sugeridas para revisarlas (máximo 500 partidas por compra: si hay más se cargan las más urgentes y se avisa; la sugerencia caduca a los 10 minutos si no se llega a la compra). Un artículo nuevo, con pocos días a la venta, puede parecer de baja rotación porque el promedio se divide entre todo el periodo.
 
-### Escanear con la cámara en compras, ajustes, conteos, etiquetas y búsquedas
-Las búsquedas de producto también tienen el botón de **cámara** en teléfono y tableta: la lista de *Artículos* (si el código existe abre el artículo, como con un lector), la lista de *Inventario* (filtra por ese código) y la ventana *Buscar* de la pantalla de venta (agrega el artículo como si lo hubiera escaneado un lector; si el código no existe, ofrece darlo de alta). El campo para elegir un artículo (el mismo en *Nueva compra*, *Inventario → Ajustes*, *Conteo físico* y *Artículos → Etiquetas*) tiene, en teléfono y tableta, un botón de **cámara**. Lee un solo código, lo busca como si lo hubieras escrito y cierra la ventana; para el siguiente artículo se vuelve a tocar el botón. Requiere HTTPS.
+### Escanear con la cámara fuera de la venta
+En teléfono y tableta hay un botón de **cámara** junto a estos campos. Lee **un solo código**, lo busca como si lo hubieras escrito y cierra la ventana; para el siguiente se vuelve a tocar el botón.
+- **Elegir un artículo** (*Nueva compra*, *Inventario → Ajustes*, *Conteo físico* y *Artículos → Etiquetas*).
+- **Lista de Artículos:** si el código existe abre el artículo, como con un lector.
+- **Lista de Inventario:** filtra por ese código.
+- **Ventana *Buscar* de la venta:** agrega el artículo como si lo hubiera escaneado un lector; si no existe, ofrece darlo de alta.
+- **Formulario de artículo:** *Clave principal* y *Claves alternas*.
 
 ### Existencias
 *Inventario* muestra existencias, los artículos **bajo el mínimo** y **agotados**, y el valor de la mercancía. Cada artículo tiene su **kardex** con todos sus movimientos.
 
 ### Escaneos (bitácora)
-**Escaneos** (*Mercancía → Escaneos*, permiso `reportes.ver`): bitácora de cada código capturado, con fecha, pantalla (Venta, Compras, Ajuste, Conteo, Etiquetas, Lista de artículos, Alta o edición de artículo, Lista de inventario), medio, persona, caja del turno abierto y el artículo que encontró. Se registra cada lectura de la **cámara** y todo lo que entra por el campo de captura con **Enter** (*lector o teclado*: el sistema no distingue un lector USB de alguien que teclea). En el formulario de artículo, *Enter* en **Clave principal** y en **Claves alternas** también se anota (como lector); si la clave se llenó con la cámara y luego se da Enter, cuenta una sola vez. No se registra lo que lleva espacios (un nombre escrito), un texto sin dígitos que no coincida con ningún artículo (una palabra como «leche»), ni la búsqueda por nombre. «Sin artículo» se calcula con lo que existe **hoy**: un código escaneado antes de dar de alta el artículo (por ejemplo, al crearlo desde el formulario) muestra el artículo actual con la etiqueta *Ya dado de alta* y no cuenta como pendiente (se busca por clave principal o alterna, sin contar artículos eliminados). Los que siguen **sin artículo** llevan el enlace *Dar de alta*, que abre el formulario con la clave precargada (`/articulos/crear?clave=…`). Filtros: código, pantalla, medio, resultado, persona y fechas. La bitácora se depura sola (`escaneos:depurar`, a las 3:20 a.m., 180 días).
+*Mercancía → Escaneos* (permiso `reportes.ver`): bitácora de cada código capturado.
+- **Qué guarda:** fecha, pantalla (Venta, Compras, Ajuste, Conteo, Etiquetas, Lista de artículos, Alta o edición de artículo, Lista de inventario), medio, persona, caja del turno abierto y el artículo que encontró.
+- **Qué se registra:** cada lectura de la **cámara** y todo lo que entra por el campo de captura con **Enter** (*lector o teclado*: el sistema no distingue un lector USB de alguien que teclea). En el formulario de artículo también cuenta *Enter* en **Clave principal** y **Claves alternas**; si la clave se llenó con la cámara y luego se da Enter, cuenta una sola vez.
+- **Qué no:** lo que lleva espacios (un nombre escrito), un texto sin dígitos que no coincida con ningún artículo (una palabra como «leche») ni la búsqueda por nombre.
+- **«Sin artículo»** se calcula con lo que existe **hoy**: un código escaneado antes de dar de alta el artículo muestra el artículo actual con la etiqueta *Ya dado de alta* y no cuenta como pendiente (se busca por clave principal o alterna, sin contar artículos eliminados). Los que siguen sin artículo llevan el enlace *Dar de alta*, que abre el formulario con la clave precargada (`/articulos/crear?clave=…`).
+- **Filtros:** código, pantalla, medio, resultado, persona y fechas.
+- **Depuración:** el comando `escaneos:depurar` borra lo de más de 180 días y corre solo a las 3:20 a.m.
 
 ### Ajustes
 *Inventario → Ajustes:* para mermas, caducidades, robos o correcciones, siempre con motivo. Merma, caducidad y robo solo pueden ser salidas.

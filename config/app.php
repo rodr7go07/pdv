@@ -118,6 +118,19 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Proxies de confianza
+    |--------------------------------------------------------------------------
+    |
+    | Solo para cuando un proxy o túnel (por ejemplo ngrok) termina el HTTPS y
+    | reenvía por HTTP. Con "*" se confía en cualquier proxy; también acepta una
+    | lista de IP separadas por coma. Vacío = no se confía en ninguno (lo normal).
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),

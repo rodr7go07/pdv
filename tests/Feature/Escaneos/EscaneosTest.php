@@ -156,6 +156,32 @@ it('filtra por código, pantalla, medio, resultado, persona y fechas', function 
         ->call('limpiar')->assertSee('2222222222222');
 });
 
+it('un código escaneado antes de dar de alta el artículo muestra el artículo que ya existe', function () {
+    ($this->registrar)('7506656903748', OrigenEscaneo::ArticuloClave, MedioEscaneo::Camara);   // aún no existe
+    ($this->registrar)('ALT-9', OrigenEscaneo::Caja);                                           // tampoco
+    ($this->registrar)('0000000000000');                                                         // sigue sin existir
+
+    expect(Escaneo::where('encontrado', false)->count())->toBe(3);
+
+    Articulo::factory()->create(['clave' => '7506656903748', 'descripcion' => 'BOLÍGRAFO VERDE']);
+    $this->leche->clavesAlternas()->create(['clave' => 'ALT-9']);
+
+    $pantalla = Volt::actingAs($this->admin)->test('pages.escaneos');
+    $pantalla->assertSee('BOLÍGRAFO VERDE')->assertSee('LECHE ENTERA 1 L')->assertSee('Dado de alta después');
+    expect($pantalla->instance()->resumen)->toBe(['total' => 3, 'sin_articulo' => 1, 'camara' => 1]);
+
+    $pantalla->set('resultado', 'sin_articulo')->assertSee('0000000000000')->assertDontSee('7506656903748')->assertDontSee('ALT-9')
+        ->set('resultado', 'encontrados')->assertSee('7506656903748')->assertSee('ALT-9')->assertDontSee('0000000000000');
+});
+
+it('un artículo eliminado ya no cuenta como dado de alta', function () {
+    ($this->registrar)('7506656903748');
+    $nuevo = Articulo::factory()->create(['clave' => '7506656903748']);
+    $nuevo->delete();
+
+    expect(Volt::actingAs($this->admin)->test('pages.escaneos')->instance()->resumen['sin_articulo'])->toBe(1);
+});
+
 it('el resumen cuenta escaneos, los que no tienen artículo y los de cámara', function () {
     ($this->registrar)('7501055363057', OrigenEscaneo::Caja, MedioEscaneo::Camara);
     ($this->registrar)('0000000000000', OrigenEscaneo::Caja, MedioEscaneo::Camara);

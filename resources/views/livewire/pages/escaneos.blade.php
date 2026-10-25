@@ -70,8 +70,8 @@ new #[Layout('layouts.app')] class extends Component
             ->when($texto !== '', fn ($q) => $q->where('codigo', 'like', '%'.addcslashes($texto, '%_\\').'%'))
             ->when(OrigenEscaneo::tryFrom($this->origen), fn ($q, $o) => $q->where('origen', $o->value))
             ->when(MedioEscaneo::tryFrom($this->medio), fn ($q, $m) => $q->where('medio', $m->value))
-            ->when($this->resultado === 'encontrados', fn ($q) => $q->where('encontrado', true))
-            ->when($this->resultado === 'sin_articulo', fn ($q) => $q->where('encontrado', false))
+            ->when($this->resultado === 'encontrados', fn ($q) => $q->whereNot(fn ($w) => $w->sinArticulo()))
+            ->when($this->resultado === 'sin_articulo', fn ($q) => $q->sinArticulo())
             ->when($this->usuario !== '' && ctype_digit($this->usuario), fn ($q) => $q->where('user_id', (int) $this->usuario))
             ->when($inicio, fn ($q, $d) => $q->where('created_at', '>=', $d))
             ->when($fin, fn ($q, $d) => $q->where('created_at', '<=', $d));
@@ -81,15 +81,23 @@ new #[Layout('layouts.app')] class extends Component
     #[Computed]
     public function resumen(): array
     {
-        $r = $this->base()->toBase()->selectRaw("COUNT(*) as total, COALESCE(SUM(CASE WHEN encontrado = 0 THEN 1 ELSE 0 END), 0) as sin_articulo, COALESCE(SUM(CASE WHEN medio = 'camara' THEN 1 ELSE 0 END), 0) as camara")->first();
-
-        return ['total' => (int) $r->total, 'sin_articulo' => (int) $r->sin_articulo, 'camara' => (int) $r->camara];
+        return [
+            'total' => $this->base()->count(),
+            'sin_articulo' => $this->base()->sinArticulo()->count(),
+            'camara' => $this->base()->where('medio', MedioEscaneo::Camara->value)->count(),
+        ];
     }
 
     #[Computed]
     public function escaneos()
     {
-        return $this->base()->with(['usuario:id,name', 'articulo:id,clave,descripcion,deleted_at'])->latest('created_at')->latest('id')->paginate(25);
+        $lista = $this->base()->with(['usuario:id,name', 'articulo:id,clave,descripcion,deleted_at'])->latest('created_at')->latest('id')->paginate(25);
+
+        // Un código escaneado antes de dar de alta el artículo muestra el artículo que ya existe hoy.
+        $actuales = Escaneo::articulosActuales($lista->getCollection()->whereNull('articulo_id')->pluck('codigo'));
+        $lista->getCollection()->each(fn (Escaneo $e) => $e->setRelation('articuloActual', $actuales->get($e->codigo)));
+
+        return $lista;
     }
 }; ?>
 
@@ -106,7 +114,7 @@ new #[Layout('layouts.app')] class extends Component
     <p class="mb-5 max-w-3xl text-sm text-anil-700">
         Todo código que se escanea o se captura en el sistema queda anotado aquí: en la venta, en compras, en inventario y al dar de alta artículos.
         Con la cámara se registra cada lectura. Con lector USB o teclado se registra lo que se envía con Enter, sin distinguir uno del otro.
-        Los códigos <strong>sin artículo</strong> son productos que todavía no tienes dados de alta. Se borran solos después de 6 meses.
+        Los códigos <strong>sin artículo</strong> son productos que todavía no tienes dados de alta (si lo das de alta después, aquí aparece con su nombre). Se borran solos después de 6 meses.
     </p>
 
     <div class="mb-5 grid grid-cols-3 gap-3">
@@ -162,7 +170,7 @@ new #[Layout('layouts.app')] class extends Component
         <x-empty icono="barcode" titulo="No hay escaneos" :texto="$hayFiltros ? 'Ningún escaneo cumple estos filtros.' : 'Cuando alguien escanee un código aparecerá aquí.'" />
     @else
         <div class="overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
-            <div class="hidden grid-cols-[9.5rem_minmax(0,1fr)_minmax(0,1.2fr)_9rem_8rem] gap-x-4 border-b border-anil-100 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-anil-600 md:grid">
+            <div class="hidden grid-cols-[9.5rem_minmax(0,1fr)_minmax(0,1.2fr)_9rem_11rem] gap-x-4 border-b border-anil-100 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-anil-600 md:grid">
                 <span>Fecha</span><span>Código</span><span>Artículo</span><span>Pantalla</span><span>Persona</span>
             </div>
             <ul class="divide-y divide-anil-50">
@@ -171,8 +179,13 @@ new #[Layout('layouts.app')] class extends Component
                         <p class="font-mono text-sm font-semibold md:order-2">{{ $e->codigo }}</p>
                         <p class="row-start-1 justify-self-end text-xs text-anil-600 md:order-1 md:row-start-auto md:justify-self-start md:text-sm">{{ $e->created_at->format('d/m/Y H:i') }}</p>
                         <div class="col-span-2 min-w-0 md:order-3 md:col-span-1">
-                            @if ($e->encontrado && $e->articulo)
+                            @if ($e->articulo)
                                 <p class="truncate text-sm font-semibold">{{ $e->articulo->descripcion }}</p>
+                            @elseif ($e->articuloActual)
+                                <p class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    <span class="min-w-0 truncate text-sm font-semibold">{{ $e->articuloActual->descripcion }}</span>
+                                    <x-badge>Dado de alta después</x-badge>
+                                </p>
                             @elseif ($e->encontrado)
                                 <p class="text-sm text-anil-600">Artículo eliminado</p>
                             @else

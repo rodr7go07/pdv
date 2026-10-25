@@ -2,6 +2,7 @@
 
 use App\Actions\Ventas\RegistrarVenta;
 use App\Enums\Rol;
+use App\Exports\ReporteExport;
 use App\Models\Articulo;
 use App\Models\Caja;
 use App\Models\User;
@@ -9,7 +10,10 @@ use App\Models\Venta;
 use App\Services\ReporteVentas;
 use Database\Seeders\CatalogosBaseSeeder;
 use Database\Seeders\RolesYPermisosSeeder;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
@@ -128,4 +132,18 @@ it('unas fechas inválidas no rompen los reportes ni los listados', function () 
 
     // Una fecha inválida se reemplaza por hoy en lugar de dar error.
     expect((new ReporteVentas('abc', 'xyz'))->desde->isToday())->toBeTrue();
+});
+
+it('exporta los códigos de barras largos como texto y no como notación científica', function () {
+    $archivo = 'prueba-claves.xlsx';
+    $export = new ReporteExport('Prueba', ['Clave', 'Cantidad'], [['7501055363057', '4'], ['0123', '2']]);
+    Excel::store($export, $archivo, 'local');
+    $hoja = IOFactory::load(Storage::disk('local')->path($archivo))->getActiveSheet();
+
+    expect($hoja->getCell('A2')->getDataType())->toBe('s')
+        ->and($hoja->getCell('A2')->getValue())->toBe('7501055363057')
+        ->and($hoja->getCell('A3')->getValue())->toBe('0123')
+        ->and($hoja->getCell('B2')->getDataType())->toBe('n');
+
+    Storage::disk('local')->delete($archivo);
 });

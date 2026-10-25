@@ -37,7 +37,7 @@ Haz estos pasos en orden:
 5. **Usuarios:** da de alta a tus cajeros y encargados (usuario, nombre, contraseña y rol). Entrégales su usuario y contraseña.
 6. **Proveedores:** registra a quienes te surten.
 7. **Artículos:** crea tus artículos uno por uno o impórtalos de Excel (sección 3).
-8. **Inventario inicial:** registra una *compra* con lo que ya tienes en bodega (o haz un *conteo físico*, sección 6). Sin esto la existencia empieza en cero.
+8. **Inventario inicial:** al crear cada artículo escribe su *Existencia inicial*; o registra una *compra* con lo que ya tienes en bodega, o haz un *conteo físico* (sección 6). Si no haces ninguna, la existencia empieza en cero.
 
 ---
 
@@ -160,7 +160,7 @@ Se puede filtrar por departamento, **exportar a Excel** o **Crear compra**, que 
 
 ## 8. Reportes
 
-*Reportes* (Administrador y Encargado): resumen, por periodo (día, semana, mes), por departamento, por artículo, por cajero, por forma de pago y valor del inventario. Todos se pueden **exportar a Excel**.
+*Reportes* (Administrador y Encargado): resumen, por periodo (día, semana, mes), por departamento, por artículo, por cajero, por forma de pago y valor del inventario. Todos se pueden **exportar a Excel**. El archivo se llama `reporte-<nombre del reporte>-<desde>-a-<hasta>.xlsx` (por ejemplo `reporte-por-articulo-2026-10-01-a-2026-10-25.xlsx`). Las claves formadas solo por dígitos, si tienen 11 o más o empiezan con cero, se guardan como **texto** para que Excel no las muestre como `7.5E+12` ni les quite los ceros.
 
 - **Utilidad bruta** = precio de venta sin impuestos − costo del artículo *al momento de vender*. Si después cambia el costo, las ventas pasadas no se alteran.
 - Las **devoluciones** se restan en el periodo de la venta original.
@@ -170,7 +170,7 @@ Se puede filtrar por departamento, **exportar a Excel** o **Crear compra**, que 
 
 ## 9. Usar el sistema en el teléfono
 
-Todas las pantallas funcionan en teléfono y en computadora. Para **instalarlo como aplicación** abre el sitio en Chrome (Android) o Safari (iPhone) y elige *Agregar a pantalla de inicio*. Requiere internet para operar: sin conexión solo muestra un aviso.
+Todas las pantallas funcionan en teléfono y en computadora. Para **instalarlo como aplicación** abre el sitio en Chrome (Android) o Safari (iPhone) y elige *Agregar a pantalla de inicio*. Requiere internet para operar: sin conexión solo muestra un aviso. La **cámara** (escaneo en la pantalla de venta) exige abrir el sistema por **HTTPS**; en HTTP el navegador no da acceso a ella.
 
 ---
 
@@ -184,6 +184,7 @@ Todas las pantallas funcionan en teléfono y en computadora. Para **instalarlo c
 | La caja no cuadra | Revisa el corte del turno (entradas, retiros, devoluciones). Pide al encargado ver *Turnos y cortes*. |
 | No me aparece una opción del menú | Tu rol no tiene ese permiso. Pídeselo al administrador. |
 | Olvidé mi contraseña | El administrador la cambia en *Usuarios*. |
+| La cámara no abre | La dirección debe empezar con `https://` y el navegador debe tener permiso de cámara para el sitio (revisa los permisos si la negaste antes). |
 | Se fue el internet | No se puede cobrar. Cuando regrese, el carrito sigue ahí. |
 | El ticket sale cortado | *Cajas →* imprime la prueba y revisa el ancho de papel; en el cuadro de impresión pon márgenes en «Ninguno». |
 
@@ -196,6 +197,8 @@ Todas las pantallas funcionan en teléfono y en computadora. Para **instalarlo c
 - **Fondo inicial:** efectivo con el que empieza el turno.
 - **Kardex:** historial de movimientos de un artículo.
 - **Existencia:** cuántas piezas hay.
+- **Mínimo:** cantidad por debajo de la cual el artículo se considera por reabastecer.
+- **Cobertura:** días que dura la existencia al ritmo de venta; la sugerencia de compra busca cubrir 15 por defecto.
 - **Costo promedio / último costo:** dos formas de saber cuánto te cuesta un artículo.
 - **Margen:** cuánto ganas sobre el costo, en porcentaje.
 - **Utilidad bruta:** lo que ganas antes de gastos (renta, sueldos, luz).

@@ -72,7 +72,7 @@
         ],
         [
             'id' => 'compras', 'titulo' => 'Meter mercancía a la tienda (compras)', 'icono' => 'truck', 'para' => 'Dueño · Encargado',
-            'intro' => 'Cuando llega mercancía, la registras para que el sistema sepa que tienes más y cuánto te costó.',
+            'intro' => 'Cuando llega mercancía, la registras para que el sistema sepa que tienes más y cuánto te costó. También aquí te ayuda a decidir qué pedir.',
             'bloques' => [
                 ['pasos' => [
                     'Entra a **Compras** y toca **Nueva compra**.',
@@ -82,7 +82,13 @@
                     'Toca **Registrar compra**.',
                 ]],
                 ['p' => '**¿Qué cambia solo?** Sube lo que tienes de cada producto y se actualiza cuánto te cuesta. Si te equivocaste, abre la compra y toca **Cancelar compra**: lo que entró vuelve a salir.'],
-                ['p' => '**¿Qué comprar?** En **Compras → Sugerencia de compra** el sistema te dice qué productos conviene pedir y cuántos. Mira lo que vendiste en los últimos días (30 por defecto) y calcula cuánto necesitas para que te alcance **15 días** (puedes cambiarlo), sin dejar nunca el producto debajo de su mínimo. Arriba eliges los días vendidos, los días que quieres cubrir y el departamento. Toca **Crear compra** para abrir una compra nueva con esos productos y cantidades ya puestos (los puedes corregir antes de registrar), o **Exportar a Excel** para llevarla al proveedor.'],
+                ['p' => '**¿Qué conviene comprar?** Entra a **Compras → Sugerencia de compra**. El sistema revisa lo que vendiste en los últimos días y te dice qué productos pedir y cuántas piezas de cada uno, para que te alcancen unos **15 días** sin que ninguno baje de su mínimo.'],
+                ['lista' => [
+                    'Arriba puedes cambiar cuántos **días de venta** revisar (30 por defecto), cuántos **días quieres cubrir** (15 por defecto) y el **departamento**.',
+                    'En cada producto ves cuánto tienes, cuánto vendiste, **cuántos días te alcanza** y cuánto **comprar**. Los que ya se acabaron salen primero, luego los que están bajo el mínimo.',
+                    'Toca **Crear compra** para abrir una compra nueva con esos productos y cantidades ya puestos; puedes corregirlos antes de registrarla. O toca **Exportar a Excel** para llevarle la lista a tu proveedor.',
+                ]],
+                ['consejo' => 'Un producto que apenas empezaste a vender puede salir con menos cantidad de la que necesitas, porque el sistema reparte lo vendido entre todos los días revisados. Corrige la cantidad si lo conoces mejor que él.'],
                 ['p' => '**Costo promedio o último costo.** Imagina que compraste 10 piezas a $10 y luego 10 a $20. El **último costo** dice $20. El **costo promedio** dice $15 (la mezcla). Tú eliges cuál usar en **Configuración**; el sistema guarda los dos siempre.'],
             ],
         ],
@@ -90,7 +96,7 @@
             'id' => 'inventario', 'titulo' => 'Saber cuánto tienes (inventario)', 'icono' => 'stack', 'para' => 'Dueño · Encargado',
             'intro' => 'Aquí ves cuánto hay de cada producto y qué se está acabando.',
             'bloques' => [
-                ['p' => 'Entra a **Inventario**. Arriba ves cuántos productos están **bajo el mínimo** (se están acabando) y cuáles están **agotados**. Toca cualquiera de esas tarjetas para ver solo esos.'],
+                ['p' => 'Entra a **Inventario**. Arriba ves cuántos productos están **bajo el mínimo** (se están acabando) y cuáles están **agotados**. Toca cualquiera de esas tarjetas para ver solo esos. Para saber cuánto pedir de cada uno, usa **Compras → Sugerencia de compra**.'],
                 ['p' => '**El cuaderno de cada producto.** Al tocar un producto ves su historial: cuándo entró, cuándo se vendió, quién lo movió. A esto el sistema le llama *kardex*.'],
                 ['p' => '**Ajustes.** Si algo se rompe, caduca o se pierde, entra a **Inventario → Ajustes**, elige el producto, el motivo y la cantidad. Siempre queda anotado.'],
                 ['p' => '**Contar la tienda (conteo).** Para revisar que el sistema y los estantes digan lo mismo:'],
@@ -120,7 +126,7 @@
         ],
         [
             'id' => 'vender', 'titulo' => 'Cobrar a un cliente (venta)', 'icono' => 'cash-register', 'para' => 'Cajero',
-            'intro' => 'La pantalla de **Venta** está hecha para ir rápido, con el escáner de código de barras. El cursor siempre está listo para escanear.',
+            'intro' => 'La pantalla de **Venta** está hecha para ir rápido, con el escáner de código de barras o con la cámara del teléfono. El cursor siempre está listo para escanear.',
             'bloques' => [
                 ['pasos' => [
                     'Toca **Venta** en el menú.',
@@ -130,7 +136,8 @@
                     'Si te dio efectivo, la pantalla te dice grande **cuánto cambio entregar**. Toca **Imprimir ticket** si lo quiere.',
                     'Toca **Nueva venta** (o Enter) y sigue con el siguiente cliente.',
                 ]],
-                ['p' => '**¿Sin escáner? Usa la cámara del teléfono.** En el celular o la tableta aparece un botón con una cámara junto al cuadro de captura. Tócalo, permite el uso de la cámara y apunta al código de barras: el producto se agrega solo y la ventana sigue abierta para escanear los siguientes. Si necesitas dos piezas, aparta el código de la cámara un momento y vuelve a mostrarlo. Toca **Listo** para volver a la venta. La cámara solo funciona si abres el sistema con **https://**.'],
+                ['p' => '**¿Sin escáner? Usa la cámara del teléfono.** En el celular o la tableta, junto al cuadro de captura, aparece un botón con una cámara. Tócalo, permite el uso de la cámara y apunta al código de barras: el producto se agrega solo y la ventana sigue abierta para que escanees los siguientes. Si necesitas dos piezas del mismo producto, aparta el código de la cámara un momento y vuelve a mostrarlo. Toca **Listo** para regresar a la venta.'],
+                ['cuidado' => 'La cámara solo funciona cuando la dirección del sistema empieza con **https://**. Si te avisa que no puede abrirla, pídele a quien instaló el sistema que lo configure así.'],
                 ['p' => '**Atajos para ir más rápido:**'],
                 ['tabla' => [
                     ['5* y luego el código', 'Cinco piezas del mismo producto (también puedes escribir 5*código)'],
@@ -230,8 +237,8 @@
             'id' => 'reportes', 'titulo' => 'Saber cuánto vendiste y cuánto ganaste (reportes)', 'icono' => 'chart-bar', 'para' => 'Dueño · Encargado',
             'intro' => 'La pantalla de **Inicio** te muestra lo más importante de hoy. En **Reportes** puedes ver más detalle y bajarlo a Excel.',
             'bloques' => [
-                ['p' => '**En Inicio verás:** lo que vendiste hoy y cómo va contra ayer, cuántas ventas, el ticket promedio (lo que gasta cada cliente en promedio), cuánto ganaste, las ventas de los últimos 7 días, lo más vendido, lo que ya hay que volver a comprar, qué cajas están abiertas y cuánto te deben.'],
-                ['p' => '**En Reportes** eliges fechas (hoy, ayer, este mes…) y ves las ventas por día, por departamento, por producto, por cajero y por forma de pago. Arriba a la derecha tocas **Exportar a Excel**.'],
+                ['p' => '**En Inicio verás:** lo que vendiste hoy y cómo va contra ayer, cuántas ventas, el ticket promedio (lo que gasta cada cliente en promedio), cuánto ganaste, las ventas de los últimos 7 días, lo más vendido, lo que hay que reabastecer, qué cajas están abiertas y cuánto te deben.'],
+                ['p' => '**En Reportes** eliges fechas (hoy, ayer, este mes…) y ves las ventas por día, por departamento, por producto, por cajero y por forma de pago. Arriba a la derecha tocas **Exportar a Excel**. El archivo lleva en su nombre el reporte y las fechas (por ejemplo *reporte-por-articulo-2026-10-01-a-2026-10-25*), y los códigos de barras largos se ven completos, sin convertirse en números como 7.5E+12.'],
                 ['p' => '**¿Qué es la utilidad?** Es lo que ganas en los productos, **antes de pagar** renta, luz y sueldos. Ejemplo: un refresco que te costó $10 y vendiste en $14.50 (sin impuestos) te deja $4.50 de utilidad.'],
                 ['consejo' => 'La utilidad usa lo que **te costaba** el producto el día que lo vendiste. Si después sube el costo, las ventas viejas no cambian.'],
             ],
@@ -260,7 +267,7 @@
                     ['La caja no cuadra', 'Pide al encargado que revise tu corte en **Turnos y cortes**: ahí están las entradas, los retiros y las devoluciones.'],
                     ['El ticket sale cortado', 'En **Cajas** toca la impresora para imprimir una prueba y revisa el ancho del papel. En la ventana de impresión pon los márgenes en «Ninguno».'],
                     ['Escaneo y no pasa nada', 'Toca el cuadro de «Escanea o escribe el código» para que el cursor esté ahí.'],
-                    ['La cámara no abre', 'Abre el sistema con **https://** y, cuando el navegador pregunte, permite el uso de la cámara. Si la negaste antes, actívala en los permisos del sitio.'],
+                    ['La cámara no abre', 'La dirección del sistema debe empezar con **https://**. Cuando el navegador pregunte, permite el uso de la cámara; si la negaste antes, actívala en los permisos del sitio.'],
                 ]],
             ],
         ],
@@ -275,6 +282,8 @@
                     ['Corte X', 'Una foto de cómo va el día. No cierra nada.'],
                     ['Corte Z', 'La cuenta final. Cierra el turno.'],
                     ['Existencia', 'Cuántas piezas hay de un producto.'],
+                    ['Mínimo', 'La cantidad que no quieres que baje de ahí. Si llega a ese número, el sistema te avisa que hay que reabastecer.'],
+                    ['Cobertura', 'Cuántos días te dura lo que tienes al ritmo al que lo vendes.'],
                     ['Kardex', 'El cuaderno de un producto: todo lo que le ha pasado.'],
                     ['Merma', 'Producto que se echó a perder, se rompió o se perdió.'],
                     ['Costo', 'Lo que te cuesta a ti el producto.'],

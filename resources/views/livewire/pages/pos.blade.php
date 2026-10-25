@@ -368,12 +368,16 @@ new #[Layout('layouts.pos')] class extends Component
             {{-- Captura y carrito --}}
             <section class="flex min-h-0 flex-1 flex-col">
                 <div class="shrink-0 border-b border-anil-100 bg-white p-3 sm:p-4">
-                    <div class="relative">
+                    <div class="relative flex items-stretch gap-2">
                         <x-phosphor-barcode-bold class="pointer-events-none absolute left-3.5 top-1/2 size-6 -translate-y-1/2 text-anil-400" />
                         <input x-ref="entrada" x-model="entrada" x-on:keydown.enter.prevent="enviarEntrada()" type="text" inputmode="text" autofocus
                                autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Código del artículo"
                                placeholder="Escanea o escribe el código  ·  5* para varias piezas"
-                               class="block w-full rounded-xl border-2 border-anil-200 bg-white py-3.5 pl-12 pr-4 font-mono text-lg text-tinta placeholder:font-sans placeholder:text-base placeholder:text-anil-300 focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
+                               class="block w-full min-w-0 rounded-xl border-2 border-anil-200 bg-white py-3.5 pl-12 pr-4 font-mono text-lg text-tinta placeholder:font-sans placeholder:text-base placeholder:text-anil-300 focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
+                        <button type="button" x-on:click="abrirCamara()" aria-label="Escanear con la cámara" title="Escanear con la cámara"
+                                class="grid w-14 shrink-0 place-items-center rounded-xl bg-anil-900 text-white shadow-[0_3px_0_0_var(--color-anil-950)] active:translate-y-[3px] active:shadow-none lg:hidden">
+                            <x-phosphor-camera-bold class="size-6" />
+                        </button>
                     </div>
                     <div class="mt-2 flex min-h-6 flex-wrap items-center gap-2 text-sm" aria-live="polite">
                         <template x-if="multiplicador">
@@ -538,6 +542,34 @@ new #[Layout('layouts.pos')] class extends Component
                     </li>
                     <li x-show="busqueda.texto.trim().length < 2" class="px-5 py-8 text-center text-sm text-anil-600">Escribe al menos 2 letras.</li>
                 </ul>
+            </div>
+
+            {{-- Cámara: escanear códigos con el teléfono --}}
+            <div x-show="modal === 'camara'" x-cloak class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-anil-950 text-white shadow-2xl sm:max-w-md sm:rounded-2xl">
+                <header class="flex items-center justify-between px-4 py-3">
+                    <h2 class="text-lg font-extrabold">Escanear con la cámara</h2>
+                    <button type="button" x-on:click="modal = null; enfocar()" class="grid size-10 place-items-center rounded-lg text-anil-200 hover:bg-anil-800" aria-label="Cerrar la cámara"><x-phosphor-x-bold class="size-5" /></button>
+                </header>
+                <div class="relative aspect-[4/3] w-full bg-black">
+                    <video x-ref="video" class="size-full object-cover" playsinline muted></video>
+                    <div x-show="!camara.error" class="pointer-events-none absolute inset-x-[12%] top-1/2 h-[34%] -translate-y-1/2 rounded-xl border-2 border-rosa-500/90 shadow-[0_0_0_9999px_rgb(0_0_0/0.35)]"></div>
+                    <p x-show="camara.iniciando" class="absolute inset-0 grid place-items-center text-sm text-anil-200">Abriendo la cámara…</p>
+                    <p x-show="camara.error" x-text="camara.error" x-cloak class="absolute inset-0 grid place-items-center px-6 text-center text-sm font-medium text-red-200" role="alert"></p>
+                    <button type="button" x-show="camara.hayLinterna" x-cloak x-on:click="alternarLinterna()" :aria-pressed="camara.linterna" aria-label="Linterna"
+                            :class="camara.linterna ? 'bg-rosa-500 text-white' : 'bg-black/50 text-white'"
+                            class="absolute bottom-3 right-3 grid size-11 place-items-center rounded-full">
+                        <x-phosphor-flashlight-bold class="size-5" />
+                    </button>
+                </div>
+                <div class="min-h-16 px-4 py-3 text-sm" aria-live="polite">
+                    <p x-show="aviso" x-text="aviso" x-cloak
+                       :class="{ 'text-red-300 font-semibold': avisoTipo === 'error', 'text-emerald-300 font-semibold': avisoTipo === 'ok', 'text-anil-200': avisoTipo === 'info' }"></p>
+                    <p x-show="!aviso" class="text-anil-200">Apunta al código de barras. Puedes escanear varios artículos seguidos.</p>
+                </div>
+                <div class="flex items-center justify-between gap-3 border-t border-anil-800 px-4 py-3">
+                    <p class="text-sm text-anil-200"><span class="font-bold text-white" x-text="piezas"></span> en la venta · <span class="font-bold text-white" x-text="dinero(total)"></span></p>
+                    <button type="button" x-on:click="modal = null; enfocar()" class="min-h-11 rounded-lg bg-rosa-500 px-5 font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] active:translate-y-[3px] active:shadow-none">Listo</button>
+                </div>
             </div>
 
             {{-- Peso (granel) --}}

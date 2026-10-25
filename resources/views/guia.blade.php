@@ -130,6 +130,7 @@
                     'Si te dio efectivo, la pantalla te dice grande **cuánto cambio entregar**. Toca **Imprimir ticket** si lo quiere.',
                     'Toca **Nueva venta** (o Enter) y sigue con el siguiente cliente.',
                 ]],
+                ['p' => '**¿Sin escáner? Usa la cámara del teléfono.** En el celular o la tableta aparece un botón con una cámara junto al cuadro de captura. Tócalo, permite el uso de la cámara y apunta al código de barras: el producto se agrega solo y la ventana sigue abierta para escanear los siguientes. Si necesitas dos piezas, aparta el código de la cámara un momento y vuelve a mostrarlo. Toca **Listo** para volver a la venta. La cámara solo funciona si abres el sistema con **https://**.'],
                 ['p' => '**Atajos para ir más rápido:**'],
                 ['tabla' => [
                     ['5* y luego el código', 'Cinco piezas del mismo producto (también puedes escribir 5*código)'],
@@ -259,6 +260,7 @@
                     ['La caja no cuadra', 'Pide al encargado que revise tu corte en **Turnos y cortes**: ahí están las entradas, los retiros y las devoluciones.'],
                     ['El ticket sale cortado', 'En **Cajas** toca la impresora para imprimir una prueba y revisa el ancho del papel. En la ventana de impresión pon los márgenes en «Ninguno».'],
                     ['Escaneo y no pasa nada', 'Toca el cuadro de «Escanea o escribe el código» para que el cursor esté ahí.'],
+                    ['La cámara no abre', 'Abre el sistema con **https://** y, cuando el navegador pregunte, permite el uso de la cámara. Si la negaste antes, actívala en los permisos del sitio.'],
                 ]],
             ],
         ],

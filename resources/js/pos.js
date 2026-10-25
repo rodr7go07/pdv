@@ -5,6 +5,8 @@
  * que los redondeos coincidan con los del servidor (mitad hacia arriba).
  */
 
+import { camaraDisponible, iniciarLector } from './camara';
+
 const moneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
 export const formatear = (centavos) => moneda.format(centavos / 100);
@@ -53,6 +55,8 @@ export function registrarPos(Alpine) {
         esperas: { lista: [], cargando: false, nombre: '' },
         cobro: { pagos: [], procesando: false, error: '', totalServidor: null },
         exito: null,
+        camara: { iniciando: false, error: '', hayLinterna: false, linterna: false, leidos: 0 },
+        _lector: null,
 
         // ─── Ciclo de vida ──────────────────────────────────────────────────────────
         init() {
@@ -69,6 +73,7 @@ export function registrarPos(Alpine) {
             this.$watch('cliente', () => this.persistir());
             // Al abrir una ventana, el cursor pasa a su primer campo (con un respiro para que termine de mostrarse).
             this.$watch('modal', (nombre) => {
+                if (nombre !== 'camara') this.cerrarCamara();
                 if (!nombre || nombre === 'exito' || nombre === 'esperas') return;
                 setTimeout(() => {
                     if (this.modal !== nombre) return;
@@ -151,6 +156,51 @@ export function registrarPos(Alpine) {
             this.avisoTipo = tipo;
             clearTimeout(this._avisoT);
             if (ms) this._avisoT = setTimeout(() => (this.aviso = ''), ms);
+        },
+
+        // ─── Cámara (teléfono o tableta) ────────────────────────────────────────────
+        abrirCamara() {
+            if (!camaraDisponible()) {
+                this.avisar('La cámara solo funciona con conexión segura (HTTPS). Abre el sistema con https://.', 'error', 8000);
+                return;
+            }
+            this.camara = { iniciando: true, error: '', hayLinterna: false, linterna: false, leidos: 0 };
+            this.modal = 'camara';
+            this.$nextTick(() => this.arrancarCamara());
+        },
+
+        async arrancarCamara() {
+            try {
+                const lector = await iniciarLector(this.$refs.video, (codigo) => this.codigoDeCamara(codigo));
+                // Si cerraron la ventana mientras se pedía el permiso, se apaga de inmediato.
+                if (this.modal !== 'camara') { lector.detener(); return; }
+                this._lector = lector;
+                this.camara.hayLinterna = lector.hayLinterna;
+            } catch (e) {
+                this.camara.error = e.message;
+            } finally {
+                this.camara.iniciando = false;
+            }
+        },
+
+        cerrarCamara() {
+            this._lector?.detener();
+            this._lector = null;
+        },
+
+        async alternarLinterna() {
+            try {
+                await this._lector?.linterna(!this.camara.linterna);
+                this.camara.linterna = !this.camara.linterna;
+            } catch { this.avisar('No se pudo cambiar la linterna.', 'error'); }
+        },
+
+        /** La cámara deja la ventana abierta para escanear varios artículos seguidos. */
+        codigoDeCamara(codigo) {
+            navigator.vibrate?.(60);
+            this.camara.leidos++;
+            this.entrada = codigo;
+            this.enviarEntrada();
         },
 
         // ─── Captura (escáner o teclado) ────────────────────────────────────────────

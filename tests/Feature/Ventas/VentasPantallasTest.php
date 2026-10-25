@@ -276,3 +276,9 @@ it('el cajero no puede cancelar ni devolver desde el detalle', function () {
         ->assertDontSee('Cancelar venta')
         ->set('motivo', 'x')->call('cancelar')->assertForbidden();
 });
+
+it('la caja ofrece escanear con la cámara del teléfono', function () {
+    Volt::actingAs($this->cajero)->test('pages.pos')
+        ->assertSee('Escanear con la cámara')
+        ->assertSee('abrirCamara()', false);
+});

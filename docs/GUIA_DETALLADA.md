@@ -81,6 +81,7 @@ Pantalla completa pensada para escáner y teclado. El cursor siempre está en el
 | Quieres… | Haz esto |
 |---|---|
 | Agregar un artículo | Escanea el código (o escríbelo) y Enter. Si lo escaneas otra vez suma una pieza. |
+| Escanear con la cámara | En teléfono y tableta (pantallas menores a 1024 px) hay un botón de cámara junto al campo de captura. Abre una ventana con la cámara trasera, lee EAN, UPC, Code 128/39, ITF, Codabar y QR, y agrega cada artículo sin cerrarse. Un código que sigue a la vista cuenta una sola vez; para sumar otra pieza hay que apartarlo ~1.5 s. Incluye linterna si el dispositivo la tiene. **Requiere HTTPS** (o `localhost`): en HTTP el navegador no da acceso a la cámara. Usa el `BarcodeDetector` del navegador (Chrome en Android) y, si no existe (iPhone), ZXing, que se descarga solo al abrir la cámara. |
 | Varias piezas | Escribe `5*` y escanea, o `5*7501055300075`. |
 | Vender a granel | Escanea el artículo e indica el peso. Si tu navegador lo permite, hay un botón para leer la báscula (experimental). |
 | Buscar por nombre | **F2** o el botón *Buscar*. |

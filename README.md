@@ -8,11 +8,12 @@ Sistema de punto de venta web para **una tienda de abarrotes**: caja con escáne
 
 | Área | Qué hace |
 |---|---|
-| **Artículos** | Catálogo con claves alternas, impuestos (IVA/IEPS), precios 1–3, costo/margen enlazados, historial de precios, importación desde Excel y etiquetas con código de barras |
-| **Inventario y compras** | Existencia que solo cambia por movimientos (kardex), compras con costo promedio y último costo, ajustes con motivo, conteo físico, alertas de mínimos |
-| **Caja** | Pantalla de venta para escáner y teclado, granel, descuentos, pagos mixtos, ventas en espera, tickets de 58/80 mm, cancelaciones y devoluciones |
+| **Artículos** | Catálogo con claves alternas, impuestos (IVA/IEPS), precios 1–3, costo/margen enlazados, historial de precios, importación desde Excel, etiquetas con código de barras y foto desde el teléfono |
+| **Inventario y compras** | Existencia que solo cambia por movimientos (kardex), compras con costo promedio y último costo, ajustes con motivo, conteo físico, alertas de mínimos y sugerencia de compra según lo vendido |
+| **Caja** | Pantalla de venta para lector, teclado y cámara del teléfono, granel, descuentos, pagos mixtos, ventas en espera, tickets de 58/80 mm, cancelaciones y devoluciones |
 | **Turnos y cortes** | Fondo inicial, entradas y retiros, corte X y Z con arqueo, cajas con serie de folios |
 | **Clientes** | Crédito con límite, abonos, estado de cuenta, lista de precios por cliente |
+| **Escaneos** | Bitácora de todos los códigos de barras escaneados (lector o cámara), con alta rápida de los que no existen |
 | **Reportes** | Tablero del día, ventas por periodo/departamento/artículo/cajero/forma de pago, utilidad bruta, valor del inventario, Excel |
 | **Administración** | Usuarios y roles (Administrador, Encargado, Cajero), configuración de la tienda, PWA instalable |
 
@@ -70,11 +71,11 @@ PLAN.md           Fases, tareas y decisiones técnicas
 
 ## Documentación
 
-- [`PLAN.md`](PLAN.md): fases, estado y las 49 decisiones técnicas.
+- [`PLAN.md`](PLAN.md): fases, estado y las decisiones técnicas numeradas.
 - [`docs/GUIA_DETALLADA.md`](docs/GUIA_DETALLADA.md): manual completo de uso.
 - [`docs/impresion.md`](docs/impresion.md): impresión de tickets, QZ Tray, báscula y etiquetas.
 - [`deploy/README.md`](deploy/README.md): puesta en producción paso a paso.
 
 ## Estado
 
-Fases 0 a 8 implementadas (la Fase 8 queda **preparada pero sin ejecutar en un servidor real**) y la Fase 9 (CFDI, multi-sucursal, operación sin internet) sigue como trabajo futuro. Pendientes de confirmar con el dueño de la tienda: método de costeo (hoy configurable, por defecto promedio) y que los precios de venta incluyan impuestos. Ver `PLAN.md`.
+El estado de las fases, las tareas y los pendientes con el dueño de la tienda está en [`PLAN.md`](PLAN.md); esa es la única fuente. En resumen: las Fases 0 a 7 están terminadas, la Fase 8 (despliegue) está preparada pero sin ejecutar en un servidor real, y la Fase 9 sigue como trabajo futuro.

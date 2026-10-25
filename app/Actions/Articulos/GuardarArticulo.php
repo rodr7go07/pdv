@@ -2,13 +2,16 @@
 
 namespace App\Actions\Articulos;
 
+use App\Actions\Inventario\RegistrarMovimientoInventario;
 use App\Enums\TipoImpuesto;
+use App\Enums\TipoMovimiento;
 use App\Models\Articulo;
 use App\Models\ArticuloClaveAlterna;
 use App\Models\HistorialPrecio;
 use App\Models\Impuesto;
 use App\Models\UnidadMedida;
 use App\Models\User;
+use App\Services\CalculadoraPrecios;
 use Brick\Math\BigDecimal;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
@@ -45,6 +48,13 @@ class GuardarArticulo
     ): Articulo {
         $datos = $this->normalizar($datos);
         $this->validar($articulo, $datos);
+
+        // Meter existencia es una operación de inventario: pide el mismo permiso que un ajuste.
+        abort_if(
+            $usuario && ! $articulo && isset($datos['existencia_inicial']) && BigDecimal::of($datos['existencia_inicial'])->isPositive() && ! $usuario->can('inventario.ajustar'),
+            403,
+            'No tienes permiso para capturar existencia.',
+        );
 
         $imagenNueva = $imagen?->store('articulos', 'public');
         $imagenVieja = $articulo?->imagen_ruta;
@@ -84,6 +94,17 @@ class GuardarArticulo
                     $this->registrarHistorial($articulo, $anteriores, $existia, $usuario, $origen);
                 }
 
+                // Lo que ya hay en la tienda al dar de alta el artículo: queda en su historial como «Existencia inicial».
+                if (! $existia && $articulo->inventariable && isset($datos['existencia_inicial']) && BigDecimal::of($datos['existencia_inicial'])->isPositive()) {
+                    app(RegistrarMovimientoInventario::class)(
+                        $articulo,
+                        TipoMovimiento::Inicial,
+                        (string) BigDecimal::of($datos['existencia_inicial'])->toScale(3),
+                        usuario: $usuario,
+                        motivo: 'inicial',
+                    );
+                }
+
                 return $articulo->load(['impuestos', 'clavesAlternas']);
             });
         } catch (QueryException $e) {
@@ -120,7 +141,7 @@ class GuardarArticulo
         $datos['clave'] = trim((string) ($datos['clave'] ?? ''));
         $datos['descripcion'] = trim((string) ($datos['descripcion'] ?? ''));
 
-        foreach (['precio_2', 'precio_3', 'existencia_minima', 'existencia_maxima'] as $campo) {
+        foreach (['precio_2', 'precio_3', 'existencia_minima', 'existencia_maxima', 'existencia_inicial'] as $campo) {
             $datos[$campo] = $vacioANulo($datos[$campo] ?? null);
         }
 
@@ -169,6 +190,7 @@ class GuardarArticulo
             'precio_3' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'existencia_minima' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
             'existencia_maxima' => ['nullable', 'numeric', 'min:0', 'max:999999999', 'gte:existencia_minima'],
+            'existencia_inicial' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
             'impuestos' => ['array'],
             'impuestos.*' => [Rule::exists('impuestos', 'id')->whereNull('deleted_at')],
             'claves_alternas' => ['array', 'max:20'],
@@ -193,6 +215,7 @@ class GuardarArticulo
             'precio_3' => 'precio 3',
             'existencia_minima' => 'existencia mínima',
             'existencia_maxima' => 'existencia máxima',
+            'existencia_inicial' => 'existencia inicial',
         ]);
 
         $validador->after(function ($v) use ($datos) {
@@ -201,6 +224,14 @@ class GuardarArticulo
 
                 if ($ivas > 1) {
                     $v->errors()->add('impuestos', 'Un artículo solo puede llevar un IVA (por ejemplo 16% o 0%, no ambos).');
+                }
+            }
+
+            if (isset($datos['existencia_inicial']) && ! $v->errors()->has('existencia_inicial') && ! $v->errors()->has('unidad_medida_id')) {
+                $permiteDecimales = UnidadMedida::query()->whereKey($datos['unidad_medida_id'])->value('permite_decimales');
+
+                if (! $permiteDecimales && CalculadoraPrecios::tieneDecimales($datos['existencia_inicial'])) {
+                    $v->errors()->add('existencia_inicial', 'Esta unidad solo admite cantidades enteras (sin decimales).');
                 }
             }
 

@@ -1,15 +1,19 @@
 <?php
 
 use App\Actions\Articulos\GuardarArticulo;
+use App\Enums\Rol;
+use App\Enums\TipoMovimiento;
 use App\Models\Articulo;
 use App\Models\Departamento;
 use App\Models\HistorialPrecio;
 use App\Models\Impuesto;
 use App\Models\UnidadMedida;
 use App\Models\User;
+use Database\Seeders\RolesYPermisosSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -205,4 +209,41 @@ it('calcula margen y precio sin impuestos del artículo', function () {
     expect($a->tasaImpuestos())->toBe('16.0000')
         ->and($a->margen())->toBe('30.00')
         ->and($a->precioSinImpuestos())->toBe('130.0000');
+});
+
+it('al crear con existencia inicial deja la existencia y la anota en el historial', function () {
+    $this->seed(RolesYPermisosSeeder::class);
+    $admin = User::factory()->conRol(Rol::Administrador)->create();
+
+    $articulo = ($this->guardar)(null, datosArticulo(['existencia_inicial' => '24']), $admin);
+
+    $movimiento = $articulo->movimientos()->first();
+    expect($articulo->refresh()->existencia)->toBe('24.000')
+        ->and($articulo->movimientos()->count())->toBe(1)
+        ->and($movimiento->tipo)->toBe(TipoMovimiento::Inicial)
+        ->and($movimiento->cantidad)->toBe('24.000')
+        ->and($movimiento->user_id)->toBe($admin->id);
+});
+
+it('acepta decimales en existencia inicial solo si la unidad lo permite', function () {
+    $kilo = ($this->guardar)(null, datosArticulo(['clave' => 'K1', 'unidad_medida_id' => $this->kilo->id, 'granel' => true, 'existencia_inicial' => '12.5']));
+    expect($kilo->refresh()->existencia)->toBe('12.500');
+
+    expect(fn () => ($this->guardar)(null, datosArticulo(['clave' => 'P1', 'existencia_inicial' => '2.5'])))->toThrow(ValidationException::class);
+    expect(fn () => ($this->guardar)(null, datosArticulo(['clave' => 'P2', 'existencia_inicial' => '-3'])))->toThrow(ValidationException::class);
+});
+
+it('sin existencia inicial, o al editar, no se mueve el inventario', function () {
+    $articulo = ($this->guardar)(null, datosArticulo(['existencia_inicial' => '']));
+    expect($articulo->refresh()->existencia)->toBe('0.000')->and($articulo->movimientos()->count())->toBe(0);
+
+    ($this->guardar)($articulo, datosArticulo(['existencia_inicial' => '50', 'descripcion' => 'OTRO NOMBRE']));
+    expect($articulo->refresh()->existencia)->toBe('0.000');
+});
+
+it('sin permiso de inventario no se puede capturar existencia inicial', function () {
+    $this->seed(RolesYPermisosSeeder::class);
+    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+
+    expect(fn () => ($this->guardar)(null, datosArticulo(['existencia_inicial' => '5']), $cajero))->toThrow(HttpException::class);
 });

@@ -38,7 +38,7 @@
                     'Da de alta a tus cajeros: les pones un usuario y una contraseña, y les entregas los datos. (**Usuarios**)',
                     'Anota a quienes te surten. (**Compras → Proveedores**)',
                     'Da de alta tus productos, uno por uno o todos juntos desde un Excel. (**Artículos**)',
-                    'Dile al sistema qué tienes hoy en la tienda: registra una compra con todo lo que ya hay, o haz un conteo. (**Compras** o **Inventario**)',
+                    'Dile al sistema qué tienes hoy en la tienda: al crear cada producto escribe su **Existencia inicial**, o después registra una compra o haz un conteo. (**Artículos**, **Compras** o **Inventario**)',
                 ]],
                 ['enlaces' => [
                     ['Mi cuenta', 'profile', null], ['Configuración', 'configuracion', 'configuracion.editar'], ['Catálogos', 'catalogos', 'catalogos.administrar'],
@@ -57,6 +57,7 @@
                     'En **Descripción** escribe el nombre del producto. Elige su **departamento** y su **unidad de medida** (pieza, kilogramo…).',
                     'Elige el **IVA** que lleva. Viene marcado IVA 16 %; los alimentos básicos suelen ser IVA 0 %, confírmalo con tu contador. Hazlo **antes** de poner los precios, porque el precio depende de él.',
                     'Escribe cuánto te **cuesta** a ti (sin impuestos). Luego escribe el **Precio 1** (el que paga el cliente, con impuestos incluidos) o, si prefieres, cuánto quieres ganar en **Margen sobre el costo (%)** y el sistema calcula el precio.',
+                    'En **Existencia inicial (cuánto hay hoy)** escribe cuántas piezas, kilos o litros tienes ahora en la tienda. Solo aparece al crear el producto y solo si tienes permiso para mover inventario; si lo dejas vacío, empieza en cero.',
                     'Escribe la **existencia mínima** que quieres tener. Cuando baje de ahí, el sistema te avisa.',
                     'Toca **Crear artículo**.',
                 ]],

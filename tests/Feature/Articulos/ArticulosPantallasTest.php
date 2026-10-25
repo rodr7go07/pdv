@@ -183,3 +183,29 @@ it('un artículo con departamento desactivado sigue editable', function () {
         ->call('guardar')
         ->assertHasNoErrors();
 });
+
+it('al crear un artículo desde la pantalla se puede capturar cuánto hay', function () {
+    $depto = Departamento::factory()->create();
+    $pieza = UnidadMedida::where('abreviatura', 'pza')->first();
+
+    $pantalla = Volt::actingAs($this->admin)->test('pages.articulos.formulario');
+    $pantalla->assertSee('Existencia inicial')
+        ->set('form.clave', 'COCA600')
+        ->set('form.descripcion', 'COCA COLA 600 ML')
+        ->set('form.departamento_id', (string) $depto->id)
+        ->set('form.unidad_medida_id', (string) $pieza->id)
+        ->set('form.costo', '10')
+        ->set('form.precio_1', '18')
+        ->set('form.existencia_inicial', '36')
+        ->call('guardar')
+        ->assertHasNoErrors();
+
+    expect(Articulo::where('clave', 'COCA600')->first()->existencia)->toBe('36.000');
+});
+
+it('la existencia inicial solo aparece al crear y a quien puede ajustar inventario', function () {
+    $articulo = Articulo::factory()->create();
+
+    Volt::actingAs($this->admin)->test('pages.articulos.formulario', ['articulo' => $articulo])->assertDontSee('Existencia inicial');
+    Volt::actingAs(User::factory()->create()->givePermissionTo('articulos.crear', 'articulos.ver'))->test('pages.articulos.formulario')->assertDontSee('Existencia inicial');
+});

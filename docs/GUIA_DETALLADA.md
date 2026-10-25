@@ -54,6 +54,7 @@ Haz estos pasos en orden:
 - **IVA e IEPS.** Un artículo lleva como máximo un IVA y puede llevar IEPS.
 - **Precios 2 y 3 (mayoreo):** opcionales; se usan con clientes que tengan esa lista de precios.
 - **Inventario:** si el artículo se cuenta o no, existencia mínima (para las alertas) y máxima.
+- **Existencia inicial:** solo al crear (y con permiso de ajustar inventario): cuánto hay hoy. Se anota en el historial como «Existencia inicial»; después la existencia solo cambia con compras, ventas, ajustes y conteos.
 - **A granel:** se vende por peso o medida; la unidad debe permitir decimales (kg, litro, metro).
 
 Cada cambio de costo o de precio queda en el **historial** al final de la pantalla.

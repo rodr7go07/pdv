@@ -11,6 +11,7 @@ enum TipoMovimiento: string
     case Devolucion = 'devolucion';
     case Ajuste = 'ajuste';
     case Conteo = 'conteo';
+    case Inicial = 'inicial';
 
     public function etiqueta(): string
     {
@@ -22,6 +23,7 @@ enum TipoMovimiento: string
             self::Devolucion => 'Devolución',
             self::Ajuste => 'Ajuste',
             self::Conteo => 'Conteo físico',
+            self::Inicial => 'Existencia inicial',
         };
     }
 }

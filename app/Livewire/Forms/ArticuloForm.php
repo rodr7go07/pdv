@@ -43,6 +43,9 @@ class ArticuloForm extends Form
 
     public string $existencia_maxima = '';
 
+    /** Solo al crear: piezas, kilos o lo que sea que ya hay en la tienda. */
+    public string $existencia_inicial = '';
+
     public bool $activo = true;
 
     public function cargar(Articulo $articulo): void
@@ -94,6 +97,7 @@ class ArticuloForm extends Form
             'granel' => $this->granel,
             'existencia_minima' => $this->inventariable ? $this->existencia_minima : '',
             'existencia_maxima' => $this->inventariable ? $this->existencia_maxima : '',
+            'existencia_inicial' => $this->inventariable ? $this->existencia_inicial : '',
             'activo' => $this->activo,
         ];
     }

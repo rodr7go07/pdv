@@ -156,6 +156,10 @@ new #[Layout('layouts.app')] class extends Component
         $this->authorize($this->articulo ? 'articulos.editar' : 'articulos.crear');
         $this->validateOnly('imagen');
 
+        if (! $this->articulo && ! auth()->user()->can('inventario.ajustar')) {
+            $this->form->existencia_inicial = '';
+        }
+
         try {
             $guardado = $guardar(
                 $this->articulo,
@@ -397,6 +401,14 @@ new #[Layout('layouts.app')] class extends Component
                     </div>
 
                     @if ($form->inventariable)
+                        @if (! $articulo && auth()->user()->can('inventario.ajustar'))
+                            <div class="mt-5">
+                                <x-input-label for="existencia_inicial" value="Existencia inicial (cuánto hay hoy)" />
+                                <x-text-input wire:model="form.existencia_inicial" id="existencia_inicial" type="text" inputmode="decimal" class="font-mono" placeholder="Piezas, kilos o litros que tienes ahora" />
+                                <p class="mt-1.5 text-xs text-anil-600">Se anota en el historial del artículo como «Existencia inicial». Después, la existencia cambia con compras, ventas y ajustes.</p>
+                                <x-input-error :messages="$errors->get('form.existencia_inicial')" class="mt-1.5" />
+                            </div>
+                        @endif
                         <div class="mt-5 grid gap-5 sm:grid-cols-2">
                             <div>
                                 <x-input-label for="existencia_minima" value="Existencia mínima" />

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Escaneos\RegistrarEscaneo;
+use App\Enums\MedioEscaneo;
+use App\Enums\OrigenEscaneo;
 use App\Models\Articulo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,9 +15,14 @@ use Illuminate\Http\Request;
  */
 class PosController extends Controller
 {
-    public function buscar(Request $request): JsonResponse
+    public function buscar(Request $request, RegistrarEscaneo $registrar): JsonResponse
     {
         $texto = trim((string) $request->query('q', ''));
+
+        // La caja marca con escaneo=1 lo que llega por el campo de captura (no la búsqueda por nombre).
+        if ($request->boolean('escaneo')) {
+            $registrar($texto, OrigenEscaneo::Caja, MedioEscaneo::tryFrom((string) $request->query('medio')) ?? MedioEscaneo::Lector, $request->user());
+        }
 
         if ($texto === '' || mb_strlen($texto) > 80) {
             return $this->respuesta([], false);

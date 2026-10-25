@@ -1,5 +1,8 @@
 <?php
 
+use App\Actions\Escaneos\RegistrarEscaneo;
+use App\Enums\MedioEscaneo;
+use App\Enums\OrigenEscaneo;
 use App\Models\Articulo;
 use App\Models\Departamento;
 use Livewire\Attributes\Computed;
@@ -35,8 +38,10 @@ new #[Layout('layouts.app')] class extends Component
     }
 
     /** El escáner envía el código y Enter: si coincide exacto, se abre ese artículo. */
-    public function buscarClave(): void
+    public function buscarClave(string $medio = 'lector'): void
     {
+        app(RegistrarEscaneo::class)($this->buscar, OrigenEscaneo::Articulos, MedioEscaneo::tryFrom($medio) ?? MedioEscaneo::Lector, auth()->user());
+
         $articulo = Articulo::porClave($this->buscar);
 
         if (! $articulo) {
@@ -110,7 +115,7 @@ new #[Layout('layouts.app')] class extends Component
 
     {{-- Búsqueda y filtros --}}
     <div class="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem_10rem]">
-        <div class="flex gap-2" x-data x-on:codigo-escaneado.window="if ($event.detail.destino === 'buscar-articulos') { $wire.buscar = $event.detail.codigo; $wire.buscarClave(); }">
+        <div class="flex gap-2" x-data x-on:codigo-escaneado.window="if ($event.detail.destino === 'buscar-articulos') { $wire.buscar = $event.detail.codigo; $wire.buscarClave('camara'); }">
             <div class="relative min-w-0 flex-1">
                 <x-phosphor-barcode-bold class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-anil-400" />
                 <input wire:model.live.debounce.300ms="buscar" wire:keydown.enter="buscarClave" type="search" autofocus

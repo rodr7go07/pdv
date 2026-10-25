@@ -200,11 +200,11 @@ export function registrarPos(Alpine) {
             navigator.vibrate?.(60);
             this.camara.leidos++;
             this.entrada = codigo;
-            this.enviarEntrada();
+            this.enviarEntrada('camara');
         },
 
         // ─── Captura (escáner o teclado) ────────────────────────────────────────────
-        async enviarEntrada() {
+        async enviarEntrada(medio = 'lector') {
             const texto = this.entrada.trim();
             this.entrada = '';
             if (!texto) return;
@@ -224,22 +224,24 @@ export function registrarPos(Alpine) {
             if (conMult) { cantidad = parseFloat(conMult[1]); codigo = conMult[2].trim(); }
             this.multiplicador = null;
 
-            this.cola.push({ codigo, cantidad });
+            this.cola.push({ codigo, cantidad, medio });
             if (!this.cargando) await this.procesarCola();
         },
 
         async procesarCola() {
             this.cargando = true;
             while (this.cola.length) {
-                const { codigo, cantidad } = this.cola.shift();
-                await this.agregarPorCodigo(codigo, cantidad);
+                const { codigo, cantidad, medio } = this.cola.shift();
+                await this.agregarPorCodigo(codigo, cantidad, medio);
             }
             this.cargando = false;
             this.enfocar();
         },
 
-        async consultar(texto) {
-            const r = await fetch(`${this.cfg.urlBuscar}?q=${encodeURIComponent(texto)}`, {
+        /** `escaneo`: 'lector' o 'camara' cuando el código viene del campo de captura (queda en la bitácora de escaneos). */
+        async consultar(texto, escaneo = null) {
+            const marca = escaneo ? `&escaneo=1&medio=${escaneo}` : '';
+            const r = await fetch(`${this.cfg.urlBuscar}?q=${encodeURIComponent(texto)}${marca}`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin',
             });
@@ -247,9 +249,9 @@ export function registrarPos(Alpine) {
             return r.json();
         },
 
-        async agregarPorCodigo(codigo, cantidad) {
+        async agregarPorCodigo(codigo, cantidad, medio = 'lector') {
             try {
-                const { exacto, articulos } = await this.consultar(codigo);
+                const { exacto, articulos } = await this.consultar(codigo, medio);
 
                 if (exacto && articulos.length === 1) {
                     this.agregar(articulos[0], cantidad);
@@ -447,7 +449,7 @@ export function registrarPos(Alpine) {
         codigoDeBuscar(codigo) {
             this.modal = null;
             this.entrada = codigo;
-            this.enviarEntrada();
+            this.enviarEntrada('camara');
         },
 
         elegirResultado(a) {

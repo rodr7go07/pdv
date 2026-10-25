@@ -121,7 +121,7 @@ new #[Layout('layouts.app')] class extends Component
     <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div class="space-y-6">
             <x-card titulo="Elige los artículos" descripcion="Escanea o busca cada artículo. Si lo agregas otra vez, suma una etiqueta.">
-                <livewire:articulos.selector placeholder="Escanea o busca el artículo" />
+                <livewire:articulos.selector origen="etiquetas" placeholder="Escanea o busca el artículo" />
 
                 @if ($items === [])
                     <p class="mt-5 rounded-lg border-2 border-dashed border-anil-200 px-4 py-8 text-center text-sm text-anil-700">Todavía no hay artículos en la lista.</p>

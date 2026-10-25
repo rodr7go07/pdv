@@ -6,6 +6,26 @@
  */
 import { camaraDisponible, iniciarLector } from './camara';
 
+// Destinos cuya pantalla no consulta al servidor al recibir el código: aquí se avisa para la bitácora de escaneos.
+const ORIGEN_EN_BITACORA = { clave: 'articulo_clave', alterna: 'articulo_clave', 'buscar-inventario': 'inventario' };
+
+function anotarEscaneo(destino, codigo) {
+    const origen = ORIGEN_EN_BITACORA[destino];
+    if (!origen) return;
+
+    fetch('/escaneos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ codigo, origen }),
+    }).catch(() => { /* la bitácora nunca debe estorbar al escanear */ });
+}
+
 export function registrarEscaner(Alpine) {
     Alpine.data('escanerCamara', () => ({
         abierto: false,
@@ -50,6 +70,7 @@ export function registrarEscaner(Alpine) {
             const destino = this.destino;
             navigator.vibrate?.(60);
             this.cerrar();
+            anotarEscaneo(destino, codigo);
             this.$dispatch('codigo-escaneado', { destino, codigo });
         },
 

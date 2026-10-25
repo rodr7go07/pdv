@@ -41,6 +41,8 @@ new #[Layout('layouts.app')] class extends Component
         }
 
         $this->authorize('articulos.crear');
+        // Al dar de alta un código que apareció en la bitácora de escaneos, la clave llega ya escrita.
+        $this->form->clave = mb_substr(trim((string) request()->query('clave', '')), 0, 40);
         $this->form->iva_id = (string) (Impuesto::query()->activos()->where('tipo', TipoImpuesto::Iva)->where('tasa', 16)->value('id') ?? '');
         $this->form->departamento_id = (string) (Departamento::query()->activos()->orderBy('nombre')->value('id') ?? '');
         $this->form->unidad_medida_id = (string) (UnidadMedida::query()->activas()->orderBy('id')->value('id') ?? '');

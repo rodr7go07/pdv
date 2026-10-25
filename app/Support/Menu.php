@@ -33,6 +33,7 @@ final class Menu
             ['Artículos', 'Catálogo de productos, precios y claves.', 'articulos.index', 'package', 'articulos.*', Permiso::ArticulosVer, 'Mercancía', false],
             ['Inventario', 'Existencias, kardex, ajustes y conteo físico.', 'inventario.index', 'stack', 'inventario.*', Permiso::InventarioVer, 'Mercancía', false],
             ['Compras', 'Mercancía que recibes y sus proveedores.', 'compras.index', 'truck', 'compras.*', Permiso::ComprasVer, 'Mercancía', false],
+            ['Escaneos', 'Bitácora de todos los códigos de barras escaneados.', 'escaneos', 'barcode', 'escaneos', Permiso::ReportesVer, 'Mercancía', false],
             ['Usuarios', 'Altas de cajeros y encargados, roles y contraseñas.', 'usuarios', 'identification-card', 'usuarios', Permiso::UsuariosAdministrar, 'Administración', false],
             ['Turnos y cortes', 'Turnos de todas las cajas, arqueos y cortes.', 'caja.turnos', 'clock-counter-clockwise', 'caja.turno*', Permiso::CajaSupervisar, 'Administración', false],
             ['Cajas', 'Series de folios, papel e impresión por caja.', 'cajas', 'storefront', 'cajas', Permiso::CajasAdministrar, 'Administración', false],

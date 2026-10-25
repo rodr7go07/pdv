@@ -3,6 +3,7 @@
 use App\Http\Controllers\CajaPruebaController;
 use App\Http\Controllers\CerrarSesionController;
 use App\Http\Controllers\CorteController;
+use App\Http\Controllers\EscaneoController;
 use App\Http\Controllers\EstadoCuentaController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReporteExportController;
@@ -17,6 +18,10 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     Route::view('profile', 'profile')->name('profile');
+
+    // Bitácora de códigos escaneados: la cámara avisa aquí cuando la pantalla no consulta al servidor por sí sola.
+    Route::post('escaneos', EscaneoController::class)->middleware('throttle:240,1')->name('escaneos.registrar');
+    Volt::route('escaneos', 'pages.escaneos')->middleware('can:reportes.ver')->name('escaneos');
 
     Volt::route('configuracion', 'pages.configuracion')
         ->middleware('can:configuracion.editar')

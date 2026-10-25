@@ -167,7 +167,7 @@ new #[Layout('layouts.app')] class extends Component
         </x-card>
 
         <x-card titulo="Mercancía recibida" descripcion="Escanea cada artículo. Si lo escaneas otra vez, suma una pieza.">
-            <livewire:articulos.selector placeholder="Escanea o busca el artículo recibido" />
+            <livewire:articulos.selector origen="compras" placeholder="Escanea o busca el artículo recibido" />
 
             <x-input-error :messages="$errors->get('lineas')" class="mt-3" />
 

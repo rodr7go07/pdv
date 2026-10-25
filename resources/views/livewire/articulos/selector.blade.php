@@ -1,5 +1,8 @@
 <?php
 
+use App\Actions\Escaneos\RegistrarEscaneo;
+use App\Enums\MedioEscaneo;
+use App\Enums\OrigenEscaneo;
 use App\Models\Articulo;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -21,8 +24,14 @@ new class extends Component
 
     public ?string $aviso = null;
 
-    public function mount(string $placeholder = '', bool $soloInventariables = false): void
+    /** Pantalla donde está el campo (App\Enums\OrigenEscaneo): sirve para la bitácora de escaneos. */
+    #[Locked]
+    public string $origen = 'compras';
+
+    public function mount(string $placeholder = '', bool $soloInventariables = false, string $origen = 'compras'): void
     {
+        $this->origen = OrigenEscaneo::tryFrom($origen)?->value ?? 'compras';
+
         if ($placeholder !== '') {
             $this->placeholder = $placeholder;
         }
@@ -36,13 +45,15 @@ new class extends Component
     }
 
     /** Enter (el escáner lo envía): si hay coincidencia exacta se elige; si no, el primer resultado único. */
-    public function entrar(): void
+    public function entrar(string $medio = 'lector'): void
     {
         $texto = trim($this->texto);
 
         if ($texto === '') {
             return;
         }
+
+        app(RegistrarEscaneo::class)($texto, OrigenEscaneo::from($this->origen), MedioEscaneo::tryFrom($medio) ?? MedioEscaneo::Lector, auth()->user());
 
         $articulo = Articulo::porClave($texto);
 
@@ -95,7 +106,7 @@ new class extends Component
 }; ?>
 
 <div class="relative" x-data x-on:enfocar-selector.window="$refs.entrada.focus()"
-     x-on:codigo-escaneado.window="if ($event.detail.destino === 'selector') { $wire.texto = $event.detail.codigo; $wire.entrar(); }">
+     x-on:codigo-escaneado.window="if ($event.detail.destino === 'selector') { $wire.texto = $event.detail.codigo; $wire.entrar('camara'); }">
     <div class="flex gap-2">
         <div class="relative min-w-0 flex-1">
             <x-phosphor-barcode-bold class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-anil-400" />

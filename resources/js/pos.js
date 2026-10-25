@@ -57,6 +57,7 @@ export function registrarPos(Alpine) {
         exito: null,
         camara: { iniciando: false, error: '', hayLinterna: false, linterna: false, leidos: 0 },
         _lector: null,
+        codigoSinAlta: '', // código leído con la cámara que no existe y se ofrece dar de alta
         _idCamara: 0, // identifica cada apertura de la cámara (ver escaner.js)
 
         // ─── Ciclo de vida ──────────────────────────────────────────────────────────
@@ -264,19 +265,31 @@ export function registrarPos(Alpine) {
 
                 if (exacto && articulos.length === 1) {
                     this.agregar(articulos[0], cantidad);
-                } else if (articulos.length) {
+                } else if (articulos.length && medio !== 'camara') {
                     this.abrirBusqueda(codigo, articulos);
                 } else {
-                    this.avisar(`No existe el artículo «${codigo}».`, 'error', 6000);
-                    if (this.cfg.puedeAlta) this.abrirAlta(codigo);
+                    // Con la cámara una lectura debe coincidir exacta: una coincidencia parcial (el inicio de otra clave) es una lectura a medias.
+                    this.avisar(medio === 'camara' ? `No se reconoció «${codigo}». Si se leyó mal, vuelve a escanearlo.` : `No existe el artículo «${codigo}».`, 'error', 6000);
+                    // Con el lector o el teclado se ofrece el alta de inmediato. Con la cámara, un código que no existe puede
+                    // ser una lectura a medias: solo se ofrece, y la persona decide si quiere darlo de alta.
+                    if (this.cfg.puedeAlta && medio !== 'camara') this.abrirAlta(codigo);
+                    else if (this.cfg.puedeAlta) this.ofrecerAlta(codigo);
                 }
             } catch (e) {
                 this.avisar(e.message, 'error', 6000);
             }
         },
 
+        /** Muestra el botón «Dar de alta» para un código leído con la cámara que no existe (desaparece solo). */
+        ofrecerAlta(codigo) {
+            this.codigoSinAlta = codigo;
+            clearTimeout(this._codigoSinAltaT);
+            this._codigoSinAltaT = setTimeout(() => (this.codigoSinAlta = ''), 12000);
+        },
+
         // ─── Carrito ────────────────────────────────────────────────────────────────
         agregar(articulo, cantidad = null) {
+            this.codigoSinAlta = '';
             if (articulo.granel && cantidad === null) {
                 this.peso = { articulo, valor: '' };
                 this.modal = 'peso';
@@ -717,6 +730,7 @@ export function registrarPos(Alpine) {
 
         // ─── Alta rápida ────────────────────────────────────────────────────────────
         abrirAlta(clave = '') {
+            this.codigoSinAlta = '';
             this.alta = { ...this.alta, clave, descripcion: '', precio: '', error: '', guardando: false };
             this.modal = 'alta';
             this.$nextTick(() => this.$refs.altaDescripcion?.focus());

@@ -287,5 +287,7 @@ it('la ventana Buscar de la caja permite escanear con la cámara', function () {
     Volt::actingAs($this->cajero)->test('pages.pos')
         ->assertSee("destino: 'pos-buscar'", false)
         ->assertSee('x-data="escanerCamara"', false)
-        ->assertSee('codigoDeBuscar', false);
+        ->assertSee('codigoDeBuscar', false)
+        // Un código desconocido leído con la cámara no abre el alta solo: ofrece este botón.
+        ->assertSee('abrirAlta(codigoSinAlta)', false);
 });

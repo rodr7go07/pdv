@@ -387,6 +387,10 @@ new #[Layout('layouts.pos')] class extends Component
                         </template>
                         <span x-show="aviso" x-text="aviso" x-cloak
                               :class="{ 'text-red-700 font-semibold': avisoTipo === 'error', 'text-emerald-700 font-semibold': avisoTipo === 'ok', 'text-anil-700': avisoTipo === 'info' }"></span>
+                        <button type="button" x-show="codigoSinAlta" x-cloak x-on:click="abrirAlta(codigoSinAlta)"
+                                class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-rosa-200 bg-rosa-50 px-3 text-sm font-semibold text-rosa-700">
+                            <x-phosphor-plus-bold class="size-4" /> Dar de alta «<span x-text="codigoSinAlta"></span>»
+                        </button>
                     </div>
                 </div>
 
@@ -566,6 +570,10 @@ new #[Layout('layouts.pos')] class extends Component
                     <p x-show="aviso" x-text="aviso" x-cloak
                        :class="{ 'text-red-300 font-semibold': avisoTipo === 'error', 'text-emerald-300 font-semibold': avisoTipo === 'ok', 'text-anil-200': avisoTipo === 'info' }"></p>
                     <p x-show="!aviso" class="text-anil-200">Apunta al código de barras. Puedes escanear varios artículos seguidos.</p>
+                    <button type="button" x-show="codigoSinAlta" x-cloak x-on:click="abrirAlta(codigoSinAlta)"
+                            class="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-rosa-500 px-3 text-sm font-semibold text-white">
+                        <x-phosphor-plus-bold class="size-4" /> Dar de alta «<span x-text="codigoSinAlta"></span>»
+                    </button>
                 </div>
                 <div class="flex shrink-0 items-center justify-between gap-3 border-t border-anil-800 px-4 py-3">
                     <p class="text-sm text-anil-200"><span class="font-bold text-white" x-text="piezas"></span> en la venta · <span class="font-bold text-white" x-text="dinero(total)"></span></p>

@@ -209,3 +209,11 @@ it('la existencia inicial solo aparece al crear y a quien puede ajustar inventar
     Volt::actingAs($this->admin)->test('pages.articulos.formulario', ['articulo' => $articulo])->assertDontSee('Existencia inicial');
     Volt::actingAs(User::factory()->create()->givePermissionTo('articulos.crear', 'articulos.ver'))->test('pages.articulos.formulario')->assertDontSee('Existencia inicial');
 });
+
+it('el formulario de artículo permite escanear la clave con la cámara del teléfono', function () {
+    Volt::actingAs($this->admin)->test('pages.articulos.formulario')
+        ->assertSee('x-data="escanerCamara"', false)
+        ->assertSee("destino: 'clave'", false)
+        ->assertSee("destino: 'alterna'", false)
+        ->assertSee('Escanear con la cámara');
+});

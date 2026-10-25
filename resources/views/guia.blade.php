@@ -53,7 +53,7 @@
             'bloques' => [
                 ['pasos' => [
                     'Entra a **Artículos** y toca **Nuevo**.',
-                    'En **Clave principal**, escanea el código de barras del producto (o escríbelo). No puede haber dos productos con la misma clave.',
+                    'En **Clave principal**, escanea el código de barras del producto (o escríbelo). En el teléfono, toca el botón de la cámara y apunta al código: se escribe solo. No puede haber dos productos con la misma clave.',
                     'En **Descripción** escribe el nombre del producto. Elige su **departamento** y su **unidad de medida** (pieza, kilogramo…).',
                     'Elige el **IVA** que lleva. Viene marcado IVA 16 %; los alimentos básicos suelen ser IVA 0 %, confírmalo con tu contador. Hazlo **antes** de poner los precios, porque el precio depende de él.',
                     'Escribe cuánto te **cuesta** a ti (sin impuestos). Luego escribe el **Precio 1** (el que paga el cliente, con impuestos incluidos) o, si prefieres, cuánto quieres ganar en **Margen sobre el costo (%)** y el sistema calcula el precio.',
@@ -62,7 +62,7 @@
                     'Toca **Crear artículo**.',
                 ]],
                 ['p' => '**Ejemplo del precio.** Si una leche te cuesta $20 y quieres ganarle 35 %: con **IVA 0 %** el sistema pone $27 como precio. Con **IVA 16 %** pone $31.32, porque al precio le suma el impuesto (el precio que ves ya lo incluye). También puedes hacerlo al revés: escribes el precio y él te dice cuánto ganas. Ese «margen» es sobre lo que **te costó**; en Reportes la utilidad se mide sobre lo que **vendiste**, por eso los porcentajes no coinciden.'],
-                ['p' => '**Claves alternas.** Si un producto tiene dos códigos de barras (por ejemplo una presentación nueva), agrega el segundo como clave alterna. Cualquiera de los dos lo encuentra.'],
+                ['p' => '**Claves alternas.** Si un producto tiene dos códigos de barras (por ejemplo una presentación nueva), agrega el segundo como clave alterna (también puedes escanearlo con la cámara). Cualquiera de los dos lo encuentra.'],
                 ['p' => '**Producto a granel.** Si lo vendes por peso (frutas, queso), marca **Se vende a granel** y elige kilo como unidad. Al venderlo, el sistema te pregunta cuánto pesa.'],
                 ['p' => '**Subir muchos productos de golpe.** Entra a **Artículos → Importar**, descarga la plantilla de Excel, llénala y súbela. Si algo está mal en una fila, el sistema te dice cuál y no guarda nada, para que lo corrijas y lo vuelvas a subir sin que se repita nada.'],
                 ['p' => '**Etiquetas de precio.** En **Artículos → Etiquetas** eliges productos y cuántas copias, y las imprimes con su código de barras.'],

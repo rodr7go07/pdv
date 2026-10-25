@@ -46,8 +46,8 @@ Haz estos pasos en orden:
 ### Crear un artículo
 *Artículos → Nuevo.* Campos importantes:
 
-- **Clave principal:** el código de barras (puedes escanearlo en el campo). No se puede repetir.
-- **Claves alternas:** otros códigos del mismo artículo (por ejemplo otra presentación). Escribe cada uno y presiona Enter. Tampoco se pueden repetir con ninguna otra clave del sistema.
+- **Clave principal:** el código de barras (puedes escanearlo en el campo o, en teléfono y tableta, con el botón de la **cámara**: lee un código, lo escribe y regresa al formulario). No se puede repetir.
+- **Claves alternas:** otros códigos del mismo artículo (por ejemplo otra presentación). Escribe cada uno y presiona Enter, o usa el botón de la cámara. Tampoco se pueden repetir con ninguna otra clave del sistema.
 - **Departamento y unidad de medida.**
 - **Orden recomendado:** elige primero el IVA (viene en 16 %), después escribe costo y precio. Ejemplo: costo $20 con margen 35 % da $27.00 con IVA 0 % y $31.32 con IVA 16 %, porque el precio de venta incluye el impuesto.
 - **Costo, margen y precio.** Los tres están enlazados: si cambias el costo o el margen, el sistema sugiere el precio; si cambias el precio, calcula el margen. El margen es la utilidad sobre el costo, calculada con el precio sin impuestos.

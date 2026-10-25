@@ -1,10 +1,12 @@
 // Livewire 3 ya incluye Alpine.js; no se importa por separado.
 import { registrarPos } from './pos';
 import { registrarEtiquetas } from './etiquetas';
+import { registrarEscaner } from './escaner';
 
 document.addEventListener('alpine:init', () => {
     registrarPos(window.Alpine);
     registrarEtiquetas(window.Alpine);
+    registrarEscaner(window.Alpine);
 });
 
 if ('serviceWorker' in navigator) {

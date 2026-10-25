@@ -237,12 +237,15 @@ new #[Layout('layouts.app')] class extends Component
                 <x-card titulo="Identificación" descripcion="Cómo se llama el artículo y con qué códigos se encuentra.">
                     <div class="space-y-5">
                         <div class="grid gap-5 sm:grid-cols-[14rem_minmax(0,1fr)]">
-                            <div>
+                            <div x-on:codigo-escaneado.window="if ($event.detail.destino === 'clave') { $wire.form.clave = $event.detail.codigo; $nextTick(() => $refs.descripcion.focus()); }">
                                 <x-input-label for="clave" value="Clave principal" />
-                                <x-text-input wire:model="form.clave" id="clave" type="text" required maxlength="40"
-                                              class="font-mono" autocomplete="off" spellcheck="false" autofocus
-                                              x-on:keydown.enter.prevent="$refs.descripcion.focus()" />
-                                <p class="mt-1 text-xs text-anil-600">Escanea el código de barras aquí o escríbelo.</p>
+                                <div class="flex gap-2">
+                                    <x-text-input wire:model="form.clave" id="clave" type="text" required maxlength="40"
+                                                  class="min-w-0 font-mono" autocomplete="off" spellcheck="false" autofocus
+                                                  x-on:keydown.enter.prevent="$refs.descripcion.focus()" />
+                                    <x-boton-camara destino="clave" />
+                                </div>
+                                <p class="mt-1 text-xs text-anil-600">Escanea el código de barras aquí o escríbelo. En el teléfono puedes usar la cámara.</p>
                                 <x-input-error :messages="$errors->get('form.clave')" class="mt-1.5" />
                             </div>
                             <div>
@@ -261,12 +264,13 @@ new #[Layout('layouts.app')] class extends Component
                                     this.nueva = '';
                                 },
                                 quitar(i) { $wire.form.claves_alternas.splice(i, 1); },
-                            }">
+                            }" x-on:codigo-escaneado.window="if ($event.detail.destino === 'alterna') { nueva = $event.detail.codigo; agregar(); }">
                             <x-input-label for="nueva_alterna" value="Claves alternas (opcional)" />
                             <div class="flex gap-2">
                                 <x-text-input x-model="nueva" id="nueva_alterna" type="text" maxlength="40" class="font-mono" autocomplete="off" spellcheck="false"
-                                              placeholder="Otro código del mismo artículo"
+                                              placeholder="Otro código"
                                               x-on:keydown.enter.prevent="agregar()" />
+                                <x-boton-camara destino="alterna" />
                                 <x-secondary-button x-on:click="agregar()" class="shrink-0">Agregar</x-secondary-button>
                             </div>
                             <ul class="mt-3 flex flex-wrap gap-2" x-show="$wire.form.claves_alternas.length" x-cloak>
@@ -469,6 +473,8 @@ new #[Layout('layouts.app')] class extends Component
             @endif
         </div>
     </form>
+
+    <x-escaner-camara />
 
     @if ($articulo)
         <x-card titulo="Historial de costo y precios" descripcion="Cada cambio queda registrado con la fecha y quién lo hizo." class="mt-6">

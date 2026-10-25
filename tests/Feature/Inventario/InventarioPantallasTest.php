@@ -281,3 +281,10 @@ it('rechaza un método de costeo inválido', function () {
         ->call('guardar')
         ->assertHasErrors('form.metodo_costeo');
 });
+
+it('el selector de artículos ofrece escanear con la cámara del teléfono', function () {
+    Volt::actingAs($this->admin)->test('articulos.selector')
+        ->assertSee('x-data="escanerCamara"', false)
+        ->assertSee("destino: 'selector'", false)
+        ->assertSee('Escanear con la cámara');
+});

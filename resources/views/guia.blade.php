@@ -77,7 +77,7 @@
                 ['pasos' => [
                     'Entra a **Compras** y toca **Nueva compra**.',
                     'Elige el **proveedor**, escribe el número de factura (si tienes) y revisa la fecha.',
-                    'Escanea cada producto que llegó. Si lo escaneas otra vez, suma una pieza.',
+                    'Escanea cada producto que llegó (en el teléfono puedes usar el botón de la cámara). Si lo escaneas otra vez, suma una pieza.',
                     'Revisa la **cantidad** y el **costo** de cada uno (sin impuestos).',
                     'Toca **Registrar compra**.',
                 ]],
@@ -98,11 +98,11 @@
             'bloques' => [
                 ['p' => 'Entra a **Inventario**. Arriba ves cuántos productos están **bajo el mínimo** (se están acabando) y cuáles están **agotados**. Toca cualquiera de esas tarjetas para ver solo esos. Para saber cuánto pedir de cada uno, usa **Compras → Sugerencia de compra**.'],
                 ['p' => '**El cuaderno de cada producto.** Al tocar un producto ves su historial: cuándo entró, cuándo se vendió, quién lo movió. A esto el sistema le llama *kardex*.'],
-                ['p' => '**Ajustes.** Si algo se rompe, caduca o se pierde, entra a **Inventario → Ajustes**, elige el producto, el motivo y la cantidad. Siempre queda anotado.'],
+                ['p' => '**Ajustes.** Si algo se rompe, caduca o se pierde, entra a **Inventario → Ajustes**, elige el producto (escaneándolo o buscándolo por nombre), el motivo y la cantidad. Siempre queda anotado.'],
                 ['p' => '**Contar la tienda (conteo).** Para revisar que el sistema y los estantes digan lo mismo:'],
                 ['pasos' => [
                     'Entra a **Inventario → Conteo físico** y toca **Empezar a contar**.',
-                    'Escanea un producto y escribe **cuántos hay en el estante**. Guarda y sigue con el siguiente.',
+                    'Escanea un producto (o toca el botón de la cámara en el teléfono) y escribe **cuántos hay en el estante**. Guarda y sigue con el siguiente.',
                     'Al terminar, mira la tabla: te muestra la diferencia de cada uno.',
                     'Si todo está bien, toca **Aplicar al inventario**. No se puede deshacer.',
                 ]],

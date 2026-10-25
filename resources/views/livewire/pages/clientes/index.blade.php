@@ -149,11 +149,12 @@ new #[Layout('layouts.app')] class extends Component
 
 <div>
     <x-slot name="titulo">Clientes</x-slot>
-    <x-slot name="acciones">
-        @if ($this->puedeAdministrar)
+
+    @if ($this->puedeAdministrar)
+        <div class="mb-6 flex flex-wrap items-center justify-end gap-3">
             <x-primary-button type="button" wire:click="nuevo"><x-phosphor-plus-bold class="size-4" /> Nuevo cliente</x-primary-button>
-        @endif
-    </x-slot>
+        </div>
+    @endif
 
     @php $r = $this->resumen; @endphp
 

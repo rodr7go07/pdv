@@ -102,11 +102,11 @@ new #[Layout('layouts.app')] class extends Component
 
 <div>
     <x-slot name="titulo">Cajas</x-slot>
-    <x-slot name="acciones">
-        <x-primary-button type="button" wire:click="nueva"><x-phosphor-plus-bold class="size-4" /> Nueva caja</x-primary-button>
-    </x-slot>
 
     <div class="max-w-3xl">
+        <div class="mb-4 flex justify-end">
+            <x-primary-button type="button" wire:click="nueva"><x-phosphor-plus-bold class="size-4" /> Nueva caja</x-primary-button>
+        </div>
         <x-card :padding="false">
             <ul class="divide-y divide-anil-50">
                 @foreach ($this->lista as $c)

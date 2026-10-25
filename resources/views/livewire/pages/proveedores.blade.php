@@ -101,12 +101,13 @@ new #[Layout('layouts.app')] class extends Component
 
 <div>
     <x-slot name="titulo">Proveedores</x-slot>
-    <x-slot name="acciones">
+
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <a href="{{ route('compras.index') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
             <x-phosphor-arrow-left-bold class="size-4" /> Volver a compras
         </a>
         <x-primary-button type="button" wire:click="nuevo"><x-phosphor-plus-bold class="size-4" /> Nuevo</x-primary-button>
-    </x-slot>
+    </div>
 
     <div class="max-w-3xl">
         <input wire:model.live.debounce.300ms="buscar" type="search" placeholder="Buscar proveedor" aria-label="Buscar proveedor" autocomplete="off"

@@ -102,10 +102,22 @@ it('la cámara avisa por /escaneos en las pantallas que no consultan al servidor
 
     $this->actingAs($this->admin)->postJson('/escaneos', ['codigo' => '7501055363057', 'origen' => 'articulo_clave'])->assertNoContent();
     $this->actingAs($this->admin)->postJson('/escaneos', ['codigo' => '7501055363057', 'origen' => 'no-existe'])->assertUnprocessable();
+    $this->actingAs($this->admin)->postJson('/escaneos', ['codigo' => '7501055363057', 'origen' => 'articulo_clave', 'medio' => 'inventado'])->assertUnprocessable();
     $this->actingAs($this->admin)->postJson('/escaneos', ['codigo' => str_repeat('9', 81), 'origen' => 'inventario'])->assertUnprocessable();
 
     expect(Escaneo::count())->toBe(1)
         ->and(Escaneo::first())->medio->toBe(MedioEscaneo::Camara)->origen->toBe(OrigenEscaneo::ArticuloClave);
+});
+
+it('el formulario de artículo anota lo que llega con Enter (lector USB) como lector', function () {
+    $this->actingAs($this->admin)->postJson('/escaneos', ['codigo' => '7501055363057', 'origen' => 'articulo_clave', 'medio' => 'lector'])->assertNoContent();
+
+    expect(Escaneo::first())->medio->toBe(MedioEscaneo::Lector)->origen->toBe(OrigenEscaneo::ArticuloClave);
+
+    $this->withoutVite();
+    $this->actingAs($this->admin)->get('/articulos/crear')->assertOk()
+        ->assertSee("anotarEscaneo('articulo_clave', \$el.value)", false)
+        ->assertSee("anotarEscaneo('articulo_clave', nueva)", false);
 });
 
 // ─── Vista ───────────────────────────────────────────────────────────────────

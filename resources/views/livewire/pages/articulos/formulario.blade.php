@@ -244,7 +244,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <div class="flex gap-2">
                                     <x-text-input wire:model="form.clave" id="clave" type="text" required maxlength="40"
                                                   class="min-w-0 font-mono" autocomplete="off" spellcheck="false" autofocus
-                                                  x-on:keydown.enter.prevent="$refs.descripcion.focus()" />
+                                                  x-on:keydown.enter.prevent="anotarEscaneo('articulo_clave', $el.value); $refs.descripcion.focus()" />
                                     <x-boton-camara destino="clave" />
                                 </div>
                                 <p class="mt-1 text-xs text-anil-600">Escanea el código de barras aquí o escríbelo. En el teléfono puedes usar la cámara.</p>
@@ -271,7 +271,7 @@ new #[Layout('layouts.app')] class extends Component
                             <div class="flex gap-2">
                                 <x-text-input x-model="nueva" id="nueva_alterna" type="text" maxlength="40" class="font-mono" autocomplete="off" spellcheck="false"
                                               placeholder="Otro código"
-                                              x-on:keydown.enter.prevent="agregar()" />
+                                              x-on:keydown.enter.prevent="anotarEscaneo('articulo_clave', nueva); agregar()" />
                                 <x-boton-camara destino="alterna" />
                                 <x-secondary-button x-on:click="agregar()" class="shrink-0">Agregar</x-secondary-button>
                             </div>

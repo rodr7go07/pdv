@@ -9,9 +9,17 @@ import { camaraDisponible, iniciarLector } from './camara';
 // Destinos cuya pantalla no consulta al servidor al recibir el código: aquí se avisa para la bitácora de escaneos.
 const ORIGEN_EN_BITACORA = { clave: 'articulo_clave', alterna: 'articulo_clave', 'buscar-inventario': 'inventario' };
 
-function anotarEscaneo(destino, codigo) {
-    const origen = ORIGEN_EN_BITACORA[destino];
-    if (!origen) return;
+// Último código leído con la cámara: si luego se da Enter en el campo ya lleno, no se anota otra vez.
+let ultimoPorCamara = '';
+
+/**
+ * Anota un código en la bitácora de escaneos (`POST /escaneos`). `medio`: 'lector' (lector USB o teclado + Enter) o 'camara'.
+ * También está en `window.anotarEscaneo` para los campos que reciben el código por Enter.
+ */
+export function anotarEscaneo(origen, codigo, medio = 'lector') {
+    codigo = String(codigo ?? '').trim();
+    if (!codigo || (medio === 'lector' && codigo === ultimoPorCamara)) return;
+    if (medio === 'camara') ultimoPorCamara = codigo;
 
     fetch('/escaneos', {
         method: 'POST',
@@ -22,9 +30,11 @@ function anotarEscaneo(destino, codigo) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
         },
         credentials: 'same-origin',
-        body: JSON.stringify({ codigo, origen }),
+        body: JSON.stringify({ codigo, origen, medio }),
     }).catch(() => { /* la bitácora nunca debe estorbar al escanear */ });
 }
+
+window.anotarEscaneo = anotarEscaneo;
 
 export function registrarEscaner(Alpine) {
     Alpine.data('escanerCamara', () => ({
@@ -70,7 +80,7 @@ export function registrarEscaner(Alpine) {
             const destino = this.destino;
             navigator.vibrate?.(60);
             this.cerrar();
-            anotarEscaneo(destino, codigo);
+            if (ORIGEN_EN_BITACORA[destino]) anotarEscaneo(ORIGEN_EN_BITACORA[destino], codigo, 'camara');
             this.$dispatch('codigo-escaneado', { destino, codigo });
         },
 

@@ -46,7 +46,9 @@ class Escaneo extends Model
      */
     public function scopeSinArticulo(Builder $consulta): void
     {
-        $consulta->whereNull('articulo_id')
+        // `encontrado = false`: si se encontró un artículo al escanear y luego se borró de verdad, no es un código pendiente.
+        $consulta->where('encontrado', false)
+            ->whereNull('articulo_id')
             ->whereNotExists(fn ($q) => $q->from('articulos')->whereColumn('articulos.clave', 'escaneos.codigo')->whereNull('articulos.deleted_at'))
             ->whereNotExists(fn ($q) => $q->from('articulo_claves_alternas as ca')
                 ->join('articulos as a', 'a.id', '=', 'ca.articulo_id')
@@ -62,9 +64,11 @@ class Escaneo extends Model
             return collect();
         }
 
-        $porClave = Articulo::query()->whereIn('clave', $codigos)->get(['id', 'clave', 'descripcion'])->keyBy('clave');
+        // Las claves se indexan en minúsculas: MySQL compara sin distinguir mayúsculas (utf8mb4_unicode_ci) y PHP sí.
+        $porClave = Articulo::query()->whereIn('clave', $codigos)->get(['id', 'clave', 'descripcion'])
+            ->mapWithKeys(fn ($articulo) => [mb_strtolower($articulo->clave) => $articulo]);
         $porAlterna = ArticuloClaveAlterna::query()->whereIn('clave', $codigos)->with('articulo:id,clave,descripcion')->get()
-            ->filter(fn ($alterna) => $alterna->articulo)->mapWithKeys(fn ($alterna) => [$alterna->clave => $alterna->articulo]);
+            ->filter(fn ($alterna) => $alterna->articulo)->mapWithKeys(fn ($alterna) => [mb_strtolower($alterna->clave) => $alterna->articulo]);
 
         // union (y no merge): merge renumera las claves que son solo dígitos, como los códigos de barras.
         return $porClave->union($porAlterna);

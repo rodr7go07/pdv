@@ -20,7 +20,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Route::view('profile', 'profile')->name('profile');
 
     // Bitácora de códigos escaneados: la cámara avisa aquí cuando la pantalla no consulta al servidor por sí sola.
-    Route::post('escaneos', EscaneoController::class)->middleware('throttle:240,1')->name('escaneos.registrar');
+    Route::post('escaneos', EscaneoController::class)->middleware('throttle:90,1')->name('escaneos.registrar');
     Volt::route('escaneos', 'pages.escaneos')->middleware('can:reportes.ver')->name('escaneos');
 
     Volt::route('configuracion', 'pages.configuracion')

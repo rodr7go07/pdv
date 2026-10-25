@@ -17,11 +17,14 @@ class PosController extends Controller
 {
     public function buscar(Request $request, RegistrarEscaneo $registrar): JsonResponse
     {
-        $texto = trim((string) $request->query('q', ''));
+        // Parámetros con forma de arreglo (?q[]=1) se tratan como vacíos en lugar de dar error 500.
+        $texto = is_string($request->query('q')) ? trim($request->query('q')) : '';
+        $medio = is_string($request->query('medio')) ? MedioEscaneo::tryFrom($request->query('medio')) : null;
 
-        // La caja marca con escaneo=1 lo que llega por el campo de captura (no la búsqueda por nombre).
-        if ($request->boolean('escaneo')) {
-            $registrar($texto, OrigenEscaneo::Caja, MedioEscaneo::tryFrom((string) $request->query('medio')) ?? MedioEscaneo::Lector, $request->user());
+        // La caja marca con escaneo=1 lo que llega por el campo de captura (no la búsqueda por nombre). Solo se anota
+        // si la petición la hace la propia pantalla (X-Requested-With), no un enlace abierto desde otro sitio.
+        if ($request->boolean('escaneo') && $request->ajax()) {
+            $registrar($texto, OrigenEscaneo::Caja, $medio ?? MedioEscaneo::Lector, $request->user());
         }
 
         if ($texto === '' || mb_strlen($texto) > 80) {

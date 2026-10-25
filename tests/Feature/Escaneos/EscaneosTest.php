@@ -54,21 +54,53 @@ it('no registra nombres escritos, vacíos ni textos demasiado largos', function 
     expect(($this->registrar)('leche entera'))->toBeNull()
         ->and(($this->registrar)('   '))->toBeNull()
         ->and(($this->registrar)(str_repeat('1', 81)))->toBeNull()
+        ->and(($this->registrar)("1234\xB1\x31"))->toBeNull()   // UTF-8 inválido
         ->and(Escaneo::count())->toBe(0);
+});
+
+it('un nombre de una sola palabra no cuenta como código sin artículo, pero una clave con dígitos sí', function () {
+    expect(($this->registrar)('leche'))->toBeNull()
+        ->and(($this->registrar)('Café'))->toBeNull()
+        ->and(($this->registrar)('ALT-1'))->not->toBeNull();
+
+    // Si coincide con un artículo se anota aunque no tenga dígitos (una clave como «PAN»).
+    Articulo::factory()->create(['clave' => 'PAN']);
+    expect(($this->registrar)('PAN')->encontrado)->toBeTrue()
+        ->and(Escaneo::count())->toBe(2);
+});
+
+it('un artículo borrado de verdad después de escanearlo no cuenta como código pendiente', function () {
+    ($this->registrar)('7501055363057');
+    $this->leche->forceDelete();
+
+    expect(Escaneo::first())->encontrado->toBeTrue()->articulo_id->toBeNull()
+        ->and(Escaneo::sinArticulo()->count())->toBe(0);
+
+    Volt::actingAs($this->admin)->test('pages.escaneos')->assertSee('Artículo eliminado')->assertDontSee('Dar de alta');
 });
 
 // ─── Puntos de captura ───────────────────────────────────────────────────────
 
 it('la caja registra lo que llega por el campo de captura pero no la búsqueda por nombre', function () {
-    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=7501055363057&escaneo=1&medio=camara')->assertOk();
-    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=7501055363057&escaneo=1')->assertOk();
-    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=7501055363057')->assertOk();   // búsqueda: no cuenta
-    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=leche%20entera&escaneo=1')->assertOk();  // nombre: no cuenta
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=7501055363057&escaneo=1&medio=camara', $ajax)->assertOk();
+    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=7501055363057&escaneo=1', $ajax)->assertOk();
+    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=7501055363057', $ajax)->assertOk();             // búsqueda: no cuenta
+    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=leche%20entera&escaneo=1', $ajax)->assertOk();  // nombre: no cuenta
+    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=7501055363057&escaneo=1')->assertOk();           // sin X-Requested-With: no cuenta
 
     expect(Escaneo::count())->toBe(2)
         ->and(Escaneo::where('medio', 'camara')->count())->toBe(1)
         ->and(Escaneo::where('medio', 'lector')->count())->toBe(1)
         ->and(Escaneo::first()->origen)->toBe(OrigenEscaneo::Caja);
+});
+
+it('la búsqueda de la caja no se rompe con parámetros en forma de arreglo', function () {
+    $this->actingAs($this->cajero)->getJson('/venta/buscar?q[]=1&escaneo=1&medio[]=x', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+    $this->actingAs($this->cajero)->getJson('/venta/buscar?q=7501055363057&escaneo=1&medio[]=x', ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+
+    expect(Escaneo::count())->toBe(1)->and(Escaneo::first()->medio)->toBe(MedioEscaneo::Lector);
 });
 
 it('el selector de artículos registra con la pantalla que lo usa', function () {
@@ -203,6 +235,17 @@ it('dar de alta un código sin artículo abre el formulario con la clave ya escr
 });
 
 // ─── Depuración ──────────────────────────────────────────────────────────────
+
+it('la depuración rechaza un plazo que no sea un número entero y no borra nada', function () {
+    $viejo = ($this->registrar)('2222222222222');
+    $viejo->forceFill(['created_at' => now()->subDays(5)])->save();
+
+    $this->artisan('escaneos:depurar', ['--dias' => 'abc'])->assertFailed();
+    $this->artisan('escaneos:depurar', ['--dias' => '0'])->assertFailed();
+    $this->artisan('escaneos:depurar', ['--dias' => '-3'])->assertFailed();
+
+    expect(Escaneo::count())->toBe(1);
+});
 
 it('la depuración borra solo los escaneos más viejos que el plazo', function () {
     $viejo = ($this->registrar)('2222222222222');

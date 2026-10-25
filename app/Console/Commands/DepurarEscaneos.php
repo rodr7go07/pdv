@@ -13,8 +13,23 @@ class DepurarEscaneos extends Command
 
     public function handle(): int
     {
-        $dias = max(1, (int) $this->option('dias'));
-        $borrados = Escaneo::query()->where('created_at', '<', now()->subDays($dias))->delete();
+        $opcion = (string) $this->option('dias');
+
+        if (! ctype_digit($opcion) || (int) $opcion < 1) {
+            $this->error('--dias debe ser un número entero de 1 o más.');
+
+            return self::FAILURE;
+        }
+
+        $dias = (int) $opcion;
+        $limite = now()->subDays($dias);
+        $borrados = 0;
+
+        // Por lotes, para no bloquear la tabla si creció mucho.
+        do {
+            $lote = Escaneo::query()->where('created_at', '<', $limite)->limit(5000)->delete();
+            $borrados += $lote;
+        } while ($lote > 0);
 
         $this->info("Escaneos borrados (más de {$dias} días): {$borrados}.");
 

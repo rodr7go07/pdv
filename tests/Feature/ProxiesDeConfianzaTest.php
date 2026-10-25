@@ -22,6 +22,22 @@ it('sin proxies de confianza ignora las cabeceras reenviadas', function () {
     expect($url)->toStartWith('http://')->not->toContain('ngrok');
 });
 
+it('en producción ignora el comodín * (se podría falsear la IP del límite de acceso)', function () {
+    app()['env'] = 'production';
+    config(['app.trusted_proxies' => '*']);
+    (new AppServiceProvider(app()))->boot();
+
+    expect($this->get('/_esquema', cabecerasDeTunel())->getContent())->toStartWith('http://')->not->toContain('ngrok');
+});
+
+it('en producción sí acepta una lista de IP concretas', function () {
+    app()['env'] = 'production';
+    config(['app.trusted_proxies' => '127.0.0.1, 10.0.0.5']);
+    (new AppServiceProvider(app()))->boot();
+
+    expect($this->get('/_esquema', cabecerasDeTunel())->getContent())->toBe('https://tienda.ngrok-free.app/recurso');
+});
+
 it('con proxies de confianza genera las URLs en https', function () {
     config(['app.trusted_proxies' => '*']);
     (new AppServiceProvider(app()))->boot();

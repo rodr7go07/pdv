@@ -69,6 +69,8 @@ sudo nginx -t && sudo systemctl reload nginx
 sudo certbot --nginx -d tienda.midominio.com --redirect --agree-tos -m tu-correo@ejemplo.com
 ```
 
+La **cámara** del teléfono (escaneo de códigos de barras) y la **instalación como app** solo funcionan con HTTPS, y el Nginx ya trae `Permissions-Policy: camera=(self)`: si lo cambias a `camera=()`, el navegador bloqueará la cámara. No actives `TRUSTED_PROXIES` aquí: es solo para desarrollo con túneles (ngrok) y en producción se ignora el valor `*`.
+
 Certbot renueva el certificado solo (hay un temporizador del sistema). Comprobación: abre `https://tienda.midominio.com/up` — debe responder sin error — y luego `https://tienda.midominio.com` para iniciar sesión con **admin**.
 
 ## 5. Colas y tareas programadas

@@ -55,6 +55,7 @@ Haz estos pasos en orden:
 - **Precios 2 y 3 (mayoreo):** opcionales; se usan con clientes que tengan esa lista de precios.
 - **Inventario:** si el artículo se cuenta o no, existencia mínima (para las alertas) y máxima.
 - **Existencia inicial:** solo al crear (y con permiso de ajustar inventario): cuánto hay hoy. Se anota en el historial como «Existencia inicial»; después la existencia solo cambia con compras, ventas, ajustes y conteos.
+- **Imagen:** opcional. En teléfono y tableta hay dos botones: **Tomar foto** (abre la cámara trasera con `capture="environment"`) y **Elegir de la galería**; en computadora solo *Elegir archivo*. Antes de subirla, el navegador la reduce a máximo 1600 px por lado y la convierte a JPEG (calidad 85 %), porque el servidor acepta hasta 2 MB y una foto de celular pesa varios; las imágenes chicas se suben sin tocar. Formatos: PNG, JPG o WebP. *Quitar imagen* la elimina.
 - **A granel:** se vende por peso o medida; la unidad debe permitir decimales (kg, litro, metro).
 
 Cada cambio de costo o de precio queda en el **historial** al final de la pantalla.

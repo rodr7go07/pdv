@@ -435,7 +435,7 @@ new #[Layout('layouts.app')] class extends Component
                 </x-card>
 
                 <x-card titulo="Imagen" descripcion="Opcional. Ayuda a reconocer el artículo.">
-                    <div class="flex items-center gap-4">
+                    <div x-data="fotoArticulo" class="flex items-center gap-4">
                         <div class="grid size-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-dashed border-anil-300 bg-papel">
                             @if ($this->imagenVista())
                                 <img src="{{ $this->imagenVista() }}" alt="Imagen del artículo" class="size-full object-cover">
@@ -444,15 +444,27 @@ new #[Layout('layouts.app')] class extends Component
                             @endif
                         </div>
                         <div class="min-w-0 flex-1 space-y-2">
-                            <input wire:model="imagen" id="imagen" type="file" accept="image/png,image/jpeg,image/webp"
-                                   class="block w-full cursor-pointer text-sm text-anil-800 file:mr-3 file:rounded-lg file:border-0 file:bg-anil-100 file:px-3 file:py-2.5 file:text-sm file:font-semibold file:text-anil-800 hover:file:bg-anil-200">
+                            {{-- La foto se reduce en el teléfono antes de subirla (ver resources/js/foto.js). --}}
+                            <input x-ref="camara" x-on:change="elegir($event)" type="file" accept="image/*" capture="environment" class="hidden" tabindex="-1" aria-hidden="true">
+                            <input x-ref="archivo" x-on:change="elegir($event)" id="imagen" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" tabindex="-1" aria-hidden="true">
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" x-on:click="$refs.camara.click()"
+                                        class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-anil-900 px-4 text-sm font-semibold text-white shadow-[0_3px_0_0_var(--color-anil-950)] active:translate-y-[3px] active:shadow-none lg:hidden">
+                                    <x-phosphor-camera-bold class="size-4" /> Tomar foto
+                                </button>
+                                <button type="button" x-on:click="$refs.archivo.click()"
+                                        class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
+                                    <x-phosphor-image-bold class="size-4" /> <span class="lg:hidden">Elegir de la galería</span><span class="hidden lg:inline">Elegir archivo</span>
+                                </button>
+                            </div>
+                            <p class="text-xs text-anil-600" x-show="preparando" x-cloak>Preparando la foto…</p>
                             <p class="text-xs text-anil-600" wire:loading wire:target="imagen">Subiendo imagen…</p>
                             @if ($imagenActual && ! $imagen)
                                 <x-checkbox wire:model.live="quitarImagen" label="Quitar imagen" class="!min-h-9" />
                             @endif
                         </div>
                     </div>
-                    <p class="mt-3 text-xs text-anil-600">PNG, JPG o WebP de hasta 2 MB.</p>
+                    <p class="mt-3 text-xs text-anil-600">PNG, JPG o WebP. Las fotos grandes se reducen solas antes de subirlas.</p>
                     <x-input-error :messages="$errors->get('imagen')" class="mt-2" />
                 </x-card>
             </div>

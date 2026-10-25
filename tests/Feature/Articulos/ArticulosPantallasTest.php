@@ -217,3 +217,11 @@ it('el formulario de artículo permite escanear la clave con la cámara del tel�
         ->assertSee("destino: 'alterna'", false)
         ->assertSee('Escanear con la cámara');
 });
+
+it('el formulario de artículo ofrece tomar la foto con la cámara o elegirla de la galería', function () {
+    Volt::actingAs($this->admin)->test('pages.articulos.formulario')
+        ->assertSee('Tomar foto')
+        ->assertSee('Elegir de la galería')
+        ->assertSee('capture="environment"', false)
+        ->assertSee('x-data="fotoArticulo"', false);
+});

@@ -110,12 +110,15 @@ new #[Layout('layouts.app')] class extends Component
 
     {{-- Búsqueda y filtros --}}
     <div class="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem_10rem]">
-        <div class="relative">
-            <x-phosphor-barcode-bold class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-anil-400" />
-            <input wire:model.live.debounce.300ms="buscar" wire:keydown.enter="buscarClave" type="search" autofocus
-                   placeholder="Escanea un código o busca por nombre o clave"
-                   aria-label="Buscar artículos" autocomplete="off" spellcheck="false"
-                   class="block w-full rounded-lg border border-anil-200 bg-white py-2.5 pl-11 pr-3.5 text-base text-tinta placeholder:text-anil-300 focus:border-anil-500 focus:ring-4 focus:ring-anil-500/15 focus:outline-none">
+        <div class="flex gap-2" x-data x-on:codigo-escaneado.window="if ($event.detail.destino === 'buscar-articulos') { $wire.buscar = $event.detail.codigo; $wire.buscarClave(); }">
+            <div class="relative min-w-0 flex-1">
+                <x-phosphor-barcode-bold class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-anil-400" />
+                <input wire:model.live.debounce.300ms="buscar" wire:keydown.enter="buscarClave" type="search" autofocus
+                       placeholder="Escanea un código o busca por nombre o clave"
+                       aria-label="Buscar artículos" autocomplete="off" spellcheck="false"
+                       class="block w-full rounded-lg border border-anil-200 bg-white py-2.5 pl-11 pr-3.5 text-base text-tinta placeholder:text-anil-300 focus:border-anil-500 focus:ring-4 focus:ring-anil-500/15 focus:outline-none">
+            </div>
+            <x-boton-camara destino="buscar-articulos" />
         </div>
         <x-select wire:model.live="departamento" aria-label="Departamento">
             <option value="">Todos los departamentos</option>
@@ -221,4 +224,6 @@ new #[Layout('layouts.app')] class extends Component
 
         <div class="mt-5">{{ $lista->links() }}</div>
     @endif
+
+    <x-escaner-camara />
 </div>

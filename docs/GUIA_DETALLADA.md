@@ -138,8 +138,8 @@ Si no hay internet al cobrar, la venta **no se registra**: espera a que regrese 
 
 Se puede filtrar por departamento, **exportar a Excel** o **Crear compra**, que abre *Nueva compra* con las partidas y cantidades sugeridas para revisarlas. Un artículo nuevo, con pocos días a la venta, puede parecer de baja rotación porque el promedio se divide entre todo el periodo.
 
-### Escanear con la cámara en compras, ajustes, conteos y etiquetas
-El campo para elegir un artículo (el mismo en *Nueva compra*, *Inventario → Ajustes*, *Conteo físico* y *Artículos → Etiquetas*) tiene, en teléfono y tableta, un botón de **cámara**. Lee un solo código, lo busca como si lo hubieras escrito y cierra la ventana; para el siguiente artículo se vuelve a tocar el botón. Requiere HTTPS.
+### Escanear con la cámara en compras, ajustes, conteos, etiquetas y búsquedas
+Las búsquedas de producto también tienen el botón de **cámara** en teléfono y tableta: la lista de *Artículos* (si el código existe abre el artículo, como con un lector), la lista de *Inventario* (filtra por ese código) y la ventana *Buscar* de la pantalla de venta (agrega el artículo como si lo hubiera escaneado un lector; si el código no existe, ofrece darlo de alta). El campo para elegir un artículo (el mismo en *Nueva compra*, *Inventario → Ajustes*, *Conteo físico* y *Artículos → Etiquetas*) tiene, en teléfono y tableta, un botón de **cámara**. Lee un solo código, lo busca como si lo hubieras escrito y cierra la ventana; para el siguiente artículo se vuelve a tocar el botón. Requiere HTTPS.
 
 ### Existencias
 *Inventario* muestra existencias, los artículos **bajo el mínimo** y **agotados**, y el valor de la mercancía. Cada artículo tiene su **kardex** con todos sus movimientos.

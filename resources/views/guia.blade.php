@@ -97,7 +97,7 @@
             'id' => 'inventario', 'titulo' => 'Saber cuánto tienes (inventario)', 'icono' => 'stack', 'para' => 'Dueño · Encargado',
             'intro' => 'Aquí ves cuánto hay de cada producto y qué se está acabando.',
             'bloques' => [
-                ['p' => 'Entra a **Inventario**. Arriba ves cuántos productos están **bajo el mínimo** (se están acabando) y cuáles están **agotados**. Toca cualquiera de esas tarjetas para ver solo esos. Para saber cuánto pedir de cada uno, usa **Compras → Sugerencia de compra**.'],
+                ['p' => 'Entra a **Inventario**. Arriba ves cuántos productos están **bajo el mínimo** (se están acabando) y cuáles están **agotados**. Toca cualquiera de esas tarjetas para ver solo esos. Para encontrar un producto, escribe su nombre o clave en el buscador, o toca el botón de la cámara en el teléfono y escanea su código. Para saber cuánto pedir de cada uno, usa **Compras → Sugerencia de compra**.'],
                 ['p' => '**El cuaderno de cada producto.** Al tocar un producto ves su historial: cuándo entró, cuándo se vendió, quién lo movió. A esto el sistema le llama *kardex*.'],
                 ['p' => '**Ajustes.** Si algo se rompe, caduca o se pierde, entra a **Inventario → Ajustes**, elige el producto (escaneándolo o buscándolo por nombre), el motivo y la cantidad. Siempre queda anotado.'],
                 ['p' => '**Contar la tienda (conteo).** Para revisar que el sistema y los estantes digan lo mismo:'],
@@ -154,7 +154,7 @@
                     ['Esc', 'Cerrar una ventana'],
                 ]],
                 ['p' => '**Productos que se pesan.** Si escaneas fruta o queso, el sistema te pregunta **cuánto pesa**. Escribe el peso (por ejemplo 0.375) y Enter.'],
-                ['p' => '**Un producto sin código.** Toca **Buscar** (F2) y escribe parte del nombre. Toca el que sea.'],
+                ['p' => '**Un producto sin código.** Toca **Buscar** (F2) y escribe parte del nombre. Toca el que sea. Si prefieres escanear, en el teléfono la ventana de búsqueda también tiene el botón de la cámara: lee el código y agrega el producto.'],
                 ['p' => '**Un producto que no existe.** El sistema te avisa. Si tienes permiso para crear artículos y poner precios, te deja darlo de alta ahí mismo; si no, avisa al encargado.'],
                 ['p' => '**Se acerca otro cliente con prisa.** Toca **Espera** (F3) para guardar esta venta, atiende al otro y luego **Recuperar** (F4). Para recuperar una venta la pantalla debe estar vacía (termina o guarda la que tengas). Las ventas en espera son de la caja, no de una persona, y caben hasta 30. Al guardarlas se guardan los productos y el descuento, pero **no** el cliente: vuelve a elegirlo con F7.'],
                 ['p' => '**Descuentos.** Con permiso, toca el símbolo de porcentaje junto al producto, o **Descuento** (F6) para toda la venta. Puedes dar un porcentaje o una cantidad en pesos.'],

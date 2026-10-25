@@ -115,8 +115,11 @@ new #[Layout('layouts.app')] class extends Component
     </div>
 
     <div class="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem_11rem]">
-        <input wire:model.live.debounce.300ms="buscar" type="search" placeholder="Buscar por nombre o clave" aria-label="Buscar" autocomplete="off"
-               class="block w-full rounded-lg border border-anil-200 bg-white px-3.5 py-2.5 text-base placeholder:text-anil-300 focus:border-anil-500 focus:ring-4 focus:ring-anil-500/15 focus:outline-none">
+        <div class="flex gap-2" x-data x-on:codigo-escaneado.window="if ($event.detail.destino === 'buscar-inventario') { $wire.buscar = $event.detail.codigo; }">
+            <input wire:model.live.debounce.300ms="buscar" type="search" placeholder="Buscar por nombre o clave" aria-label="Buscar" autocomplete="off"
+                   class="block w-full min-w-0 rounded-lg border border-anil-200 bg-white px-3.5 py-2.5 text-base placeholder:text-anil-300 focus:border-anil-500 focus:ring-4 focus:ring-anil-500/15 focus:outline-none">
+            <x-boton-camara destino="buscar-inventario" />
+        </div>
         <x-select wire:model.live="departamento" aria-label="Departamento">
             <option value="">Todos los departamentos</option>
             @foreach ($this->departamentos as $d)
@@ -197,4 +200,6 @@ new #[Layout('layouts.app')] class extends Component
 
         <div class="mt-5">{{ $lista->links() }}</div>
     @endif
+
+    <x-escaner-camara />
 </div>

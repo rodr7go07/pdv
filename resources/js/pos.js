@@ -443,6 +443,13 @@ export function registrarPos(Alpine) {
             this.busqueda.cargando = false;
         },
 
+        /** Código leído con la cámara dentro de «Buscar»: se agrega como si lo hubiera escaneado un lector. */
+        codigoDeBuscar(codigo) {
+            this.modal = null;
+            this.entrada = codigo;
+            this.enviarEntrada();
+        },
+
         elegirResultado(a) {
             this.modal = null;
             this.agregar(a, this.multiplicador);

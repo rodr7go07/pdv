@@ -333,7 +333,7 @@ new #[Layout('layouts.pos')] class extends Component
     }
 }; ?>
 
-<div x-data="pos(@js($this->configuracionJs()))" x-on:keydown.window="teclado($event)" class="flex h-dvh flex-col bg-papel">
+<div x-data="pos(@js($this->configuracionJs()))" x-on:keydown.window="teclado($event)" x-on:codigo-escaneado.window="$event.detail.destino === 'pos-buscar' && codigoDeBuscar($event.detail.codigo)" class="flex h-dvh flex-col bg-papel">
     @if (! $this->caja)
         <div class="grid flex-1 place-items-center p-6">
             <x-empty icono="cash-register" titulo="Abre tu turno para empezar a vender" texto="Antes de cobrar necesitas abrir tu turno de caja con el fondo inicial.">
@@ -514,12 +514,13 @@ new #[Layout('layouts.pos')] class extends Component
                     <h2 class="text-lg font-extrabold">Buscar artículo</h2>
                     <button type="button" x-on:click="modal = null; enfocar()" class="grid size-10 place-items-center rounded-lg text-anil-600 hover:bg-anil-50" aria-label="Cerrar"><x-phosphor-x-bold class="size-5" /></button>
                 </header>
-                <div class="border-b border-anil-100 p-4">
-                    <input x-ref="buscarTexto" x-model="busqueda.texto" x-on:input.debounce.250ms="buscarTexto()" type="search" placeholder="Escribe parte del nombre o de la clave" autocomplete="off"
+                <div class="flex gap-2 border-b border-anil-100 p-4">
+                    <input x-ref="buscarTexto" x-model="busqueda.texto" x-on:input.debounce.250ms="buscarTexto()" type="search" placeholder="Nombre o clave del artículo" autocomplete="off"
                            x-on:keydown.arrow-down.prevent="busqueda.enfocado = Math.min(busqueda.enfocado + 1, busqueda.resultados.length - 1)"
                            x-on:keydown.arrow-up.prevent="busqueda.enfocado = Math.max(busqueda.enfocado - 1, 0)"
                            x-on:keydown.enter.prevent="busqueda.resultados[busqueda.enfocado] && elegirResultado(busqueda.resultados[busqueda.enfocado])"
-                           class="block w-full rounded-lg border border-anil-200 px-3.5 py-3 text-base focus:border-anil-500 focus:ring-4 focus:ring-anil-500/15 focus:outline-none">
+                           class="block w-full min-w-0 rounded-lg border border-anil-200 px-3.5 py-3 text-base focus:border-anil-500 focus:ring-4 focus:ring-anil-500/15 focus:outline-none">
+                    <x-boton-camara destino="pos-buscar" />
                 </div>
                 <ul class="min-h-0 flex-1 divide-y divide-anil-50 overflow-y-auto">
                     <template x-for="(a, i) in busqueda.resultados" :key="a.id">
@@ -841,5 +842,6 @@ new #[Layout('layouts.pos')] class extends Component
                 </dl>
             </div>
         </div>
+        <x-escaner-camara />
     @endif
 </div>

@@ -282,3 +282,10 @@ it('la caja ofrece escanear con la cámara del teléfono', function () {
         ->assertSee('Escanear con la cámara')
         ->assertSee('abrirCamara()', false);
 });
+
+it('la ventana Buscar de la caja permite escanear con la cámara', function () {
+    Volt::actingAs($this->cajero)->test('pages.pos')
+        ->assertSee("destino: 'pos-buscar'", false)
+        ->assertSee('x-data="escanerCamara"', false)
+        ->assertSee('codigoDeBuscar', false);
+});

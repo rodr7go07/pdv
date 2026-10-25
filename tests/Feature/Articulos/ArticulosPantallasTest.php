@@ -225,3 +225,13 @@ it('el formulario de artículo ofrece tomar la foto con la cámara o elegirla de
         ->assertSee('capture="environment"', false)
         ->assertSee('x-data="fotoArticulo"', false);
 });
+
+it('las búsquedas de producto permiten escanear con la cámara', function () {
+    Volt::actingAs($this->admin)->test('pages.articulos.index')
+        ->assertSee("destino: 'buscar-articulos'", false)
+        ->assertSee('x-data="escanerCamara"', false);
+
+    Volt::actingAs($this->admin)->test('pages.inventario.index')
+        ->assertSee("destino: 'buscar-inventario'", false)
+        ->assertSee('x-data="escanerCamara"', false);
+});

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Consecutivos por serie. Siempre se leen con bloqueo dentro de una transacción.
+        // Consecutivos por serie. Cada folio sale de un UPDATE ... increment atómico dentro de la transacción del documento.
         Schema::create('folios', function (Blueprint $table) {
             $table->string('serie', 20)->primary();
             $table->unsignedBigInteger('ultimo')->default(0);

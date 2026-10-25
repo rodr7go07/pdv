@@ -50,7 +50,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Archivos compilados (nombre con hash, no cambian): primero caché.
+    // Archivos compilados (nombre con hash) e íconos: primero caché. Los íconos no llevan hash: si cambian, sube VERSION.
     if (esEstatico(url)) {
         event.respondWith(
             caches.match(request).then((guardado) => {

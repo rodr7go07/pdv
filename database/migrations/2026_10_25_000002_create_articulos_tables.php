@@ -54,7 +54,7 @@ return new class extends Migration
             $table->string('campo', 10); // costo | precio_1 | precio_2 | precio_3
             $table->decimal('valor_anterior', 12, 4)->nullable();
             $table->decimal('valor_nuevo', 12, 4)->nullable();
-            $table->string('origen', 15)->default('manual'); // manual | importacion
+            $table->string('origen', 15)->default('manual'); // manual | importacion | compra
             $table->timestamp('created_at')->useCurrent();
 
             $table->index(['articulo_id', 'created_at']);

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Cada caja (terminal) tiene su serie de folios. La administración de cajas llega en la Fase 4.
+        // Cada caja (terminal) tiene su serie de folios.
         Schema::create('cajas', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 60)->unique();

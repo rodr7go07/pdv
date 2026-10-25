@@ -34,3 +34,25 @@
 ## Pruebas
 - Pest para pruebas de funcionalidad de cada Action crítica (venta, cancelación, compra, ajuste, corte).
 - Ejecutar las pruebas antes de dar una tarea por terminada.
+
+## Estado del proyecto
+- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–56).
+- La guía de uso vive en `resources/views/guia.blade.php` (lenguaje sencillo) y `docs/GUIA_DETALLADA.md`. Todo cambio de flujo o de atajos debe actualizar ambas.
+- Pendientes por confirmar con el dueño de la tienda: método de costeo, precios con impuestos incluidos y si necesita abrir el cajón de dinero.
+
+## Reglas aprendidas (no repetir errores)
+- **Dinero e inventario:** la existencia solo cambia con `RegistrarMovimientoInventario` y el saldo del cliente solo con `RegistrarMovimientoCliente`. Bloquear los artículos siempre **en orden de id** (venta, devolución, cancelaciones, conteo) y generar folios con `Services\Folios` dentro de la transacción.
+- **Sin cliente solo existe el precio 1**; las listas 2 y 3 son del cliente.
+- **Corte ciego:** quien no es supervisor no ve el efectivo esperado del corte X ni de su turno abierto.
+- **Livewire:** los middleware de usuario activo y permisos están registrados como persistentes (`AppServiceProvider`). No poner contenido dinámico en `<x-slot name="acciones">` (el encabezado no se vuelve a pintar); ponerlo dentro del componente.
+- **Fechas de filtros:** usar `App\Support\Fecha` (ignora fechas inválidas) y rangos `>= inicio` / `<= fin`, nunca `whereDate` en tablas grandes.
+- **Pruebas:** corren solo con SQLite; `tests/TestCase.php` se niega a correr si la configuración está en caché o la conexión no es SQLite. No usar `config:cache` en local.
+- **Alpine en páginas sin componente Livewire:** el layout carga `@livewireStyles` y `@livewireScripts` para que Alpine exista también en `/guia`. En `x-show` evitar llamar métodos del `x-data`; usar getters o un `x-effect`.
+- Antes de dar por buena una pantalla, revisarla a 360 px de ancho sin scroll horizontal (grids con `grid-cols-[minmax(0,1fr)]` en móvil).
+
+## Entorno local (Windows + Laragon)
+- Sitio: `http://punto-de-venta.test` (Apache + PHP 8.3 por FastCGI). Alternativa: `php artisan serve --host=127.0.0.1 --port=8000`.
+- La terminal usa PHP 8.1 por defecto: anteponer `C:\laragon\bin\php\php-8.3.8-nts-Win32-vs16-x64` al PATH para `php`, `artisan` y `composer`.
+- **Subida de imágenes:** `upload_tmp_dir` debe apuntar a `C:/laragon/tmp` en el `php.ini` de PHP 8.3 (con la carpeta temporal de Windows, `realpath()` falla bajo FastCGI y Livewire da «Path cannot be empty»). Tras cambiar `php.ini`, reiniciar los procesos `php-cgi`.
+- Escribir archivos con Write/Edit; `Set-Content -Encoding utf8` en PowerShell 5.1 agrega BOM y rompe los `.php`.
+- Usuarios de desarrollo: `admin`, `encargado`, `cajero` (contraseñas en `database/seeders/DatabaseSeeder.php`; solo para entorno local).

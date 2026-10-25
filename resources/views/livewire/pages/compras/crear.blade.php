@@ -24,18 +24,39 @@ new #[Layout('layouts.app')] class extends Component
     /** @var list<array{articulo_id: int, clave: string, descripcion: string, unidad: string, cantidad: string, costo_unitario: string}> */
     public array $lineas = [];
 
+    /** Aviso cuando la sugerencia traía más artículos de los que caben en una compra. */
+    public string $avisoSugerencia = '';
+
     public function mount(): void
     {
         $this->authorize('compras.registrar');
         $this->fecha = now()->toDateString();
 
-        // Cantidades que llegan desde la sugerencia de compra: [articulo_id => cantidad].
-        foreach (session()->pull('compra_sugerida', []) as $id => $cantidad) {
-            $articulo = Articulo::query()->with('unidad:id,abreviatura')->find((int) $id);
+        $this->cargarSugerencia();
+    }
 
-            if ($articulo) {
+    /** Partidas que llegan de «Sugerencia de compra» ({en: hora, partidas: [articulo_id => cantidad]}); caducan a los 10 minutos. */
+    private function cargarSugerencia(): void
+    {
+        $sugerida = session()->pull('compra_sugerida');
+
+        if (! is_array($sugerida) || now()->timestamp - (int) ($sugerida['en'] ?? 0) > 600 || ! is_array($sugerida['partidas'] ?? null)) {
+            return;
+        }
+
+        // Una compra admite hasta RegistrarCompra::MAXIMO_PARTIDAS partidas; la sugerencia viene ordenada de lo más urgente a lo menos.
+        $partidas = $sugerida['partidas'];
+        $tope = RegistrarCompra::MAXIMO_PARTIDAS;
+        $articulos = Articulo::query()->with('unidad:id,abreviatura')->whereIn('id', array_slice(array_keys($partidas), 0, $tope))->get()->keyBy('id');
+
+        foreach (array_slice($partidas, 0, $tope, true) as $id => $cantidad) {
+            if ($articulo = $articulos->get((int) $id)) {
                 $this->lineas[] = $this->nuevaLinea($articulo, str_contains((string) $cantidad, '.') ? rtrim(rtrim((string) $cantidad, '0'), '.') : (string) $cantidad);
             }
+        }
+
+        if (count($partidas) > $tope) {
+            $this->avisoSugerencia = 'Se cargaron los primeros '.$tope.' de '.count($partidas).' artículos sugeridos (los más urgentes). Registra esta compra y vuelve a la sugerencia para el resto.';
         }
     }
 
@@ -167,7 +188,11 @@ new #[Layout('layouts.app')] class extends Component
         </x-card>
 
         <x-card titulo="Mercancía recibida" descripcion="Escanea cada artículo. Si lo escaneas otra vez, suma una pieza.">
-            <livewire:articulos.selector origen="compras" placeholder="Escanea o busca el artículo recibido" />
+            <livewire:articulos.selector origen="compras" placeholder="Escanea o busca" />
+
+            @if ($avisoSugerencia !== '')
+                <p class="mt-3 rounded-lg bg-etiqueta/30 px-4 py-3 text-sm font-medium text-amber-950 ring-1 ring-etiqueta/60" role="status">{{ $avisoSugerencia }}</p>
+            @endif
 
             <x-input-error :messages="$errors->get('lineas')" class="mt-3" />
 

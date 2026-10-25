@@ -40,7 +40,8 @@ class ReporteExportController extends Controller
 
         $nombre = 'reporte-'.Str::slug($titulo).'-'.$reporte->desde->toDateString().'-a-'.$reporte->hasta->toDateString().'.xlsx';
 
-        return Excel::download(new ReporteExport($titulo, $encabezados, $filas), $nombre);
+        // La clave del artículo (columna A) siempre va como texto.
+        return Excel::download(new ReporteExport($titulo, $encabezados, $filas, $seccion === 'articulo' ? [0] : []), $nombre);
     }
 
     /** @return array{0: string, 1: list<string>, 2: list<list<scalar|null>>} */
@@ -64,7 +65,7 @@ class ReporteExportController extends Controller
             })(),
             'periodo' => ['Ventas por periodo', ['Periodo', 'Ventas', ...$cabecera], $r->porPeriodo($agrupar)->map(fn ($f) => [$f['etiqueta'], $f['ventas'], ...$cifras($f)])->all()],
             'departamento' => ['Por departamento', ['Departamento', ...$cabecera], $r->porDepartamento()->map(fn ($f) => [$f['nombre'], ...$cifras($f)])->all()],
-            'articulo' => ['Por artículo', ['Clave', 'Artículo', 'Cantidad', ...$cabecera], $r->porArticulo(500, $orden)->map(fn ($f) => [$f['clave'], $f['nombre'], $n($f['cantidad']), ...$cifras($f)])->all()],
+            'articulo' => ['Por artículo', ['Clave', 'Artículo', 'Cantidad', ...$cabecera], $r->porArticulo(100000, $orden)->map(fn ($f) => [$f['clave'], $f['nombre'], $n($f['cantidad']), ...$cifras($f)])->all()],
             'cajero' => ['Por cajero', ['Cajero', 'Ventas', ...$cabecera], $r->porCajero()->map(fn ($f) => [$f['nombre'], $f['ventas'], ...$cifras($f)])->all()],
             'pago' => ['Por forma de pago', ['Forma de pago', 'Ventas', 'Monto'], $r->porFormaPago()->map(fn ($f) => [$f['etiqueta'], $f['ventas'], $n($f['monto'])])->all()],
             'inventario' => (function () use ($n) {

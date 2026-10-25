@@ -15,13 +15,12 @@ class SugerenciaCompraExportController extends Controller
     {
         abort_unless($request->user()->can('compras.ver'), 403);
 
-        $datos = $request->validate([
-            'dias' => ['nullable', 'integer'],
-            'cobertura' => ['nullable', 'integer'],
-            'departamento' => ['nullable', 'integer'],
-        ]);
+        // Igual que la pantalla: un valor que no sea número se ignora y se usa el predeterminado, en lugar de rechazar el enlace.
+        $numero = fn (string $clave, int $predeterminado): int => is_string($request->query($clave)) && ctype_digit($request->query($clave)) && strlen($request->query($clave)) <= 9
+            ? (int) $request->query($clave) : $predeterminado;
 
-        $sugerencia = new SugerenciaCompra((int) ($datos['dias'] ?? 30), (int) ($datos['cobertura'] ?? 15), isset($datos['departamento']) ? (int) $datos['departamento'] : null);
+        $departamento = $numero('departamento', 0);
+        $sugerencia = new SugerenciaCompra($numero('dias', 30), $numero('cobertura', 15), $departamento > 0 ? $departamento : null);
 
         $filas = $sugerencia->filas()->map(fn (array $f) => [
             $f['clave'], $f['descripcion'], $f['unidad'], (float) $f['existencia'], $f['minimo'] === null ? null : (float) $f['minimo'],
@@ -31,7 +30,7 @@ class SugerenciaCompraExportController extends Controller
         $encabezados = ['Clave', 'Artículo', 'Unidad', 'Existencia', 'Mínimo', 'Vendido ('.$sugerencia->diasVenta.' días)', 'Días que alcanza', 'Comprar', 'Costo unitario', 'Costo estimado'];
 
         return Excel::download(
-            new ReporteExport('Sugerencia de compra', $encabezados, $filas),
+            new ReporteExport('Sugerencia de compra', $encabezados, $filas, [0]),
             'sugerencia-de-compra-'.now()->toDateString().'.xlsx',
         );
     }

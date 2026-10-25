@@ -63,7 +63,8 @@ new #[Layout('layouts.app')] class extends Component
             return;
         }
 
-        session()->put('compra_sugerida', $this->filas->pluck('sugerido', 'id')->all());
+        // Con la hora: si no se llega a la compra, la sugerencia caduca y no precarga cantidades viejas otro día.
+        session()->put('compra_sugerida', ['en' => now()->timestamp, 'partidas' => $this->filas->pluck('sugerido', 'id')->all()]);
         $this->redirectRoute('compras.crear', navigate: true);
     }
 }; ?>
@@ -144,7 +145,7 @@ new #[Layout('layouts.app')] class extends Component
                     @endphp
                     <li wire:key="sg-{{ $f['id'] }}" class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3 md:grid-cols-[minmax(0,1fr)_6rem_6rem_6rem_7rem_7rem] md:px-5">
                         <div class="min-w-0">
-                            <p class="truncate font-semibold">{{ $f['descripcion'] }}</p>
+                            <p class="line-clamp-2 font-semibold">{{ $f['descripcion'] }}</p>
                             <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-anil-600">
                                 <span class="font-mono">{{ $f['clave'] }}</span>
                                 <x-badge :tono="$tono">{{ $etiqueta }}</x-badge>

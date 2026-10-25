@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\DefaultValueBinder;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
@@ -20,11 +21,13 @@ class ReporteExport extends DefaultValueBinder implements Export, FromArray, Sho
     /**
      * @param  list<string>  $encabezados
      * @param  list<list<scalar|null>>  $filas
+     * @param  list<int>  $columnasTexto  columnas (desde 0) que siempre se guardan como texto, como la clave de un artículo
      */
     public function __construct(
         private readonly string $titulo,
         private readonly array $encabezados,
         private readonly array $filas,
+        private readonly array $columnasTexto = [],
     ) {}
 
     public function title(): string
@@ -39,20 +42,27 @@ class ReporteExport extends DefaultValueBinder implements Export, FromArray, Sho
 
     public function array(): array
     {
-        // Un texto que empieza con = + - @ se abriría como fórmula en Excel; con una comilla al inicio queda como texto.
-        return array_map(fn (array $fila) => array_map(
-            fn ($v) => is_string($v) && $v !== '' && str_contains("=+-@\t\r", $v[0]) && ! is_numeric($v) ? "'".$v : $v,
-            $fila,
-        ), $this->filas);
+        return $this->filas;
     }
 
-    /** Los códigos de barras y claves con ceros a la izquierda se guardan como texto; Excel los mostraría como 7.5E+12 o sin ceros. */
+    /**
+     * Excel convertiría en número (7.5E+12, 1E5, 1.50) o en fórmula (=, +, -, @) lo que no debe:
+     *  - las columnas de clave, y las cifras de 11+ dígitos o con cero inicial, se guardan como texto;
+     *  - un texto que empieza con = + - @ se guarda como texto (no se ejecuta como fórmula).
+     */
     public function bindValue(Cell $cell, mixed $value): bool
     {
-        if (is_string($value) && ctype_digit($value) && (strlen($value) >= 11 || (strlen($value) > 1 && $value[0] === '0'))) {
-            $cell->setValueExplicit($value, DataType::TYPE_STRING);
+        if (is_string($value) && $value !== '') {
+            $columna = Coordinate::columnIndexFromString($cell->getColumn()) - 1;
+            $comoTexto = in_array($columna, $this->columnasTexto, true)
+                || (ctype_digit($value) && (strlen($value) >= 11 || (strlen($value) > 1 && $value[0] === '0')))
+                || (str_contains("=+-@\t\r", $value[0]) && ! is_numeric($value));
 
-            return true;
+            if ($comoTexto) {
+                $cell->setValueExplicit($value, DataType::TYPE_STRING);
+
+                return true;
+            }
         }
 
         return parent::bindValue($cell, $value);

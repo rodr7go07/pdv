@@ -1,12 +1,15 @@
 <?php
 
+use App\Actions\Compras\RegistrarCompra;
 use App\Actions\Ventas\CancelarVenta;
 use App\Actions\Ventas\RegistrarDevolucion;
 use App\Actions\Ventas\RegistrarVenta;
 use App\Enums\Rol;
 use App\Models\Articulo;
 use App\Models\Caja;
+use App\Models\Departamento;
 use App\Models\Turno;
+use App\Models\UnidadMedida;
 use App\Models\User;
 use App\Services\SugerenciaCompra;
 use Database\Seeders\CatalogosBaseSeeder;
@@ -159,10 +162,39 @@ it('crear compra abre la compra con las partidas y cantidades sugeridas', functi
     Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')
         ->call('crearCompra')->assertRedirect(route('compras.crear'));
 
-    expect(session('compra_sugerida'))->toBe([$a->id => '6']);
+    expect(session('compra_sugerida'))->toMatchArray(['partidas' => [$a->id => '6']]);
 
     Volt::actingAs($this->encargado)->test('pages.compras.crear')
         ->assertSet('lineas.0.articulo_id', $a->id)->assertSet('lineas.0.cantidad', '6');
+});
+
+it('la compra precargada caduca a los 10 minutos y se carga una sola vez', function () {
+    $a = Articulo::factory()->create();
+
+    session()->put('compra_sugerida', ['en' => now()->subMinutes(11)->timestamp, 'partidas' => [$a->id => '3']]);
+    Volt::actingAs($this->encargado)->test('pages.compras.crear')->assertSet('lineas', []);
+
+    session()->put('compra_sugerida', ['en' => now()->timestamp, 'partidas' => [$a->id => '3']]);
+    Volt::actingAs($this->encargado)->test('pages.compras.crear')->assertSet('lineas.0.articulo_id', $a->id);
+
+    expect(session('compra_sugerida'))->toBeNull();   // se consume: recargar la página no la repite
+});
+
+it('la compra precargada trae como máximo 500 partidas y avisa cuando hay más', function () {
+    // Una sola unidad y un solo departamento: la fábrica crearía uno nuevo por artículo.
+    $comunes = ['unidad_medida_id' => UnidadMedida::query()->value('id'), 'departamento_id' => Departamento::factory()->create()->id];
+    $ids = Articulo::factory()->count(RegistrarCompra::MAXIMO_PARTIDAS + 2)->create($comunes)->pluck('id');
+    session()->put('compra_sugerida', ['en' => now()->timestamp, 'partidas' => $ids->mapWithKeys(fn ($id) => [$id => '1'])->all()]);
+
+    $pantalla = Volt::actingAs($this->encargado)->test('pages.compras.crear');
+
+    expect($pantalla->get('lineas'))->toHaveCount(RegistrarCompra::MAXIMO_PARTIDAS);
+    $pantalla->assertSee('Se cargaron los primeros 500 de 502');
+});
+
+it('exporta la sugerencia aunque el enlace traiga valores que no son números', function () {
+    $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?dias=abc&cobertura=xyz&departamento=%27')->assertOk()->assertDownload();
+    $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?cobertura[]=1')->assertOk();
 });
 
 it('exporta la sugerencia a Excel con los mismos filtros', function () {

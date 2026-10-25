@@ -155,3 +155,19 @@ it('exporta los códigos de barras largos como texto y no como notación cientí
 
     Storage::disk('local')->delete($archivo);
 });
+
+it('las claves de artículo siempre van como texto y un texto con = + - @ no deja una comilla visible', function () {
+    $archivo = 'prueba-texto.xlsx';
+    $export = new ReporteExport('Prueba', ['Clave', 'Nota', 'Cantidad'], [['1E5', '=SUM(A1)', '4'], ['1.50', '@usuario', '2'], ['-7', '-', '3']], [0]);
+    Excel::store($export, $archivo, 'local');
+    $hoja = IOFactory::load(Storage::disk('local')->path($archivo))->getActiveSheet();
+
+    expect($hoja->getCell('A2')->getDataType())->toBe('s')->and($hoja->getCell('A2')->getValue())->toBe('1E5')
+        ->and($hoja->getCell('A3')->getDataType())->toBe('s')->and($hoja->getCell('A3')->getValue())->toBe('1.50')
+        ->and($hoja->getCell('B2')->getDataType())->toBe('s')->and($hoja->getCell('B2')->getValue())->toBe('=SUM(A1)')
+        ->and($hoja->getCell('B3')->getValue())->toBe('@usuario')
+        ->and($hoja->getCell('B4')->getValue())->toBe('-')
+        ->and($hoja->getCell('C2')->getDataType())->toBe('n');
+
+    Storage::disk('local')->delete($archivo);
+});

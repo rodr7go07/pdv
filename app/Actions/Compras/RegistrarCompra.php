@@ -27,6 +27,9 @@ use Illuminate\Validation\ValidationException;
  */
 class RegistrarCompra
 {
+    /** Máximo de partidas por compra. */
+    public const MAXIMO_PARTIDAS = 500;
+
     public function __construct(private readonly RegistrarMovimientoInventario $movimiento) {}
 
     /**
@@ -163,7 +166,7 @@ class RegistrarCompra
                 'factura' => ['nullable', 'string', 'max:60'],
                 'fecha' => ['required', 'date', 'before_or_equal:today'],
                 'notas' => ['nullable', 'string', 'max:2000'],
-                'partidas' => ['required', 'array', 'min:1', 'max:500'],
+                'partidas' => ['required', 'array', 'min:1', 'max:'.self::MAXIMO_PARTIDAS],
                 'partidas.*.articulo_id' => ['required', Rule::exists('articulos', 'id')->whereNull('deleted_at')],
                 'partidas.*.cantidad' => ['required', 'numeric', 'gt:0', 'max:999999999'],
                 'partidas.*.costo_unitario' => ['required', 'numeric', 'min:0', 'max:99999999'],

@@ -9,8 +9,9 @@ import { camaraDisponible, iniciarLector } from './camara';
 // Destinos cuya pantalla no consulta al servidor al recibir el código: aquí se avisa para la bitácora de escaneos.
 const ORIGEN_EN_BITACORA = { clave: 'articulo_clave', alterna: 'articulo_clave', 'buscar-inventario': 'inventario' };
 
-// Último código leído con la cámara: si luego se da Enter en el campo ya lleno, no se anota otra vez.
-let ultimoPorCamara = '';
+// Último código leído con la cámara: si en unos segundos se da Enter en el campo ya lleno, no se anota otra vez.
+const ESPERA_ENTER_MS = 10000;
+let ultimoPorCamara = { codigo: '', en: 0 };
 
 /**
  * Anota un código en la bitácora de escaneos (`POST /escaneos`). `medio`: 'lector' (lector USB o teclado + Enter) o 'camara'.
@@ -18,8 +19,9 @@ let ultimoPorCamara = '';
  */
 export function anotarEscaneo(origen, codigo, medio = 'lector') {
     codigo = String(codigo ?? '').trim();
-    if (!codigo || (medio === 'lector' && codigo === ultimoPorCamara)) return;
-    if (medio === 'camara') ultimoPorCamara = codigo;
+    if (!codigo) return;
+    if (medio === 'lector' && codigo === ultimoPorCamara.codigo && Date.now() - ultimoPorCamara.en < ESPERA_ENTER_MS) return;
+    if (medio === 'camara') ultimoPorCamara = { codigo, en: Date.now() };
 
     fetch('/escaneos', {
         method: 'POST',
@@ -45,8 +47,15 @@ export function registrarEscaner(Alpine) {
         linterna: false,
         destino: '',
         _lector: null,
+        _id: 0, // identifica cada apertura: un arranque viejo (permiso tardío) no pisa a uno nuevo
+
+        /** Alpine lo llama al salir de la pantalla (wire:navigate): la cámara no debe quedar encendida. */
+        destroy() {
+            this.cerrar();
+        },
 
         abrir(destino) {
+            this._id++;
             this.destino = destino || '';
             this.error = '';
             this.hayLinterna = false;
@@ -59,24 +68,26 @@ export function registrarEscaner(Alpine) {
             }
 
             this.iniciando = true;
-            this.$nextTick(() => this.arrancar());
+            const id = this._id;
+            this.$nextTick(() => this.arrancar(id));
         },
 
-        async arrancar() {
+        async arrancar(id) {
             try {
                 const lector = await iniciarLector(this.$refs.video, (codigo) => this.leido(codigo));
-                // Si cerraron la ventana mientras se pedía el permiso, se apaga de inmediato.
-                if (!this.abierto) { lector.detener(); return; }
+                // Si cerraron la ventana (o abrieron otra vez) mientras se pedía el permiso, este arranque se apaga de inmediato.
+                if (id !== this._id || !this.abierto) { lector.detener(); return; }
                 this._lector = lector;
                 this.hayLinterna = lector.hayLinterna;
             } catch (e) {
-                this.error = e.message;
+                if (id === this._id) this.error = e.message;
             } finally {
-                this.iniciando = false;
+                if (id === this._id) this.iniciando = false;
             }
         },
 
         leido(codigo) {
+            if (!this.abierto) return; // llegó tarde: la ventana ya se cerró
             const destino = this.destino;
             navigator.vibrate?.(60);
             this.cerrar();
@@ -85,6 +96,7 @@ export function registrarEscaner(Alpine) {
         },
 
         cerrar() {
+            this._id++;
             this._lector?.detener();
             this._lector = null;
             this.abierto = false;

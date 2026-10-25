@@ -4,7 +4,7 @@
     <div class="absolute inset-0 bg-anil-950/60" x-on:click="$store.pwa.ayuda = false"></div>
     <div class="relative w-full rounded-t-2xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:max-w-sm sm:rounded-2xl">
         <div class="flex items-start justify-between gap-3">
-            <h2 class="font-display text-lg font-extrabold">Instalar la app en tu iPhone</h2>
+            <h2 class="font-display text-lg font-extrabold">Instalar la app en tu iPhone o iPad</h2>
             <button type="button" x-on:click="$store.pwa.ayuda = false" class="grid size-10 shrink-0 place-items-center rounded-lg text-anil-600 hover:bg-anil-50" aria-label="Cerrar"><x-phosphor-x-bold class="size-5" /></button>
         </div>
         <ol class="mt-3 space-y-3 text-anil-900">

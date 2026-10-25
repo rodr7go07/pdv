@@ -125,7 +125,7 @@ new #[Layout('layouts.app')] class extends Component
     @else
         <x-card class="mb-6">
             @if (! $this->articulo)
-                <livewire:articulos.selector origen="conteo" :solo-inventariables="true" placeholder="Escanea el artículo que vas a contar" />
+                <livewire:articulos.selector origen="conteo" :solo-inventariables="true" placeholder="Escanea o busca" />
             @else
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">

@@ -95,7 +95,7 @@ new #[Layout('layouts.app')] class extends Component
 
         // Un código escaneado antes de dar de alta el artículo muestra el artículo que ya existe hoy.
         $actuales = Escaneo::articulosActuales($lista->getCollection()->whereNull('articulo_id')->pluck('codigo'));
-        $lista->getCollection()->each(fn (Escaneo $e) => $e->setRelation('articuloActual', $actuales->get($e->codigo)));
+        $lista->getCollection()->each(fn (Escaneo $e) => $e->setRelation('articuloActual', $actuales->get(mb_strtolower($e->codigo))));
 
         return $lista;
     }
@@ -176,8 +176,8 @@ new #[Layout('layouts.app')] class extends Component
             <ul class="divide-y divide-anil-50">
                 @foreach ($lista as $e)
                     <li wire:key="esc-{{ $e->id }}" class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3 md:grid-cols-[9.5rem_minmax(0,1fr)_minmax(0,1.2fr)_9rem_11rem] md:px-5">
-                        <p class="font-mono text-sm font-semibold md:order-2">{{ $e->codigo }}</p>
-                        <p class="row-start-1 justify-self-end text-xs text-anil-600 md:order-1 md:row-start-auto md:justify-self-start md:text-sm">{{ $e->created_at->format('d/m/Y H:i') }}</p>
+                        <p class="col-start-1 row-start-1 min-w-0 break-all font-mono text-sm font-semibold md:order-2 md:col-auto md:row-auto">{{ $e->codigo }}</p>
+                        <p class="col-start-2 row-start-1 justify-self-end text-xs text-anil-600 md:order-1 md:col-auto md:row-auto md:justify-self-start md:text-sm">{{ $e->created_at->format('d/m/Y H:i') }}</p>
                         <div class="col-span-2 min-w-0 md:order-3 md:col-span-1">
                             @if ($e->articulo)
                                 <p class="truncate text-sm font-semibold">{{ $e->articulo->descripcion }}</p>

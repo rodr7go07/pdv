@@ -113,12 +113,12 @@ new #[Layout('layouts.app')] class extends Component
                 @foreach ($lista as $c)
                     <li wire:key="co-{{ $c->id }}">
                         <a href="{{ route('compras.ver', $c) }}" wire:navigate class="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-anil-50/60 sm:grid-cols-[8rem_minmax(0,1fr)_auto_6rem] sm:px-5">
-                            <span class="font-mono text-sm font-semibold sm:order-1">{{ $c->folio }}</span>
+                            <span class="col-start-1 row-start-1 font-mono text-sm font-semibold sm:order-1 sm:col-auto sm:row-auto">{{ $c->folio }}</span>
                             <span class="col-span-2 min-w-0 sm:order-2 sm:col-span-1">
                                 <span class="block truncate font-semibold">{{ $c->proveedor->nombre }}</span>
                                 <span class="text-xs text-anil-600">{{ $c->fecha->format('d/m/Y') }}{{ $c->factura ? ' · Factura '.$c->factura : '' }} · {{ $c->partidas_count }} {{ $c->partidas_count === 1 ? 'artículo' : 'artículos' }}</span>
                             </span>
-                            <span class="row-start-1 justify-self-end font-display text-lg font-extrabold sm:order-3 sm:row-start-auto">${{ number_format((float) $c->total, 2) }}</span>
+                            <span class="col-start-2 row-start-1 justify-self-end font-display text-lg font-extrabold sm:order-3 sm:col-auto sm:row-start-auto">${{ number_format((float) $c->total, 2) }}</span>
                             <span class="sm:order-4 sm:justify-self-end">
                                 <x-badge :tono="$c->estaCancelada() ? 'peligro' : 'ok'">{{ $c->estaCancelada() ? 'Cancelada' : 'Registrada' }}</x-badge>
                             </span>

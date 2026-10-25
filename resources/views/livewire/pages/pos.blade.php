@@ -546,15 +546,15 @@ new #[Layout('layouts.pos')] class extends Component
             </div>
 
             {{-- Cámara: escanear códigos con el teléfono --}}
-            <div x-show="modal === 'camara'" x-cloak class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-anil-950 text-white shadow-2xl sm:max-w-md sm:rounded-2xl">
+            <div x-show="modal === 'camara'" x-cloak role="document" aria-label="Escanear con la cámara" class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-anil-950 text-white shadow-2xl sm:max-w-md sm:rounded-2xl">
                 <header class="flex items-center justify-between px-4 py-3">
                     <h2 class="text-lg font-extrabold">Escanear con la cámara</h2>
                     <button type="button" x-on:click="modal = null; enfocar()" class="grid size-10 place-items-center rounded-lg text-anil-200 hover:bg-anil-800" aria-label="Cerrar la cámara"><x-phosphor-x-bold class="size-5" /></button>
                 </header>
-                <div class="relative aspect-[4/3] w-full bg-black">
+                <div class="relative aspect-[4/3] max-h-[50dvh] min-h-0 w-full bg-black">
                     <video x-ref="video" class="size-full object-cover" playsinline muted></video>
                     <div x-show="!camara.error" class="pointer-events-none absolute inset-x-[12%] top-1/2 h-[34%] -translate-y-1/2 rounded-xl border-2 border-rosa-500/90 shadow-[0_0_0_9999px_rgb(0_0_0/0.35)]"></div>
-                    <p x-show="camara.iniciando" class="absolute inset-0 grid place-items-center text-sm text-anil-200">Abriendo la cámara…</p>
+                    <p x-show="camara.iniciando" aria-live="polite" class="absolute inset-0 grid place-items-center text-sm text-anil-200">Abriendo la cámara…</p>
                     <p x-show="camara.error" x-text="camara.error" x-cloak class="absolute inset-0 grid place-items-center px-6 text-center text-sm font-medium text-red-200" role="alert"></p>
                     <button type="button" x-show="camara.hayLinterna" x-cloak x-on:click="alternarLinterna()" :aria-pressed="camara.linterna" aria-label="Linterna"
                             :class="camara.linterna ? 'bg-rosa-500 text-white' : 'bg-black/50 text-white'"
@@ -567,7 +567,7 @@ new #[Layout('layouts.pos')] class extends Component
                        :class="{ 'text-red-300 font-semibold': avisoTipo === 'error', 'text-emerald-300 font-semibold': avisoTipo === 'ok', 'text-anil-200': avisoTipo === 'info' }"></p>
                     <p x-show="!aviso" class="text-anil-200">Apunta al código de barras. Puedes escanear varios artículos seguidos.</p>
                 </div>
-                <div class="flex items-center justify-between gap-3 border-t border-anil-800 px-4 py-3">
+                <div class="flex shrink-0 items-center justify-between gap-3 border-t border-anil-800 px-4 py-3">
                     <p class="text-sm text-anil-200"><span class="font-bold text-white" x-text="piezas"></span> en la venta · <span class="font-bold text-white" x-text="dinero(total)"></span></p>
                     <button type="button" x-on:click="modal = null; enfocar()" class="min-h-11 rounded-lg bg-rosa-500 px-5 font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] active:translate-y-[3px] active:shadow-none">Listo</button>
                 </div>

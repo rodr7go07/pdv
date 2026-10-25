@@ -57,6 +57,7 @@ export function registrarPos(Alpine) {
         exito: null,
         camara: { iniciando: false, error: '', hayLinterna: false, linterna: false, leidos: 0 },
         _lector: null,
+        _idCamara: 0, // identifica cada apertura de la cámara (ver escaner.js)
 
         // ─── Ciclo de vida ──────────────────────────────────────────────────────────
         init() {
@@ -83,6 +84,11 @@ export function registrarPos(Alpine) {
                 }, 80);
             });
             this.enfocar();
+        },
+
+        /** Alpine lo llama al salir de la pantalla (wire:navigate): la cámara no debe quedar encendida. */
+        destroy() {
+            this.cerrarCamara();
         },
 
         claveGuardado() {
@@ -166,24 +172,26 @@ export function registrarPos(Alpine) {
             }
             this.camara = { iniciando: true, error: '', hayLinterna: false, linterna: false, leidos: 0 };
             this.modal = 'camara';
-            this.$nextTick(() => this.arrancarCamara());
+            const id = ++this._idCamara;
+            this.$nextTick(() => this.arrancarCamara(id));
         },
 
-        async arrancarCamara() {
+        async arrancarCamara(id) {
             try {
                 const lector = await iniciarLector(this.$refs.video, (codigo) => this.codigoDeCamara(codigo));
-                // Si cerraron la ventana mientras se pedía el permiso, se apaga de inmediato.
-                if (this.modal !== 'camara') { lector.detener(); return; }
+                // Si cerraron la ventana (o abrieron otra vez) mientras se pedía el permiso, este arranque se apaga de inmediato.
+                if (id !== this._idCamara || this.modal !== 'camara') { lector.detener(); return; }
                 this._lector = lector;
                 this.camara.hayLinterna = lector.hayLinterna;
             } catch (e) {
-                this.camara.error = e.message;
+                if (id === this._idCamara) this.camara.error = e.message;
             } finally {
-                this.camara.iniciando = false;
+                if (id === this._idCamara) this.camara.iniciando = false;
             }
         },
 
         cerrarCamara() {
+            this._idCamara++;
             this._lector?.detener();
             this._lector = null;
         },
@@ -197,6 +205,7 @@ export function registrarPos(Alpine) {
 
         /** La cámara deja la ventana abierta para escanear varios artículos seguidos. */
         codigoDeCamara(codigo) {
+            if (this.modal !== 'camara') return; // llegó tarde: la ventana ya se cerró
             navigator.vibrate?.(60);
             this.camara.leidos++;
             this.entrada = codigo;
@@ -735,6 +744,9 @@ export function registrarPos(Alpine) {
 
         // ─── Teclado ────────────────────────────────────────────────────────────────
         teclado(e) {
+            // Con el escáner de cámara de «Buscar» abierto, Esc solo lo cierra a él (ver escaner-camara.blade.php).
+            if (e.key === 'Escape' && document.querySelector('[data-escaner-abierto]')) return;
+
             const enModal = this.modal !== null;
 
             if (e.key === 'Escape') {

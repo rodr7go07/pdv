@@ -153,11 +153,11 @@ new #[Layout('layouts.app')] class extends Component
                 @foreach ($lista as $v)
                     <li wire:key="v-{{ $v->id }}">
                         <a href="{{ route('ventas.ver', $v) }}" wire:navigate class="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-anil-50/60 sm:grid-cols-[7rem_minmax(0,1fr)_auto_6.5rem] sm:px-5">
-                            <span class="font-mono text-sm font-semibold">{{ $v->folio }}</span>
+                            <span class="col-start-1 row-start-1 font-mono text-sm font-semibold sm:col-auto sm:row-auto">{{ $v->folio }}</span>
                             <span class="order-last col-span-2 min-w-0 text-xs text-anil-600 sm:order-none sm:col-span-1">
                                 {{ $v->created_at->format('d/m/Y H:i') }} · {{ $v->caja->nombre }} · {{ $v->cajero?->name ?? '—' }} · {{ $v->partidas_count }} {{ $v->partidas_count === 1 ? 'artículo' : 'artículos' }}
                             </span>
-                            <span @class(['row-start-1 justify-self-end font-display text-lg font-extrabold sm:row-start-auto', 'text-anil-400 line-through' => $v->estaCancelada()])>${{ number_format((float) $v->total, 2) }}</span>
+                            <span @class(['col-start-2 row-start-1 justify-self-end font-display text-lg font-extrabold sm:col-auto sm:row-start-auto', 'text-anil-400 line-through' => $v->estaCancelada()])>${{ number_format((float) $v->total, 2) }}</span>
                             <span class="sm:justify-self-end">
                                 <x-badge :tono="$v->estaCancelada() ? 'peligro' : 'ok'">{{ $v->estaCancelada() ? 'Cancelada' : 'Completada' }}</x-badge>
                             </span>

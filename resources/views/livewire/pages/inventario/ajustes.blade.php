@@ -109,7 +109,7 @@ new #[Layout('layouts.app')] class extends Component
             @endif
 
             @if (! $this->articulo)
-                <livewire:articulos.selector origen="ajustes" :solo-inventariables="true" placeholder="Escanea o busca el artículo a ajustar" />
+                <livewire:articulos.selector origen="ajustes" :solo-inventariables="true" placeholder="Escanea o busca" />
             @else
                 <div class="mb-5 flex items-start justify-between gap-3 rounded-lg bg-anil-50 px-4 py-3">
                     <div class="min-w-0">

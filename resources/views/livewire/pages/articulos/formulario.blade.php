@@ -270,7 +270,7 @@ new #[Layout('layouts.app')] class extends Component
                             <x-input-label for="nueva_alterna" value="Claves alternas (opcional)" />
                             <div class="flex gap-2">
                                 <x-text-input x-model="nueva" id="nueva_alterna" type="text" maxlength="40" class="font-mono" autocomplete="off" spellcheck="false"
-                                              placeholder="Otro código"
+                                              placeholder="Otra clave"
                                               x-on:keydown.enter.prevent="anotarEscaneo('articulo_clave', nueva); agregar()" />
                                 <x-boton-camara destino="alterna" />
                                 <x-secondary-button x-on:click="agregar()" class="shrink-0">Agregar</x-secondary-button>

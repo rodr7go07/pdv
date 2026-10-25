@@ -7,6 +7,7 @@ const LADO_MAXIMO = 1600;
 const CALIDAD = 0.85;
 // Por debajo de este peso y de este tamaño la foto se sube tal cual.
 const PESO_SIN_REDUCIR = 1.5 * 1024 * 1024;
+const FORMATOS_ACEPTADOS = ['image/png', 'image/jpeg', 'image/webp'];
 
 async function abrir(archivo) {
     if (window.createImageBitmap) {
@@ -35,7 +36,8 @@ export async function reducirImagen(archivo) {
     const alto = origen.height;
     const escala = Math.min(1, LADO_MAXIMO / Math.max(ancho, alto));
 
-    if (escala === 1 && archivo.size <= PESO_SIN_REDUCIR) {
+    // Los formatos que el servidor acepta, chicos y ya en tamaño, se suben tal cual; cualquier otro (HEIC, GIF…) se pasa a JPEG.
+    if (escala === 1 && archivo.size <= PESO_SIN_REDUCIR && FORMATOS_ACEPTADOS.includes(archivo.type)) {
         origen.close?.();
         return archivo;
     }

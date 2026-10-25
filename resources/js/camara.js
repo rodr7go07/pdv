@@ -7,7 +7,7 @@
 const FORMATOS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'codabar', 'qr_code'];
 const INTERVALO_MS = 150;
 // Mientras el mismo código siga a la vista cuenta una sola vez; para sumar otra pieza hay que apartarlo de la cámara un momento.
-const AUSENTE_MS = 1500;
+const AUSENTE_MS = 2000;
 
 const mensajeDeError = (e) => {
     if (e?.name === 'NotAllowedError' || e?.name === 'SecurityError') return 'No hay permiso para usar la cámara. Actívalo en los permisos del navegador para este sitio.';
@@ -88,7 +88,8 @@ async function empezarLectura(video, flujo, leido) {
                     try {
                         if (video.readyState >= 2) {
                             const codigos = await detector.detect(video);
-                            if (codigos.length) leido(codigos[0].rawValue);
+                            // La lectura pudo terminar después de cerrar la ventana: ese código ya no cuenta.
+                            if (activo && codigos.length) leido(codigos[0].rawValue);
                         }
                     } catch { /* un cuadro que no se pudo leer no detiene la cámara */ }
                     await new Promise((r) => setTimeout(r, INTERVALO_MS));
@@ -100,10 +101,13 @@ async function empezarLectura(video, flujo, leido) {
         }
     }
 
-    const [{ BrowserMultiFormatReader }, { BarcodeFormat, DecodeHintType }] = await Promise.all([
-        import('@zxing/browser'),
-        import('@zxing/library'),
-    ]);
+    let modulos;
+    try {
+        modulos = await Promise.all([import('@zxing/browser'), import('@zxing/library')]);
+    } catch {
+        throw new Error('No se pudo cargar el lector de códigos. Revisa tu conexión e inténtalo de nuevo.');
+    }
+    const [{ BrowserMultiFormatReader }, { BarcodeFormat, DecodeHintType }] = modulos;
 
     const pistas = new Map([
         [DecodeHintType.POSSIBLE_FORMATS, [
@@ -112,10 +116,11 @@ async function empezarLectura(video, flujo, leido) {
         ]],
     ]);
     const lector = new BrowserMultiFormatReader(pistas, { delayBetweenScanAttempts: INTERVALO_MS });
+    let detenido = false;
     const controles = await lector.decodeFromStream(flujo, video, (resultado) => {
-        if (resultado) leido(resultado.getText());
+        if (!detenido && resultado) leido(resultado.getText());
     });
 
     // controles.stop() también apaga la cámara; aquí solo se detiene la lectura y el cierre lo hace quien llama.
-    return () => controles.stop();
+    return () => { detenido = true; controles.stop(); };
 }

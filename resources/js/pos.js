@@ -778,6 +778,27 @@ export function registrarPos(Alpine) {
             else if (e.key === 'Delete' && vacio && this.sel >= 0) { e.preventDefault(); this.quitar(this.sel); }
             else if ((e.key === '+' || e.key === 'Add') && vacio && this.sel >= 0) { e.preventDefault(); this.cambiarCantidad(this.sel, 1); }
             else if ((e.key === '-' || e.key === 'Subtract') && vacio && this.sel >= 0) { e.preventDefault(); this.cambiarCantidad(this.sel, -1); }
+            else this.capturarEnCampo(e);
+        },
+
+        /**
+         * Un lector de códigos escribe como un teclado. Si el foco no está en un campo (se tocó una zona vacía, la lista
+         * o un botón), el primer carácter que llegue pasa al campo de captura y se le da el foco: el resto de la lectura
+         * y el Enter final caen ahí solos. Con una ventana abierta o escribiendo en otro campo no se interviene.
+         */
+        capturarEnCampo(e) {
+            if (e.key.length !== 1 || e.key === ' ' || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return false;
+            if (e.target.closest?.('input, textarea, select, [contenteditable]')) return false;
+
+            const campo = this.$refs.entrada;
+            if (!campo) return false;
+
+            e.preventDefault();
+            this.entrada += e.key;
+            campo.focus();
+            this.$nextTick(() => campo.setSelectionRange(campo.value.length, campo.value.length));
+
+            return true;
         },
     }));
 }

@@ -128,7 +128,7 @@
         ],
         [
             'id' => 'vender', 'titulo' => 'Cobrar a un cliente (venta)', 'icono' => 'cash-register', 'para' => 'Cajero',
-            'intro' => 'La pantalla de **Venta** está hecha para ir rápido, con el escáner de código de barras o con la cámara del teléfono. El cursor siempre está listo para escanear.',
+            'intro' => 'La pantalla de **Venta** está hecha para ir rápido, con el escáner de código de barras o con la cámara del teléfono. El cursor siempre está listo para escanear, y si tocaste otra parte de la pantalla, el lector manda el código al campo de todos modos.',
             'bloques' => [
                 ['pasos' => [
                     'Toca **Venta** en el menú.',
@@ -269,7 +269,7 @@
                     ['Se fue el internet', 'No se puede cobrar. Cuando regrese, tu lista sigue en pantalla.'],
                     ['La caja no cuadra', 'Pide al encargado que revise tu corte en **Turnos y cortes**: ahí están las entradas, los retiros y las devoluciones.'],
                     ['El ticket sale cortado', 'En **Cajas** toca la impresora para imprimir una prueba y revisa el ancho del papel. En la ventana de impresión pon los márgenes en «Ninguno».'],
-                    ['Escaneo y no pasa nada', 'Toca el cuadro de «Escanea o escribe el código» para que el cursor esté ahí.'],
+                    ['Escaneo y no pasa nada', 'En **Venta** el código llega solo al cuadro de «Escanea o escribe el código», aunque hayas tocado otra parte. Si no pasa nada, revisa que estés en la pantalla de Venta (en el Inicio y otras pantallas no hay dónde escribir el código), que no tengas escribiendo en otra casilla (como la cantidad de un producto) y que el lector envíe **Enter** al final de cada lectura (es lo normal de fábrica).'],
                     ['La cámara no abre', 'La dirección del sistema debe empezar con **https://**. Cuando el navegador pregunte, permite el uso de la cámara; si la negaste antes, actívala en los permisos del sitio.'],
                 ]],
             ],

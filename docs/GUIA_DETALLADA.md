@@ -77,7 +77,7 @@ Cada cambio de costo o de precio queda en el **historial** al final de la pantal
 *Mi caja → Abrir turno:* elige la caja, escribe el fondo inicial y abre. Hasta entonces la pantalla de venta te pide abrirlo.
 
 ### La pantalla de venta
-Pantalla completa pensada para escáner y teclado. El cursor siempre está en el campo de captura.
+Pantalla completa pensada para escáner y teclado. El cursor siempre está en el campo de captura. Un lector USB o Bluetooth en modo teclado escribe el código y manda Enter; si el foco se perdió (se tocó una zona vacía, la lista o un botón) el primer carácter que llegue pasa al campo de captura y le da el foco, así que no hay que volver a tocarlo. No interviene con una ventana abierta (el código va al campo de esa ventana) ni cuando se está escribiendo en otro campo, como la cantidad de una línea, y no cambia los atajos `+` y `−`. Solo existe en la pantalla de venta; en el resto de pantallas el lector escribe donde esté el foco.
 
 | Quieres… | Haz esto |
 |---|---|

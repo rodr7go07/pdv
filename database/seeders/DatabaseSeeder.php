@@ -16,7 +16,8 @@ class DatabaseSeeder extends Seeder
         Configuracion::actual();
 
         // Administrador inicial. Fuera de local la contraseña debe venir de ADMIN_PASSWORD.
-        $clave = env('ADMIN_PASSWORD') ?? (app()->environment('local') ? 'password' : null);
+        // filled(): una ADMIN_PASSWORD vacía en el .env (como viene en .env.example) cuenta como no definida.
+        $clave = filled(env('ADMIN_PASSWORD')) ? env('ADMIN_PASSWORD') : (app()->environment('local') ? 'password' : null);
         throw_if($clave === null, \RuntimeException::class, 'Define ADMIN_PASSWORD en .env antes de sembrar el administrador.');
 
         $admin = User::query()->firstOrCreate(

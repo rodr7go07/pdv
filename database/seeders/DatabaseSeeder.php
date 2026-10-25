@@ -35,6 +35,16 @@ class DatabaseSeeder extends Seeder
                     ->firstOrCreate(['usuario' => $usuario], ['name' => $nombre, 'password' => 'password'])
                     ->syncRoles($rol->value);
             }
+
+            // Administradores del equipo de desarrollo.
+            foreach ([
+                'daniel.gutierrez' => 'Daniel Gutierrez',
+                'rodrigo.lopez' => 'Rodrigo Lopez',
+            ] as $usuario => $nombre) {
+                User::query()
+                    ->firstOrCreate(['usuario' => $usuario], ['name' => $nombre, 'password' => 'password'])
+                    ->syncRoles(Rol::Administrador->value);
+            }
         }
     }
 }

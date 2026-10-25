@@ -20,10 +20,16 @@
                 ['tabla' => [
                     ['Administrador', 'El dueño. Puede hacer todo.'],
                     ['Encargado', 'Persona de confianza. Supervisa, pero no cambia usuarios ni la configuración.'],
-                    ['Cajero', 'Quien cobra. Abre su caja, vende, y cierra su caja.'],
+                    ['Cajero', 'Quien cobra. Abre su caja, vende y cierra su caja.'],
                 ]],
-                ['consejo' => 'Puedes tener el sistema como una app en tu teléfono o computadora. Toca el botón **Instalar** que aparece arriba (en la computadora, abajo del menú) y confirma. En iPhone el botón te muestra los pasos: abre el sistema en Safari, toca **Compartir** y luego **Agregar a pantalla de inicio**. Una vez instalada, el botón desaparece. Si no lo ves, abre el menú del navegador (los tres puntitos) y busca **Instalar app** o **Agregar a pantalla de inicio**. Para instalarla, la dirección del sistema debe empezar con **https://**.'],
-                ['p' => '**Atajos en el ícono.** En Android, si dejas presionado el ícono de la app, salen accesos directos a **Venta** y a **Mi caja**.'],
+                ['p' => '**Instálalo como una app.** Así abre con su propio ícono, sin la barra del navegador, como cualquier otra aplicación del teléfono o de la computadora.'],
+                ['lista' => [
+                    '**En Android o en la computadora:** toca el botón **Instalar** (arriba en el teléfono; en la computadora, abajo del menú) y confirma. Cuando ya está instalada, el botón desaparece.',
+                    '**En iPhone o iPad:** toca **Instalar** y sigue los pasos que te muestra: abre el sistema en Safari, toca **Compartir** y luego **Agregar a pantalla de inicio**.',
+                    '**Si no ves el botón:** abre el menú del navegador (los tres puntitos) y busca **Instalar app** o **Agregar a pantalla de inicio**.',
+                    '**En Android,** si dejas presionado el ícono de la app, salen accesos directos a **Venta** y a **Mi caja**.',
+                ]],
+                ['cuidado' => 'Para instalarla, la dirección del sistema debe empezar con **https://**.'],
                 ['cuidado' => 'El sistema necesita internet para cobrar. Si se va el internet no se puede vender; cuando regrese, lo que tenías en pantalla sigue ahí.'],
             ],
         ],
@@ -50,7 +56,7 @@
         ],
         [
             'id' => 'articulos', 'titulo' => 'Tus productos (artículos)', 'icono' => 'package', 'para' => 'Dueño · Encargado',
-            'intro' => 'Cada producto que vendes es un artículo. Aquí le dices cómo se llama, cuánto cuesta y cuánto vale.',
+            'intro' => 'Cada producto que vendes es un artículo. Aquí le dices cómo se llama, cuánto te cuesta y en cuánto lo vendes.',
             'bloques' => [
                 ['pasos' => [
                     'Entra a **Artículos** y toca **Nuevo**.',
@@ -74,7 +80,7 @@
         ],
         [
             'id' => 'compras', 'titulo' => 'Meter mercancía a la tienda (compras)', 'icono' => 'truck', 'para' => 'Dueño · Encargado',
-            'intro' => 'Cuando llega mercancía, la registras para que el sistema sepa que tienes más y cuánto te costó. También aquí te ayuda a decidir qué pedir.',
+            'intro' => 'Cuando llega mercancía, la registras para que el sistema sepa que tienes más y cuánto te costó. En esta misma sección también ves qué te conviene pedir.',
             'bloques' => [
                 ['pasos' => [
                     'Entra a **Compras** y toca **Nueva compra**.',
@@ -100,6 +106,7 @@
             'bloques' => [
                 ['p' => 'Entra a **Inventario**. Arriba ves cuántos productos están **bajo el mínimo** (se están acabando) y cuáles están **agotados**. Toca cualquiera de esas tarjetas para ver solo esos. Para encontrar un producto, escribe su nombre o clave en el buscador, o toca el botón de la cámara en el teléfono y escanea su código. Para saber cuánto pedir de cada uno, usa **Compras → Sugerencia de compra**.'],
                 ['p' => '**El cuaderno de cada producto.** Al tocar un producto ves su historial: cuándo entró, cuándo se vendió, quién lo movió. A esto el sistema le llama *kardex*.'],
+                ['p' => '**¿Qué se ha escaneado?** En **Escaneos** (menú → Mercancía; solo la ven el dueño y el encargado) ves todos los códigos de barras que se han escaneado: cuándo, en qué pantalla, quién y con qué (lector o cámara). Los que salen como **Sin artículo** son productos que todavía no tienes dados de alta: toca **Dar de alta** y el formulario se abre con ese código ya escrito. Si das de alta el producto después de escanearlo, el escaneo antiguo muestra su nombre con la etiqueta **Ya dado de alta** y deja de contar como pendiente. Puedes filtrar por código, pantalla, persona y fechas. El registro se limpia solo después de 6 meses.'],
                 ['p' => '**Ajustes.** Si algo se rompe, caduca o se pierde, entra a **Inventario → Ajustes**, elige el producto (escaneándolo o buscándolo por nombre), el motivo y la cantidad. Siempre queda anotado.'],
                 ['p' => '**Contar la tienda (conteo).** Para revisar que el sistema y los estantes digan lo mismo:'],
                 ['pasos' => [
@@ -128,7 +135,7 @@
         ],
         [
             'id' => 'vender', 'titulo' => 'Cobrar a un cliente (venta)', 'icono' => 'cash-register', 'para' => 'Cajero',
-            'intro' => 'La pantalla de **Venta** está hecha para ir rápido, con el escáner de código de barras o con la cámara del teléfono. El cursor siempre está listo para escanear, y si tocaste otra parte de la pantalla, el lector manda el código al campo de todos modos.',
+            'intro' => 'La pantalla de **Venta** está hecha para ir rápido, con un lector de código de barras o con la cámara del teléfono. El cursor siempre está listo para escanear.',
             'bloques' => [
                 ['pasos' => [
                     'Toca **Venta** en el menú.',
@@ -138,7 +145,8 @@
                     'Si te dio efectivo, la pantalla te dice grande **cuánto cambio entregar**. Toca **Imprimir ticket** si lo quiere.',
                     'Toca **Nueva venta** (o Enter) y sigue con el siguiente cliente.',
                 ]],
-                ['p' => '**¿Sin escáner? Usa la cámara del teléfono.** En el celular o la tableta, junto al cuadro de captura, aparece un botón con una cámara. Tócalo, permite el uso de la cámara y apunta al código de barras: el producto se agrega solo y la ventana sigue abierta para que escanees los siguientes. Si necesitas dos piezas del mismo producto, aparta el código de la cámara un momento y vuelve a mostrarlo. Toca **Listo** para regresar a la venta.'],
+                ['p' => '**Con un lector de código de barras** (USB o Bluetooth) solo escanea el producto: el código llega al cuadro de captura y se agrega solo. No importa si tocaste otra parte de la pantalla; lo único es que el lector debe enviar **Enter** al final de cada lectura (es lo normal de fábrica). Esto funciona solo en la pantalla de **Venta**.'],
+                ['p' => '**¿Sin lector? Usa la cámara del teléfono.** En el celular o la tableta, junto al cuadro de captura, aparece un botón con una cámara. Tócalo, permite el uso de la cámara y apunta al código de barras: el producto se agrega solo y la ventana sigue abierta para que escanees los siguientes. Si necesitas dos piezas del mismo producto, aparta el código de la cámara un momento y vuelve a mostrarlo. Toca **Listo** para regresar a la venta.'],
                 ['cuidado' => 'La cámara solo funciona cuando la dirección del sistema empieza con **https://**. Si te avisa que no puede abrirla, pídele a quien instaló el sistema que lo configure así.'],
                 ['p' => '**Atajos para ir más rápido:**'],
                 ['tabla' => [
@@ -155,7 +163,7 @@
                     ['Esc', 'Cerrar una ventana'],
                 ]],
                 ['p' => '**Productos que se pesan.** Si escaneas fruta o queso, el sistema te pregunta **cuánto pesa**. Escribe el peso (por ejemplo 0.375) y Enter.'],
-                ['p' => '**Un producto sin código.** Toca **Buscar** (F2) y escribe parte del nombre. Toca el que sea. Si prefieres escanear, en el teléfono la ventana de búsqueda también tiene el botón de la cámara: lee el código y agrega el producto.'],
+                ['p' => '**Un producto sin código.** Toca **Buscar** (F2) y escribe parte del nombre. Toca el producto que buscas. Si prefieres escanear, en el teléfono la ventana de búsqueda también tiene el botón de la cámara: lee el código y agrega el producto.'],
                 ['p' => '**Un producto que no existe.** El sistema te avisa. Si tienes permiso para crear artículos y poner precios, te deja darlo de alta ahí mismo; si no, avisa al encargado.'],
                 ['p' => '**Se acerca otro cliente con prisa.** Toca **Espera** (F3) para guardar esta venta, atiende al otro y luego **Recuperar** (F4). Para recuperar una venta la pantalla debe estar vacía (termina o guarda la que tengas). Las ventas en espera son de la caja, no de una persona, y caben hasta 30. Al guardarlas se guardan los productos y el descuento, pero **no** el cliente: vuelve a elegirlo con F7.'],
                 ['p' => '**Descuentos.** Con permiso, toca el símbolo de porcentaje junto al producto, o **Descuento** (F6) para toda la venta. Puedes dar un porcentaje o una cantidad en pesos.'],
@@ -242,7 +250,6 @@
                 ['p' => '**En Inicio verás:** lo que vendiste hoy y cómo va contra ayer, cuántas ventas, el ticket promedio (lo que gasta cada cliente en promedio), cuánto ganaste, las ventas de los últimos 7 días, lo más vendido, lo que hay que reabastecer, qué cajas están abiertas y cuánto te deben.'],
                 ['p' => '**En Reportes** eliges fechas (hoy, ayer, este mes…) y ves las ventas por día, por departamento, por producto, por cajero y por forma de pago. Arriba a la derecha tocas **Exportar a Excel**. El archivo lleva en su nombre el reporte y las fechas (por ejemplo *reporte-por-articulo-2026-10-01-a-2026-10-25*), y los códigos de barras largos se ven completos, sin convertirse en números como 7.5E+12.'],
                 ['p' => '**¿Qué es la utilidad?** Es lo que ganas en los productos, **antes de pagar** renta, luz y sueldos. Ejemplo: un refresco que te costó $10 y vendiste en $14.50 (sin impuestos) te deja $4.50 de utilidad.'],
-                ['p' => '**¿Qué se ha escaneado?** En **Escaneos** (menú → Mercancía) ves todos los códigos de barras que se han escaneado: cuándo, en qué pantalla, quién y con qué (lector o cámara). Los que salen como **Sin artículo** son productos que todavía no tienes dados de alta: toca **Dar de alta** y el formulario se abre con ese código ya escrito. Si das de alta el producto después de escanearlo, el escaneo antiguo muestra su nombre con la etiqueta **Ya dado de alta** y deja de contar como pendiente. Puedes filtrar por código, pantalla, persona y fechas. El registro se limpia solo después de 6 meses.'],
                 ['consejo' => 'La utilidad usa lo que **te costaba** el producto el día que lo vendiste. Si después sube el costo, las ventas viejas no cambian.'],
             ],
         ],
@@ -269,7 +276,8 @@
                     ['Se fue el internet', 'No se puede cobrar. Cuando regrese, tu lista sigue en pantalla.'],
                     ['La caja no cuadra', 'Pide al encargado que revise tu corte en **Turnos y cortes**: ahí están las entradas, los retiros y las devoluciones.'],
                     ['El ticket sale cortado', 'En **Cajas** toca la impresora para imprimir una prueba y revisa el ancho del papel. En la ventana de impresión pon los márgenes en «Ninguno».'],
-                    ['Escaneo y no pasa nada', 'En **Venta** el código llega solo al cuadro de «Escanea o escribe el código», aunque hayas tocado otra parte. Si no pasa nada, revisa que estés en la pantalla de Venta (en el Inicio y otras pantallas no hay dónde escribir el código), que no tengas escribiendo en otra casilla (como la cantidad de un producto) y que el lector envíe **Enter** al final de cada lectura (es lo normal de fábrica).'],
+                    ['Escaneo y no pasa nada', 'Revisa que estés en la pantalla de **Venta** o en una con cuadro para el código (Artículos, Compras, Inventario…); en el Inicio y otras pantallas no hay dónde escribirlo. En Venta, si tienes el cursor en otra casilla (como la cantidad de un producto), el código se escribe ahí. Y comprueba que el lector envíe **Enter** al final de cada lectura (es lo normal de fábrica).'],
+                    ['Escaneo en una pantalla que no es Venta y no pasa nada', 'En las demás pantallas el lector escribe donde esté el cursor: toca primero el cuadro de búsqueda o de código y luego escanea. En Inventario hay que tocar el buscador antes.'],
                     ['La cámara no abre', 'La dirección del sistema debe empezar con **https://**. Cuando el navegador pregunte, permite el uso de la cámara; si la negaste antes, actívala en los permisos del sitio.'],
                 ]],
             ],
@@ -284,8 +292,9 @@
                     ['Arqueo', 'Contar el dinero del cajón.'],
                     ['Corte X', 'Una foto de cómo va el día. No cierra nada.'],
                     ['Corte Z', 'La cuenta final. Cierra el turno.'],
+                    ['Clave', 'El código con el que el sistema reconoce un producto: normalmente su código de barras.'],
                     ['Existencia', 'Cuántas piezas hay de un producto.'],
-                    ['Mínimo', 'La cantidad que no quieres que baje de ahí. Si llega a ese número, el sistema te avisa que hay que reabastecer.'],
+                    ['Mínimo', 'La cantidad mínima que quieres tener de un producto. Si baja de ahí, el sistema te avisa que hay que reabastecer.'],
                     ['Cobertura', 'Cuántos días te dura lo que tienes al ritmo al que lo vendes.'],
                     ['Kardex', 'El cuaderno de un producto: todo lo que le ha pasado.'],
                     ['Merma', 'Producto que se echó a perder, se rompió o se perdió.'],

@@ -107,18 +107,9 @@ new #[Layout('layouts.app')] class extends Component
     @php $r = $this->resumen; @endphp
 
     <div class="mb-6 grid grid-cols-3 gap-3">
-        <div class="rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]">
-            <p class="rotulo">Ventas</p>
-            <p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ number_format($r['ventas']) }}</p>
-        </div>
-        <div class="rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]">
-            <p class="rotulo">Vendido</p>
-            <p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">${{ number_format((float) $r['total'], 2) }}</p>
-        </div>
-        <div class="rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]">
-            <p class="rotulo">Canceladas</p>
-            <p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ number_format($r['canceladas']) }}</p>
-        </div>
+        <x-kpi etiqueta="Ventas">{{ number_format($r['ventas']) }}</x-kpi>
+        <x-kpi etiqueta="Vendido">${{ number_format((float) $r['total'], 2) }}</x-kpi>
+        <x-kpi etiqueta="Canceladas">{{ number_format($r['canceladas']) }}</x-kpi>
     </div>
 
     <div class="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">

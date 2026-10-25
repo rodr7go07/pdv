@@ -59,14 +59,12 @@ new #[Layout('layouts.app')] class extends Component
     <x-slot name="titulo">Turno de {{ $turno->usuario->name }}</x-slot>
     <x-slot name="acciones">
         @can('caja.supervisar')
-            <a href="{{ route('caja.turnos') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-                <x-phosphor-arrow-left-bold class="size-4" /> Todos los turnos
-            </a>
+            <x-enlace-volver :href="route('caja.turnos')">Todos los turnos</x-enlace-volver>
         @endcan
     </x-slot>
 
     @if ($aviso)
-        <p class="mb-5 flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200" role="status"><x-phosphor-check-circle-bold class="size-5 shrink-0" /> {{ $aviso }}</p>
+        <x-alerta class="mb-5">{{ $aviso }}</x-alerta>
     @endif
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-anil-100 bg-white px-5 py-4 shadow-[0_2px_0_0_var(--color-anil-100)]">

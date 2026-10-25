@@ -187,10 +187,10 @@ new #[Layout('layouts.app')] class extends Component
     @if ($seccion === 'resumen')
         @php $r = $this->reporte->resumen(); @endphp
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Ventas</p><p class="mt-1 font-display text-3xl font-extrabold">{{ number_format($r['ventas']) }}</p><p class="text-xs text-anil-600">{{ $r['canceladas'] }} canceladas</p></div>
-            <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Venta neta</p><p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ $m($r['neto']) }}</p><p class="text-xs text-anil-600">Vendido {{ $m($r['bruto']) }} − devoluciones {{ $m($r['devuelto']) }}</p></div>
-            <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Ticket promedio</p><p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ $m($r['ticket_promedio']) }}</p></div>
-            <div class="rounded-xl border border-anil-900 bg-anil-900 p-4 text-white"><p class="rotulo !text-anil-300">Utilidad bruta</p><p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ $m($r['utilidad']) }}</p><p class="text-xs text-anil-300">Margen {{ $pct($r['margen']) }}</p></div>
+            <x-kpi etiqueta="Ventas" tamano="grande" :sombra="false">{{ number_format($r['ventas']) }}<x-slot:nota>{{ $r['canceladas'] }} canceladas</x-slot:nota></x-kpi>
+            <x-kpi etiqueta="Venta neta" :sombra="false">{{ $m($r['neto']) }}<x-slot:nota>Vendido {{ $m($r['bruto']) }} − devoluciones {{ $m($r['devuelto']) }}</x-slot:nota></x-kpi>
+            <x-kpi etiqueta="Ticket promedio" :sombra="false">{{ $m($r['ticket_promedio']) }}</x-kpi>
+            <x-kpi etiqueta="Utilidad bruta" tono="oscuro" :sombra="false">{{ $m($r['utilidad']) }}<x-slot:nota>Margen {{ $pct($r['margen']) }}</x-slot:nota></x-kpi>
         </div>
         <x-card titulo="Detalle" class="mt-6">
             <dl class="grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
@@ -289,9 +289,9 @@ new #[Layout('layouts.app')] class extends Component
     @if ($seccion === 'inventario')
         @php $v = \App\Services\ReporteVentas::valorInventario(); @endphp
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div class="rounded-xl border border-anil-900 bg-anil-900 p-4 text-white"><p class="rotulo !text-anil-300">Valor a costo</p><p class="mt-1 font-display text-3xl font-extrabold">{{ $m($v['costo']) }}</p></div>
-            <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Valor a precio de venta</p><p class="mt-1 font-display text-3xl font-extrabold">{{ $m($v['venta']) }}</p></div>
-            <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Artículos con existencia</p><p class="mt-1 font-display text-3xl font-extrabold">{{ number_format($v['articulos']) }}</p></div>
+            <x-kpi etiqueta="Valor a costo" tono="oscuro" tamano="grande" :sombra="false">{{ $m($v['costo']) }}</x-kpi>
+            <x-kpi etiqueta="Valor a precio de venta" tamano="grande" :sombra="false">{{ $m($v['venta']) }}</x-kpi>
+            <x-kpi etiqueta="Artículos con existencia" tamano="grande" :sombra="false">{{ number_format($v['articulos']) }}</x-kpi>
         </div>
         <div class="mt-6 overflow-x-auto rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
             <table class="w-full min-w-[34rem] text-left text-sm">

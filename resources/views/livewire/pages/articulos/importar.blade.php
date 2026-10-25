@@ -70,10 +70,7 @@ new #[Layout('layouts.app')] class extends Component
 <div>
     <x-slot name="titulo">Importar artículos</x-slot>
     <x-slot name="acciones">
-        <a href="{{ route('articulos.index') }}" wire:navigate
-           class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-            <x-phosphor-arrow-left-bold class="size-4" /> Volver a la lista
-        </a>
+        <x-enlace-volver :href="route('articulos.index')">Volver a la lista</x-enlace-volver>
     </x-slot>
 
     <div class="grid items-start gap-6 lg:grid-cols-2">
@@ -105,9 +102,7 @@ new #[Layout('layouts.app')] class extends Component
     </div>
 
     @if ($fallo)
-        <div class="mt-6 flex items-start gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-900 ring-1 ring-red-200" role="alert">
-            <x-phosphor-warning-bold class="mt-0.5 size-5 shrink-0" /> {{ $fallo }}
-        </div>
+        <x-alerta tono="error" class="mt-6">{{ $fallo }}</x-alerta>
     @endif
 
     @if ($resultado)

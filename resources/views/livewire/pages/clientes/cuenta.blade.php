@@ -58,26 +58,21 @@ new #[Layout('layouts.app')] class extends Component
 <div>
     <x-slot name="titulo">{{ $cliente->nombre }}</x-slot>
     <x-slot name="acciones">
-        <a href="{{ route('clientes.index') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-            <x-phosphor-arrow-left-bold class="size-4" /> Todos los clientes
-        </a>
+        <x-enlace-volver :href="route('clientes.index')">Todos los clientes</x-enlace-volver>
         <a href="{{ route('clientes.estado', $cliente) }}" target="_blank" rel="noopener" class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
             <x-phosphor-printer-bold class="size-4" /> Imprimir estado de cuenta
         </a>
     </x-slot>
 
     @if ($exito)
-        <p class="mb-5 flex items-start gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200" role="status"><x-phosphor-check-circle-bold class="mt-0.5 size-5 shrink-0" /> {{ $exito }}</p>
+        <x-alerta class="mb-5">{{ $exito }}</x-alerta>
     @endif
 
     <div class="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div @class(['rounded-xl border p-4', 'border-red-200 bg-red-50' => (float) $cliente->saldo > 0, 'border-anil-100 bg-white' => (float) $cliente->saldo <= 0])>
-            <p class="rotulo">Debe</p>
-            <p class="mt-1 font-display text-2xl font-extrabold">${{ number_format((float) $cliente->saldo, 2) }}</p>
-        </div>
-        <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Límite de crédito</p><p class="mt-1 font-display text-2xl font-extrabold">${{ number_format((float) $cliente->limite_credito, 2) }}</p></div>
-        <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Disponible</p><p class="mt-1 font-display text-2xl font-extrabold">${{ number_format((float) $cliente->disponible(), 2) }}</p></div>
-        <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Lista de precios</p><p class="mt-1 font-display text-2xl font-extrabold">Precio {{ $cliente->lista_precios }}</p></div>
+        <x-kpi etiqueta="Debe" tamano="chico" :sombra="false" :tono="(float) $cliente->saldo > 0 ? 'peligro' : 'normal'">${{ number_format((float) $cliente->saldo, 2) }}</x-kpi>
+        <x-kpi etiqueta="Límite de crédito" tamano="chico" :sombra="false">${{ number_format((float) $cliente->limite_credito, 2) }}</x-kpi>
+        <x-kpi etiqueta="Disponible" tamano="chico" :sombra="false">${{ number_format((float) $cliente->disponible(), 2) }}</x-kpi>
+        <x-kpi etiqueta="Lista de precios" tamano="chico" :sombra="false">Precio {{ $cliente->lista_precios }}</x-kpi>
     </div>
 
     <p class="mb-6 text-sm text-anil-700">

@@ -107,9 +107,9 @@ new class extends Component
                     @if ($var === null) Ayer no hubo ventas @else {{ $var >= 0 ? '▲' : '▼' }} {{ abs($var) }}% contra ayer ({{ $m($this->ayer['neto']) }}) @endif
                 </p>
             </div>
-            <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Ventas</p><p class="mt-1 font-display text-3xl font-extrabold">{{ number_format($h['ventas']) }}</p></div>
-            <div class="rounded-xl border border-anil-100 bg-white p-4"><p class="rotulo">Ticket promedio</p><p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ $m($h['ticket_promedio']) }}</p></div>
-            <div class="col-span-2 rounded-xl border border-anil-100 bg-white p-4 lg:col-span-1"><p class="rotulo">Utilidad bruta</p><p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ $m($h['utilidad']) }}</p><p class="text-xs text-anil-600">Margen {{ $h['margen'] === null ? '—' : $h['margen'].'%' }}</p></div>
+            <x-kpi etiqueta="Ventas" tamano="grande" :sombra="false">{{ number_format($h['ventas']) }}</x-kpi>
+            <x-kpi etiqueta="Ticket promedio" :sombra="false">{{ $m($h['ticket_promedio']) }}</x-kpi>
+            <x-kpi etiqueta="Utilidad bruta" :sombra="false" class="col-span-2 lg:col-span-1">{{ $m($h['utilidad']) }}<x-slot:nota>Margen {{ $h['margen'] === null ? '—' : $h['margen'].'%' }}</x-slot:nota></x-kpi>
         </div>
     </section>
 

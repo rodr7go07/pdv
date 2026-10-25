@@ -153,9 +153,7 @@ new #[Layout('layouts.app')] class extends Component
 <div>
     <x-slot name="titulo">Nueva compra</x-slot>
     <x-slot name="acciones">
-        <a href="{{ route('compras.index') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-            <x-phosphor-arrow-left-bold class="size-4" /> Volver a compras
-        </a>
+        <x-enlace-volver :href="route('compras.index')">Volver a compras</x-enlace-volver>
     </x-slot>
 
     <form wire:submit="guardar" class="space-y-6 pb-28 lg:pb-0">
@@ -191,7 +189,7 @@ new #[Layout('layouts.app')] class extends Component
             <livewire:articulos.selector origen="compras" placeholder="Escanea o busca" />
 
             @if ($avisoSugerencia !== '')
-                <p class="mt-3 rounded-lg bg-etiqueta/30 px-4 py-3 text-sm font-medium text-amber-950 ring-1 ring-etiqueta/60" role="status">{{ $avisoSugerencia }}</p>
+                <x-alerta tono="aviso" class="mt-3">{{ $avisoSugerencia }}</x-alerta>
             @endif
 
             <x-input-error :messages="$errors->get('lineas')" class="mt-3" />

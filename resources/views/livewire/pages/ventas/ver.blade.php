@@ -83,18 +83,14 @@ new #[Layout('layouts.app')] class extends Component
 <div>
     <x-slot name="titulo">Venta {{ $venta->folio }}</x-slot>
     <x-slot name="acciones">
-        <a href="{{ route('ventas.index') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-            <x-phosphor-arrow-left-bold class="size-4" /> Volver a ventas
-        </a>
+        <x-enlace-volver :href="route('ventas.index')">Volver a ventas</x-enlace-volver>
         <a href="{{ route('ventas.ticket', $venta) }}" target="_blank" rel="noopener" class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
             <x-phosphor-printer-bold class="size-4" /> Ver / reimprimir ticket
         </a>
     </x-slot>
 
     @if ($exito)
-        <p class="mb-5 flex items-start gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200" role="status">
-            <x-phosphor-check-circle-bold class="mt-0.5 size-5 shrink-0" /> {{ $exito }}
-        </p>
+        <x-alerta class="mb-5">{{ $exito }}</x-alerta>
     @endif
 
     @if ($venta->estaCancelada())

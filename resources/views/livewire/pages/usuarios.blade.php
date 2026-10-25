@@ -99,7 +99,7 @@ new #[Layout('layouts.app')] class extends Component
     </div>
 
     @if ($exito)
-        <p class="mb-5 flex items-start gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200" role="status"><x-phosphor-check-circle-bold class="mt-0.5 size-5 shrink-0" /> {{ $exito }}</p>
+        <x-alerta class="mb-5">{{ $exito }}</x-alerta>
     @endif
 
     <div class="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">

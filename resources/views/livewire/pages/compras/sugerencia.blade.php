@@ -79,9 +79,7 @@ new #[Layout('layouts.app')] class extends Component
     @endphp
 
     <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <a href="{{ route('compras.index') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-            <x-phosphor-arrow-left-bold class="size-4" /> Volver a compras
-        </a>
+        <x-enlace-volver :href="route('compras.index')">Volver a compras</x-enlace-volver>
         <div class="flex flex-wrap items-center gap-3">
             @if ($filas->isNotEmpty())
                 <a href="{{ route('compras.sugerencia.exportar', ['dias' => $s->diasVenta, 'cobertura' => $s->diasCobertura, 'departamento' => $s->departamentoId]) }}"

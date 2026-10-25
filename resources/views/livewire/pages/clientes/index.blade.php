@@ -159,9 +159,9 @@ new #[Layout('layouts.app')] class extends Component
     @php $r = $this->resumen; @endphp
 
     <div class="mb-6 grid grid-cols-3 gap-3">
-        <div class="rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]"><p class="rotulo">Clientes</p><p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ number_format($r['clientes']) }}</p></div>
-        <div class="rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]"><p class="rotulo">Con deuda</p><p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ number_format($r['deudores']) }}</p></div>
-        <div @class(['rounded-xl border p-4 shadow-[0_2px_0_0_var(--color-anil-100)]', 'border-etiqueta bg-etiqueta/20' => (float) $r['por_cobrar'] > 0, 'border-anil-100 bg-white' => (float) $r['por_cobrar'] <= 0])><p class="rotulo">Por cobrar</p><p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">${{ number_format((float) $r['por_cobrar'], 2) }}</p></div>
+        <x-kpi etiqueta="Clientes">{{ number_format($r['clientes']) }}</x-kpi>
+        <x-kpi etiqueta="Con deuda">{{ number_format($r['deudores']) }}</x-kpi>
+        <x-kpi etiqueta="Por cobrar" :tono="(float) $r['por_cobrar'] > 0 ? 'aviso' : 'normal'">${{ number_format((float) $r['por_cobrar'], 2) }}</x-kpi>
     </div>
 
     <div class="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">

@@ -220,16 +220,11 @@ new #[Layout('layouts.app')] class extends Component
 <div>
     <x-slot name="titulo">{{ $articulo ? 'Editar artículo' : 'Nuevo artículo' }}</x-slot>
     <x-slot name="acciones">
-        <a href="{{ route('articulos.index') }}" wire:navigate
-           class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-            <x-phosphor-arrow-left-bold class="size-4" /> Volver a la lista
-        </a>
+        <x-enlace-volver :href="route('articulos.index')">Volver a la lista</x-enlace-volver>
     </x-slot>
 
     @if (session('exito'))
-        <div class="mb-5 flex items-start gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200" role="status">
-            <x-phosphor-check-circle-bold class="mt-0.5 size-5 shrink-0" /> {{ session('exito') }}
-        </div>
+        <x-alerta class="mb-5">{{ session('exito') }}</x-alerta>
     @endif
 
     <form wire:submit="guardar" class="space-y-6 pb-24 lg:pb-0">

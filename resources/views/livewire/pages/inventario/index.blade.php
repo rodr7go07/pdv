@@ -93,24 +93,11 @@ new #[Layout('layouts.app')] class extends Component
 
     {{-- Resumen --}}
     <div class="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <button type="button" wire:click="$set('filtro', 'todos')" class="rounded-xl border border-anil-100 bg-white p-4 text-left shadow-[0_2px_0_0_var(--color-anil-100)]">
-            <p class="rotulo">Artículos con inventario</p>
-            <p class="mt-1 font-display text-3xl font-extrabold">{{ number_format($r['articulos']) }}</p>
-        </button>
-        <button type="button" wire:click="$set('filtro', 'bajo')" @class(['rounded-xl border p-4 text-left shadow-[0_2px_0_0_var(--color-anil-100)]', 'border-etiqueta bg-etiqueta/20' => $r['bajo'] > 0, 'border-anil-100 bg-white' => $r['bajo'] === 0])>
-            <p class="rotulo !text-amber-900">Bajo el mínimo</p>
-            <p class="mt-1 font-display text-3xl font-extrabold">{{ number_format($r['bajo']) }}</p>
-        </button>
-        <button type="button" wire:click="$set('filtro', 'agotados')" @class(['rounded-xl border p-4 text-left shadow-[0_2px_0_0_var(--color-anil-100)]', 'border-red-200 bg-red-50' => $r['agotados'] > 0, 'border-anil-100 bg-white' => $r['agotados'] === 0])>
-            <p class="rotulo !text-red-800">Agotados</p>
-            <p class="mt-1 font-display text-3xl font-extrabold">{{ number_format($r['agotados']) }}</p>
-        </button>
+        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'todos')" etiqueta="Artículos con inventario" tamano="grande" class="text-left">{{ number_format($r['articulos']) }}</x-kpi>
+        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'bajo')" etiqueta="Bajo el mínimo" tamano="grande" :tono="$r['bajo'] > 0 ? 'aviso' : 'normal'" class="text-left">{{ number_format($r['bajo']) }}</x-kpi>
+        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'agotados')" etiqueta="Agotados" tamano="grande" :tono="$r['agotados'] > 0 ? 'peligro' : 'normal'" class="text-left">{{ number_format($r['agotados']) }}</x-kpi>
         @if ($r['valor'] !== null)
-            <div class="rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]">
-                <p class="rotulo">Valor del inventario</p>
-                <p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">${{ number_format((float) $r['valor'], 2) }}</p>
-                <p class="mt-0.5 text-xs text-anil-600">A costo vigente</p>
-            </div>
+            <x-kpi etiqueta="Valor del inventario">${{ number_format((float) $r['valor'], 2) }}<x-slot:nota class="mt-0.5">A costo vigente</x-slot:nota></x-kpi>
         @endif
     </div>
 

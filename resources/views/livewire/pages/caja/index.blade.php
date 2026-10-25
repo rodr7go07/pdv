@@ -175,12 +175,12 @@ new #[Layout('layouts.app')] class extends Component
     </x-slot>
 
     @if ($aviso)
-        <p class="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200" role="status">
-            <span class="flex items-center gap-2"><x-phosphor-check-circle-bold class="size-5 shrink-0" /> {{ $aviso }}</span>
+        <x-alerta class="mb-5">
+            {{ $aviso }}
             @if ($this->ultimoCorte)
-                <a href="{{ route('caja.corte', $this->ultimoCorte) }}" target="_blank" rel="noopener" class="font-semibold underline">Ver e imprimir el corte</a>
+                <a href="{{ route('caja.corte', $this->ultimoCorte) }}" target="_blank" rel="noopener" class="ml-2 font-semibold underline">Ver e imprimir el corte</a>
             @endif
-        </p>
+        </x-alerta>
     @endif
 
     @if (! $this->turno)

@@ -118,18 +118,9 @@ new #[Layout('layouts.app')] class extends Component
     </p>
 
     <div class="mb-5 grid grid-cols-3 gap-3">
-        <div class="rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]">
-            <p class="rotulo">Escaneos</p>
-            <p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ number_format($r['total']) }}</p>
-        </div>
-        <div @class(['rounded-xl border p-4 shadow-[0_2px_0_0_var(--color-anil-100)]', 'border-etiqueta bg-etiqueta/20' => $r['sin_articulo'] > 0, 'border-anil-100 bg-white' => $r['sin_articulo'] === 0])>
-            <p class="rotulo !text-amber-900">Sin artículo</p>
-            <p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ number_format($r['sin_articulo']) }}</p>
-        </div>
-        <div class="rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]">
-            <p class="rotulo">Con cámara</p>
-            <p class="mt-1 font-display text-2xl font-extrabold sm:text-3xl">{{ number_format($r['camara']) }}</p>
-        </div>
+        <x-kpi etiqueta="Escaneos">{{ number_format($r['total']) }}</x-kpi>
+        <x-kpi etiqueta="Sin artículo" :tono="$r['sin_articulo'] > 0 ? 'aviso' : 'normal'">{{ number_format($r['sin_articulo']) }}</x-kpi>
+        <x-kpi etiqueta="Con cámara">{{ number_format($r['camara']) }}</x-kpi>
     </div>
 
     <div class="mb-5 grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-4">

@@ -103,9 +103,7 @@ new #[Layout('layouts.app')] class extends Component
     <x-slot name="titulo">Proveedores</x-slot>
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <a href="{{ route('compras.index') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-            <x-phosphor-arrow-left-bold class="size-4" /> Volver a compras
-        </a>
+        <x-enlace-volver :href="route('compras.index')">Volver a compras</x-enlace-volver>
         <x-primary-button type="button" wire:click="nuevo"><x-phosphor-plus-bold class="size-4" /> Nuevo</x-primary-button>
     </div>
 

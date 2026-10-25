@@ -95,17 +95,13 @@ new #[Layout('layouts.app')] class extends Component
 <div>
     <x-slot name="titulo">Ajustes de inventario</x-slot>
     <x-slot name="acciones">
-        <a href="{{ route('inventario.index') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-anil-700 hover:bg-white">
-            <x-phosphor-arrow-left-bold class="size-4" /> Volver al inventario
-        </a>
+        <x-enlace-volver :href="route('inventario.index')">Volver al inventario</x-enlace-volver>
     </x-slot>
 
     <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
         <x-card titulo="Nuevo ajuste" descripcion="Cambia la existencia con un motivo. Queda registrado en el kardex.">
             @if ($exito)
-                <p class="mb-4 flex items-start gap-2 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200" role="status">
-                    <x-phosphor-check-circle-bold class="mt-0.5 size-5 shrink-0" /> {{ $exito }}
-                </p>
+                <x-alerta class="mb-4">{{ $exito }}</x-alerta>
             @endif
 
             @if (! $this->articulo)

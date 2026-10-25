@@ -233,5 +233,7 @@ it('las búsquedas de producto permiten escanear con la cámara', function () {
 
     Volt::actingAs($this->admin)->test('pages.inventario.index')
         ->assertSee("destino: 'buscar-inventario'", false)
+        // $set sí viaja al servidor; asignar $wire.buscar = … se quedaría pendiente y la lista no se filtraría.
+        ->assertSee("\$wire.\$set('buscar', \$event.detail.codigo)", false)
         ->assertSee('x-data="escanerCamara"', false);
 });

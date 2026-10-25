@@ -48,6 +48,7 @@
 - **Fechas de filtros:** usar `App\Support\Fecha` (ignora fechas inválidas) y rangos `>= inicio` / `<= fin`, nunca `whereDate` en tablas grandes.
 - **Pruebas:** corren solo con SQLite; `tests/TestCase.php` se niega a correr si la configuración está en caché o la conexión no es SQLite. No usar `config:cache` en local.
 - **Alpine en páginas sin componente Livewire:** el layout carga `@livewireStyles` y `@livewireScripts` para que Alpine exista también en `/guia`. En `x-show` evitar llamar métodos del `x-data`; usar getters o un `x-effect`.
+- **Livewire desde Alpine:** `$wire.propiedad = valor` solo queda pendiente (no hace petición); para que el servidor reaccione usar `$wire.$set('propiedad', valor)` o llamar un método justo después. Al probar filtros con Playwright, usar varios registros: con uno solo no se nota si la lista se filtró.
 - Antes de dar por buena una pantalla, revisarla a 360 px de ancho sin scroll horizontal (grids con `grid-cols-[minmax(0,1fr)]` en móvil).
 
 ## Entorno local (Windows + Laragon)

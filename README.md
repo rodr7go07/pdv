@@ -61,7 +61,8 @@ app/Actions/      Lógica de negocio (ventas, compras, caja, inventario, cliente
 app/Services/     Cálculos puros (precios, importes de venta, reportes, folios, resumen de turno)
 app/Enums/        Permisos, roles y catálogos fijos
 resources/views/livewire/   Pantallas (Livewire Volt); los componentes solo orquestan la interfaz
-resources/js/     Caja (pos.js), etiquetas y registro del service worker
+resources/js/     Caja (pos.js), cámara y escáner de códigos (camara.js, escaner.js), foto del artículo (foto.js),
+                  instalación de la app (pwa.js), etiquetas y registro del service worker
 deploy/           Manual y scripts para DigitalOcean (Nginx, Supervisor, cron, respaldos)
 docs/             Guía detallada, impresión y hardware
 PLAN.md           Fases, tareas y decisiones técnicas

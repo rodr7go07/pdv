@@ -6,6 +6,7 @@ use App\Exports\ReporteExport;
 use App\Services\ReporteVentas;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -37,7 +38,7 @@ class ReporteExportController extends Controller
 
         [$titulo, $encabezados, $filas] = $this->armar($seccion, $reporte, $datos['agrupar'] ?? 'dia', $datos['orden'] ?? 'importe');
 
-        $nombre = 'reporte-'.$seccion.'-'.$reporte->desde->toDateString().'-a-'.$reporte->hasta->toDateString().'.xlsx';
+        $nombre = 'reporte-'.Str::slug($titulo).'-'.$reporte->desde->toDateString().'-a-'.$reporte->hasta->toDateString().'.xlsx';
 
         return Excel::download(new ReporteExport($titulo, $encabezados, $filas), $nombre);
     }

@@ -89,12 +89,20 @@ it('filtra por cajero', function () {
         ->assertDontSee('$100.00')->assertSee('$0.00');
 });
 
-it('exporta cada reporte a Excel', function (string $seccion) {
+it('exporta cada reporte a Excel con el nombre del reporte en el archivo', function (string $seccion, string $nombre) {
     $respuesta = $this->actingAs($this->admin)->get("/reportes/exportar/{$seccion}?desde=".now()->toDateString().'&hasta='.now()->toDateString());
 
     $respuesta->assertOk()->assertDownload();
-    expect($respuesta->headers->get('content-disposition'))->toContain("reporte-{$seccion}-")->toContain('.xlsx');
-})->with(['resumen', 'periodo', 'departamento', 'articulo', 'cajero', 'pago', 'inventario']);
+    expect($respuesta->headers->get('content-disposition'))->toContain("reporte-{$nombre}-")->toContain('.xlsx');
+})->with([
+    'resumen' => ['resumen', 'resumen'],
+    'periodo' => ['periodo', 'ventas-por-periodo'],
+    'departamento' => ['departamento', 'por-departamento'],
+    'articulo' => ['articulo', 'por-articulo'],
+    'cajero' => ['cajero', 'por-cajero'],
+    'pago' => ['pago', 'por-forma-de-pago'],
+    'inventario' => ['inventario', 'valor-del-inventario'],
+]);
 
 it('la exportación valida la sección y las fechas', function () {
     $this->actingAs($this->admin)->get('/reportes/exportar/inexistente')->assertNotFound();

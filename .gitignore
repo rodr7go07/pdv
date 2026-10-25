@@ -25,3 +25,8 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Bases SQLite de pruebas locales (nunca se suben)
+/punto_venta
+*.sqlite
+*.sqlite3

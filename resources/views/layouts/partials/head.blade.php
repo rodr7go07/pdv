@@ -6,7 +6,8 @@
 
 {{-- PWA --}}
 <meta name="theme-color" content="#141a4a">
-<link rel="manifest" href="/manifest.webmanifest">
+{{-- crossorigin="use-credentials" envía la cookie, así el manifest también se lee detrás de túneles que piden confirmar la visita (ngrok). --}}
+<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">
 <link rel="icon" type="image/svg+xml" href="/icons/icono.svg">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">

@@ -3,12 +3,14 @@ import { registrarPos } from './pos';
 import { registrarEtiquetas } from './etiquetas';
 import { registrarEscaner } from './escaner';
 import { registrarFoto } from './foto';
+import { registrarPwa } from './pwa';
 
 document.addEventListener('alpine:init', () => {
     registrarPos(window.Alpine);
     registrarEtiquetas(window.Alpine);
     registrarEscaner(window.Alpine);
     registrarFoto(window.Alpine);
+    registrarPwa(window.Alpine);
 });
 
 if ('serviceWorker' in navigator) {

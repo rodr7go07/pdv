@@ -1,5 +1,9 @@
 <?php
 
+use App\Enums\Rol;
+use App\Models\User;
+use Database\Seeders\RolesYPermisosSeeder;
+
 it('publica un manifest válido con íconos existentes', function () {
     $manifest = json_decode(file_get_contents(public_path('manifest.webmanifest')), true, flags: JSON_THROW_ON_ERROR);
 
@@ -28,4 +32,34 @@ it('enlaza el manifest desde las pantallas', function () {
         ->assertOk()
         ->assertSee('rel="manifest"', escape: false)
         ->assertSee('theme-color', escape: false);
+});
+
+it('el manifest trae accesos directos a rutas que existen', function () {
+    $manifest = json_decode(file_get_contents(public_path('manifest.webmanifest')), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($manifest['shortcuts'])->not->toBeEmpty();
+
+    foreach ($manifest['shortcuts'] as $acceso) {
+        expect($acceso)->toHaveKeys(['name', 'url'])
+            ->and(collect(app('router')->getRoutes()->getRoutes())->contains(fn ($r) => '/'.$r->uri() === $acceso['url']))->toBeTrue();
+    }
+});
+
+it('lee el manifest con credenciales para que funcione detrás de ngrok', function () {
+    $this->get('/login')->assertOk()->assertSee('rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials"', escape: false);
+});
+
+it('ofrece el botón de instalar en el acceso y en el sistema, con los pasos para iPhone', function () {
+    $this->get('/login')->assertOk()
+        ->assertSee('$store.pwa.puedeInstalar', escape: false)
+        ->assertSee('Instalar app')
+        ->assertSee('Agregar a pantalla de inicio');
+
+    $admin = User::factory()->create();
+    $this->seed(RolesYPermisosSeeder::class);
+    $admin->syncRoles(Rol::Administrador->value);
+
+    $this->actingAs($admin)->get('/dashboard')->assertOk()
+        ->assertSee('$store.pwa.instalar()', escape: false)
+        ->assertSee('Instalar la app en tu iPhone');
 });

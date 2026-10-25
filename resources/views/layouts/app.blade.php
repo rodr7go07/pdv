@@ -60,6 +60,10 @@
             </nav>
 
             <div class="border-t border-anil-800 p-4">
+                <button type="button" x-data x-show="$store.pwa.puedeInstalar" x-cloak x-on:click="$store.pwa.instalar()"
+                        class="mb-3 flex min-h-11 w-full items-center gap-3 rounded-lg border border-anil-700 px-3 text-sm font-semibold text-anil-100 transition hover:bg-anil-800 hover:text-white">
+                    {{ svg('phosphor-download-simple-bold', 'size-5 shrink-0 text-rosa-400') }} Instalar app
+                </button>
                 <div class="flex items-center gap-3">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-anil-700 font-display text-sm font-extrabold uppercase text-white">
                         {{ \Illuminate\Support\Str::of($usuario->name)->explode(' ')->take(2)->map(fn ($p) => mb_substr($p, 0, 1))->implode('') }}
@@ -89,12 +93,18 @@
                 @endif
                 <span class="truncate font-display text-base font-extrabold text-white [font-stretch:115%]">{{ $tienda->nombre_tienda }}</span>
             </a>
+            <div class="flex items-center gap-1">
+            <button type="button" x-data x-show="$store.pwa.puedeInstalar" x-cloak x-on:click="$store.pwa.instalar()" aria-label="Instalar app" title="Instalar app"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold text-anil-100 active:bg-anil-800">
+                {{ svg('phosphor-download-simple-bold', 'size-5 text-rosa-400') }} Instalar
+            </button>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" aria-label="Cerrar sesión" class="grid size-11 place-items-center rounded-lg text-anil-200 active:bg-anil-800">
                     {{ svg('phosphor-sign-out-bold', 'size-5') }}
                 </button>
             </form>
+            </div>
         </header>
 
         {{-- Contenido --}}
@@ -185,6 +195,7 @@
                 </div>
             @endif
         </div>
+        <x-ayuda-instalar />
         @livewireScripts
     </body>
 </html>

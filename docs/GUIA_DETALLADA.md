@@ -174,7 +174,7 @@ Las búsquedas de producto también tienen el botón de **cámara** en teléfono
 
 ## 9. Usar el sistema en el teléfono
 
-Todas las pantallas funcionan en teléfono y en computadora. Para **instalarlo como aplicación** abre el sitio en Chrome (Android) o Safari (iPhone) y elige *Agregar a pantalla de inicio*. Requiere internet para operar: sin conexión solo muestra un aviso. La **cámara** (escaneo en la pantalla de venta) exige abrir el sistema por **HTTPS**; en HTTP el navegador no da acceso a ella.
+Todas las pantallas funcionan en teléfono y en computadora. Para **instalarlo como aplicación** usa el botón **Instalar app** (en el teléfono, arriba junto a *Cerrar sesión*; en la computadora, en la barra lateral; también en la pantalla de acceso). En Chrome y Edge dispara la instalación; en iPhone/iPad muestra los pasos de Safari (*Compartir → Agregar a pantalla de inicio*), porque Safari no permite instalar desde un botón. Con la app ya instalada el botón no aparece. También sirve el menú del navegador (*Instalar app* o *Agregar a pantalla de inicio*). Requiere **HTTPS**. El ícono instalado trae accesos directos a *Venta* y *Mi caja* (mantener presionado en Android). Requiere internet para operar: sin conexión solo muestra un aviso. La **cámara** (escaneo en la pantalla de venta) exige abrir el sistema por **HTTPS**; en HTTP el navegador no da acceso a ella.
 
 ---
 

@@ -32,7 +32,13 @@
                         {{ now()->format('d/m/Y') }}
                     </p>
                 </div>
+
+                <button type="button" x-data x-show="$store.pwa.puedeInstalar" x-cloak x-on:click="$store.pwa.instalar()"
+                        class="mx-auto mt-6 flex min-h-11 items-center gap-2 rounded-lg border border-anil-700 px-4 text-sm font-semibold text-anil-100 hover:bg-anil-800">
+                    <x-phosphor-download-simple-bold class="size-5 text-rosa-400" /> Instalar app
+                </button>
             </div>
         </div>
+        <x-ayuda-instalar />
     </body>
 </html>

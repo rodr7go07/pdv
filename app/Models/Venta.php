@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,8 +14,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Venta extends Model
 {
-    use HasFactory;
-
     protected function casts(): array
     {
         return [
@@ -71,19 +67,8 @@ class Venta extends Model
         return $this->hasMany(Devolucion::class);
     }
 
-    public function scopeCompletadas(Builder $query): void
-    {
-        $query->where('estado', 'completada');
-    }
-
     public function estaCancelada(): bool
     {
         return $this->estado === 'cancelada';
-    }
-
-    /** Total devuelto (suma de las devoluciones). */
-    public function montoDevuelto(): string
-    {
-        return (string) $this->partidas->sum('monto_devuelto');
     }
 }

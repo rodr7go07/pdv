@@ -143,7 +143,7 @@ new class extends Component
             @endif
         </x-card>
 
-        <x-card :titulo="'Por reabastecer'" :descripcion="$this->totalBajoMinimo > 0 ? $this->totalBajoMinimo.' '.($this->totalBajoMinimo === 1 ? 'artículo está' : 'artículos están').' en o debajo del mínimo' : null" :padding="false">
+        <x-card titulo="Por reabastecer" :descripcion="$this->totalBajoMinimo > 0 ? $this->totalBajoMinimo.' '.($this->totalBajoMinimo === 1 ? 'artículo está' : 'artículos están').' en o debajo del mínimo' : null" :padding="false">
             @if ($this->bajoMinimo->isEmpty())
                 <div class="p-5"><p class="flex items-center gap-2 text-sm text-emerald-800"><x-phosphor-check-circle-bold class="size-5" /> Todo el inventario está arriba del mínimo.</p></div>
             @else
@@ -170,7 +170,7 @@ new class extends Component
                 <ul class="divide-y divide-anil-50">
                     @foreach ($this->turnosAbiertos as $fila)
                         <li class="flex items-center gap-3 px-5 py-3">
-                            <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ $fila['turno']->caja->nombre }} · {{ $fila['turno']->usuario->name }}</span><span class="text-xs text-anil-600">Desde las {{ $fila['turno']->abierto_at->format('H:i') }} · {{ $fila['resumen']['ventas']['cantidad'] }} ventas</span></span>
+                            <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ $fila['turno']->caja->nombre }} · {{ $fila['turno']->usuario->name }}</span><span class="text-xs text-anil-600">Desde las {{ $fila['turno']->abierto_at->format('H:i') }} · {{ $fila['resumen']['ventas']['cantidad'] }} {{ (int) $fila['resumen']['ventas']['cantidad'] === 1 ? 'venta' : 'ventas' }}</span></span>
                             <span class="font-mono font-semibold">{{ $m($fila['resumen']['ventas']['total']) }}</span>
                         </li>
                     @endforeach
@@ -179,7 +179,7 @@ new class extends Component
         </x-card>
 
         @can('clientes.ver')
-            <x-card titulo="Cuentas por cobrar" :padding="true">
+            <x-card titulo="Cuentas por cobrar">
                 <p class="font-display text-3xl font-extrabold">{{ $m($this->porCobrar) }}</p>
                 <p class="mt-1 text-sm text-anil-700">Lo que los clientes todavía deben.</p>
                 <a href="{{ route('clientes.index', ['filtro' => 'saldo']) }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-rosa-600 underline">Ver quién debe</a>

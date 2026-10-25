@@ -81,10 +81,4 @@ enum Permiso: string
             self::UsuariosAdministrar => 'Administrar usuarios',
         };
     }
-
-    /** @return list<string> */
-    public static function valores(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
 }

@@ -31,7 +31,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->authorize('articulos.ver');
     }
 
-    public function updating(string $nombre): void
+    public function updating(): void
     {
         $this->resetPage();
         $this->aviso = null;

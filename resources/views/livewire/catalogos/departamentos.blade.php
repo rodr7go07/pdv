@@ -53,7 +53,7 @@ new class extends Component
             'activo' => ['boolean'],
         ], [
             'nombre.unique' => 'Ya existe un departamento con ese nombre (quizá desactivado).',
-        ], ['nombre' => 'nombre']);
+        ]);
 
         Departamento::query()->updateOrCreate(['id' => $this->editandoId], ['nombre' => trim($datos['nombre']), 'activo' => $datos['activo']]);
 

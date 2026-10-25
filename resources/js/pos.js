@@ -55,7 +55,7 @@ export function registrarPos(Alpine) {
         esperas: { lista: [], cargando: false, nombre: '' },
         cobro: { pagos: [], procesando: false, error: '', totalServidor: null },
         exito: null,
-        camara: { iniciando: false, error: '', hayLinterna: false, linterna: false, leidos: 0 },
+        camara: { iniciando: false, error: '', hayLinterna: false, linterna: false },
         _lector: null,
         codigoSinAlta: '', // código leído con la cámara que no existe y se ofrece dar de alta
         _idCamara: 0, // identifica cada apertura de la cámara (ver escaner.js)
@@ -171,7 +171,7 @@ export function registrarPos(Alpine) {
                 this.avisar('La cámara solo funciona con conexión segura (HTTPS). Abre el sistema con https://.', 'error', 8000);
                 return;
             }
-            this.camara = { iniciando: true, error: '', hayLinterna: false, linterna: false, leidos: 0 };
+            this.camara = { iniciando: true, error: '', hayLinterna: false, linterna: false };
             this.modal = 'camara';
             const id = ++this._idCamara;
             this.$nextTick(() => this.arrancarCamara(id));
@@ -208,7 +208,6 @@ export function registrarPos(Alpine) {
         codigoDeCamara(codigo) {
             if (this.modal !== 'camara') return; // llegó tarde: la ventana ya se cerró
             navigator.vibrate?.(60);
-            this.camara.leidos++;
             this.entrada = codigo;
             this.enviarEntrada('camara');
         },

@@ -1,6 +1,6 @@
 @php
     $m = fn ($v) => '$'.number_format((float) $v, 2);
-    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'A credito (sin cobrar)'];
+    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'A crédito (sin cobrar)'];
 @endphp
 <!doctype html>
 <html lang="es-MX">

@@ -98,6 +98,7 @@ Pantalla completa pensada para escáner y teclado. El cursor siempre está en el
 ### Escanear con la cámara en la venta
 - **Formatos:** EAN-13, EAN-8, UPC-A, UPC-E, Code 128 y QR. Son los que se autocomprueban; Code 39, ITF y Codabar no se leen con la cámara (se escriben o se leen con lector).
 - **Confirmación:** para evitar lecturas a medias al mover rápido la cámara, un código se acepta tras leerse **2 veces** dentro de 1.2 s (**3** si tiene 8 caracteres o menos). Hay que mantener el código a la vista un instante.
+- **Confirmación en pantalla:** tras cada lectura, la ventana de la cámara muestra *Agregado: nombre · piezas en la venta*, para saber qué se agregó sin cerrarla.
 - **Código que no existe** (o que solo coincide con el inicio de otra clave): no abre el alta ni la búsqueda; muestra «No se reconoció…» y el botón *Dar de alta «código»* durante 12 s. Con el lector o el teclado, en cambio, el alta se ofrece de inmediato.
 - **Requisitos:** HTTPS (o `localhost`) y permiso de cámara para el sitio. Usa el `BarcodeDetector` del navegador (Chrome en Android) y, si no existe (iPhone), ZXing, que se descarga solo al abrir la cámara. La cámara se apaga al cerrar la ventana o salir de la pantalla.
 
@@ -107,7 +108,9 @@ La ventana de cobro muestra el total exacto. Puedes cobrar con **efectivo, tarje
 - *Tarjeta, transferencia y crédito* se cobran por el monto exacto; solo el efectivo genera cambio.
 - Al confirmar aparece el folio y el cambio a entregar. Puedes imprimir el ticket.
 
-Si no hay internet al cobrar, la venta **no se registra**: espera a que regrese y vuelve a intentar (el carrito se conserva).
+Si no hay internet al cobrar, la venta **no se registra**: espera a que regrese y vuelve a intentar (el carrito se conserva). Al quedarse sin conexión aparece arriba una franja amarilla *Sin internet* en todas las pantallas, y el sistema no deja abrir otra pantalla hasta que regrese (un aviso verde confirma que volvió).
+
+Con el **teléfono acostado** (horizontal) la venta pone el resumen y los botones a la derecha y la lista a la izquierda, con cada renglón en dos líneas, para que la lista no se quede sin espacio.
 
 ### Durante el turno
 - **Entrada de efectivo:** dinero que agregas al cajón (por ejemplo, cambio del banco).
@@ -209,7 +212,7 @@ Todas las pantallas funcionan en teléfono y en computadora. Para **instalarlo c
 | No me aparece una opción del menú | Tu rol no tiene ese permiso. Pídeselo al administrador. |
 | Olvidé mi contraseña | El administrador la cambia en *Usuarios*. |
 | La cámara no abre | La dirección debe empezar con `https://` y el navegador debe tener permiso de cámara para el sitio (revisa los permisos si la negaste antes). |
-| Se fue el internet | No se puede cobrar. Cuando regrese, el carrito sigue ahí. |
+| Se fue el internet | Franja amarilla arriba; no se puede cobrar ni cambiar de pantalla. Cuando regrese, el carrito sigue ahí. |
 | El ticket sale cortado | *Cajas →* imprime la prueba y revisa el ancho de papel; en el cuadro de impresión pon márgenes en «Ninguno». |
 
 ---

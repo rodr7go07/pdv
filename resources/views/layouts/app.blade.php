@@ -195,6 +195,7 @@
                 </div>
             @endif
         </div>
+        <x-sin-conexion />
         <x-ayuda-instalar />
         @livewireScripts
     </body>

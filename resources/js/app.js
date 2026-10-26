@@ -4,6 +4,7 @@ import { registrarEtiquetas } from './etiquetas';
 import { registrarEscaner } from './escaner';
 import { registrarFoto } from './foto';
 import { registrarPwa } from './pwa';
+import { registrarConexion } from './conexion';
 
 document.addEventListener('alpine:init', () => {
     registrarPos(window.Alpine);
@@ -11,6 +12,7 @@ document.addEventListener('alpine:init', () => {
     registrarEscaner(window.Alpine);
     registrarFoto(window.Alpine);
     registrarPwa(window.Alpine);
+    registrarConexion(window.Alpine);
 });
 
 if ('serviceWorker' in navigator) {

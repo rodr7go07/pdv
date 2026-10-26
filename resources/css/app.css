@@ -14,6 +14,12 @@
  * Identidad visual: rótulo pintado + ticket térmico.
  * Añil de fachada, rosa mexicano como único acento, papel gris azulado.
  */
+/* Teléfono acostado: poca altura pero ancho suficiente para poner la venta en dos columnas (como en PC). */
+@custom-variant apaisado (@media (orientation: landscape) and (max-height: 32rem) and (min-width: 40rem) and (max-width: 63.99rem));
+
+/* Renglones de la venta en una sola línea: hace falta ancho, y con el teléfono acostado la lista comparte la pantalla con el resumen. */
+@custom-variant ancha (@media (min-width: 40rem) and (not ((orientation: landscape) and (max-height: 32rem) and (max-width: 63.99rem))));
+
 @theme {
     --font-display: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
     --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;

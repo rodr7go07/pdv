@@ -56,6 +56,7 @@ export function registrarPos(Alpine) {
         cobro: { pagos: [], procesando: false, error: '', totalServidor: null },
         exito: null,
         camara: { iniciando: false, error: '', hayLinterna: false, linterna: false },
+        ultimoLeido: null, // último artículo agregado, para confirmarlo en la ventana de la cámara (que deja la venta fuera de vista)
         _lector: null,
         codigoSinAlta: '', // código leído con la cámara que no existe y se ofrece dar de alta
         _idCamara: 0, // identifica cada apertura de la cámara (ver escaner.js)
@@ -172,6 +173,7 @@ export function registrarPos(Alpine) {
                 return;
             }
             this.camara = { iniciando: true, error: '', hayLinterna: false, linterna: false };
+            this.ultimoLeido = null;
             this.modal = 'camara';
             const id = ++this._idCamara;
             this.$nextTick(() => this.arrancarCamara(id));
@@ -327,6 +329,8 @@ export function registrarPos(Alpine) {
                 this.sel = this.lineas.length - 1;
             }
 
+            const linea = this.lineas[this.sel];
+            this.ultimoLeido = { descripcion: linea.descripcion, cantidad: limpiarNumero(linea.cantidad), unidad: linea.unidad };
             this.avisar('');
             this.$nextTick(() => {
                 const fila = this.$refs.lista?.querySelector('[data-sel="true"]');

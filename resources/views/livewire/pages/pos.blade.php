@@ -364,7 +364,7 @@ new #[Layout('layouts.pos')] class extends Component
             </div>
         </header>
 
-        <div class="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div class="flex min-h-0 flex-1 flex-col apaisado:flex-row lg:flex-row">
             {{-- Captura y carrito --}}
             <section class="flex min-h-0 flex-1 flex-col">
                 <div class="shrink-0 border-b border-anil-100 bg-white p-3 sm:p-4">
@@ -379,7 +379,7 @@ new #[Layout('layouts.pos')] class extends Component
                             <x-phosphor-camera-bold class="size-6" />
                         </button>
                     </div>
-                    <div class="mt-2 flex min-h-6 flex-wrap items-center gap-2 text-sm" aria-live="polite">
+                    <div class="mt-2 flex min-h-6 flex-wrap items-center gap-2 text-sm apaisado:min-h-0" aria-live="polite">
                         <template x-if="multiplicador">
                             <span class="inline-flex items-center gap-1 rounded-md bg-rosa-50 px-2 py-0.5 font-mono text-sm font-bold text-rosa-700 ring-1 ring-rosa-100">
                                 ×<span x-text="multiplicador"></span>
@@ -407,7 +407,7 @@ new #[Layout('layouts.pos')] class extends Component
                         <template x-for="(l, i) in lineas" :key="l.uid">
                             <li :data-sel="sel === i" x-on:click="sel = i"
                                 :class="sel === i ? 'bg-rosa-50/70' : 'bg-white'"
-                                class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_9.5rem_6rem_6.5rem_5rem] sm:px-4">
+                                class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-3 py-3 ancha:grid-cols-[minmax(0,1fr)_9.5rem_6rem_6.5rem_5rem] ancha:px-4">
                                 <div class="min-w-0">
                                     <p class="truncate font-semibold leading-snug" x-text="l.descripcion"></p>
                                     <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-anil-600">
@@ -418,30 +418,30 @@ new #[Layout('layouts.pos')] class extends Component
                                     </p>
                                 </div>
 
-                                <p class="text-right font-display text-lg font-extrabold sm:order-last sm:col-start-4 sm:text-base" x-text="dinero(totalLinea(l))"></p>
+                                <p class="text-right font-display text-lg font-extrabold ancha:order-last ancha:col-start-4 ancha:text-base" x-text="dinero(totalLinea(l))"></p>
 
-                                <div class="col-span-2 flex items-center justify-between gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:justify-center">
-                                    <button type="button" x-on:click.stop="cambiarCantidad(i, -1)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-800 active:bg-anil-100 sm:size-9" aria-label="Quitar una pieza">
+                                <div class="col-span-2 flex items-center justify-between gap-2 ancha:col-span-1 ancha:col-start-2 ancha:row-start-1 ancha:justify-center">
+                                    <button type="button" x-on:click.stop="cambiarCantidad(i, -1)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-800 active:bg-anil-100 ancha:size-9" aria-label="Quitar una pieza">
                                         <x-phosphor-minus-bold class="size-4" />
                                     </button>
                                     <input type="text" inputmode="decimal" :value="cantidadTexto(l)" x-on:change="fijarCantidad(i, $event.target.value); $event.target.value = cantidadTexto(l)"
                                            x-on:keydown.enter.stop.prevent="$event.target.blur(); enfocar()" x-on:focus="$event.target.select()"
-                                           class="h-11 w-20 rounded-lg border border-anil-200 bg-white px-1 text-center font-mono text-base font-bold focus:border-rosa-500 focus:ring-2 focus:ring-rosa-500/20 sm:h-9 sm:w-[4.75rem]" :aria-label="'Cantidad de ' + l.descripcion">
-                                    <button type="button" x-on:click.stop="cambiarCantidad(i, 1)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-800 active:bg-anil-100 sm:size-9" aria-label="Agregar una pieza">
+                                           class="h-11 w-20 rounded-lg border border-anil-200 bg-white px-1 text-center font-mono text-base font-bold focus:border-rosa-500 focus:ring-2 focus:ring-rosa-500/20 ancha:h-9 ancha:w-[4.75rem]" :aria-label="'Cantidad de ' + l.descripcion">
+                                    <button type="button" x-on:click.stop="cambiarCantidad(i, 1)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-800 active:bg-anil-100 ancha:size-9" aria-label="Agregar una pieza">
                                         <x-phosphor-plus-bold class="size-4" />
                                     </button>
                                     {{-- En teléfono los botones de descuento y quitar van junto a la cantidad --}}
-                                    <button type="button" x-on:click.stop="abrirDescuentoLinea(i)" x-show="cfg.puedeDescuento" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-700 active:bg-anil-100 sm:hidden" aria-label="Descuento a este artículo">
+                                    <button type="button" x-on:click.stop="abrirDescuentoLinea(i)" x-show="cfg.puedeDescuento" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-700 active:bg-anil-100 ancha:hidden" aria-label="Descuento a este artículo">
                                         <x-phosphor-percent-bold class="size-4" />
                                     </button>
-                                    <button type="button" x-on:click.stop="quitar(i)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-700 active:bg-red-50 sm:hidden" aria-label="Quitar artículo">
+                                    <button type="button" x-on:click.stop="quitar(i)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-700 active:bg-red-50 ancha:hidden" aria-label="Quitar artículo">
                                         <x-phosphor-trash-bold class="size-4" />
                                     </button>
                                 </div>
 
-                                <p class="hidden text-right font-mono text-sm text-anil-700 sm:col-start-3 sm:row-start-1 sm:block" x-text="dinero(precioCents(l)) + '/' + l.unidad"></p>
+                                <p class="hidden text-right font-mono text-sm text-anil-700 ancha:col-start-3 ancha:row-start-1 ancha:block" x-text="dinero(precioCents(l)) + '/' + l.unidad"></p>
 
-                                <div class="hidden justify-end gap-1 sm:col-start-5 sm:row-start-1 sm:flex">
+                                <div class="hidden justify-end gap-1 ancha:col-start-5 ancha:row-start-1 ancha:flex">
                                     <button type="button" x-on:click.stop="abrirDescuentoLinea(i)" x-show="cfg.puedeDescuento" class="grid size-9 place-items-center rounded-lg text-anil-600 hover:bg-anil-100" aria-label="Descuento a este artículo" title="Descuento">
                                         <x-phosphor-percent-bold class="size-4" />
                                     </button>
@@ -456,8 +456,8 @@ new #[Layout('layouts.pos')] class extends Component
             </section>
 
             {{-- Resumen y acciones --}}
-            <aside class="shrink-0 border-t border-anil-100 bg-white lg:flex lg:w-[22rem] lg:flex-col lg:border-l lg:border-t-0">
-                <div class="grid grid-cols-5 gap-1.5 border-b border-anil-50 p-2 lg:grid-cols-2 lg:gap-2 lg:p-4">
+            <aside class="shrink-0 border-t border-anil-100 bg-white apaisado:flex apaisado:w-64 apaisado:flex-col apaisado:overflow-y-auto apaisado:border-l apaisado:border-t-0 lg:flex lg:w-[22rem] lg:flex-col lg:border-l lg:border-t-0">
+                <div class="grid grid-cols-5 gap-1.5 border-b border-anil-50 p-2 apaisado:grid-cols-3 lg:grid-cols-2 lg:gap-2 lg:p-4">
                     <button type="button" x-on:click="abrirBusqueda()" class="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg border border-anil-200 text-[0.6875rem] font-semibold text-anil-800 active:bg-anil-100 lg:min-h-11 lg:flex-row lg:gap-2 lg:text-sm">
                         <x-phosphor-magnifying-glass-bold class="size-5" /> Buscar <span class="hidden font-mono text-anil-500 lg:inline">F2</span>
                     </button>
@@ -569,7 +569,11 @@ new #[Layout('layouts.pos')] class extends Component
                 <div class="min-h-16 px-4 py-3 text-sm" aria-live="polite">
                     <p x-show="aviso" x-text="aviso" x-cloak
                        :class="{ 'text-red-300 font-semibold': avisoTipo === 'error', 'text-emerald-300 font-semibold': avisoTipo === 'ok', 'text-anil-200': avisoTipo === 'info' }"></p>
-                    <p x-show="!aviso" class="text-anil-200">Apunta al código de barras. Puedes escanear varios artículos seguidos.</p>
+                    <p x-show="!aviso && ultimoLeido" x-cloak class="flex items-start gap-2 font-semibold text-emerald-300">
+                        <x-phosphor-check-circle-bold class="mt-0.5 size-5 shrink-0" />
+                        <span class="min-w-0">Agregado: <span x-text="ultimoLeido?.descripcion"></span> · <span x-text="ultimoLeido?.cantidad"></span> <span x-text="ultimoLeido?.unidad"></span> en la venta</span>
+                    </p>
+                    <p x-show="!aviso && !ultimoLeido" class="text-anil-200">Apunta al código de barras. Puedes escanear varios artículos seguidos.</p>
                     <button type="button" x-show="codigoSinAlta" x-cloak x-on:click="abrirAlta(codigoSinAlta)"
                             class="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-rosa-500 px-3 text-sm font-semibold text-white">
                         <x-phosphor-plus-bold class="size-4" /> Dar de alta «<span x-text="codigoSinAlta"></span>»

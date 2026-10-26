@@ -5,5 +5,6 @@
     </head>
     <body class="overflow-hidden bg-papel antialiased">
         {{ $slot }}
+        <x-sin-conexion />
     </body>
 </html>

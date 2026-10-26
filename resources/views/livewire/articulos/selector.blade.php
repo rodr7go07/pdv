@@ -132,7 +132,7 @@ new class extends Component
                         </span>
                         <span class="shrink-0 text-right text-xs text-anil-700">
                             <span class="block font-display text-sm font-extrabold text-tinta">${{ number_format((float) $a->precio_1, 2) }}</span>
-                            Existencia {{ rtrim(rtrim((string) $a->existencia, '0'), '.') ?: '0' }} {{ $a->unidad->abreviatura }}
+                            Existencia {{ \App\Support\Numero::cantidad($a->existencia) }} {{ $a->unidad->abreviatura }}
                         </span>
                     </button>
                 </li>

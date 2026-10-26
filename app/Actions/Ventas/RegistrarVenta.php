@@ -17,6 +17,7 @@ use App\Models\Venta;
 use App\Services\CalculadoraPrecios;
 use App\Services\CalculadoraVenta;
 use App\Services\Folios;
+use App\Support\Numero;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Illuminate\Support\Collection;
@@ -336,7 +337,7 @@ class RegistrarVenta
 
             if ($a->inventariable && BigDecimal::of((string) $a->existencia)->isLessThan($cantidad)) {
                 throw ValidationException::withMessages([
-                    'existencia' => "No hay suficiente existencia de «{$a->descripcion}» (hay ".(rtrim(rtrim((string) $a->existencia, '0'), '.') ?: '0').').',
+                    'existencia' => "No hay suficiente existencia de «{$a->descripcion}» (hay ".Numero::cantidad($a->existencia).').',
                 ]);
             }
         }

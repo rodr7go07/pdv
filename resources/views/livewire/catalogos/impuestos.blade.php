@@ -46,7 +46,7 @@ new class extends Component
         $i = Impuesto::query()->findOrFail($id);
         $this->fill([
             'editandoId' => $i->id, 'nombre' => $i->nombre, 'tipo' => $i->tipo->value,
-            'tasa' => rtrim(rtrim((string) $i->tasa, '0'), '.') ?: '0', 'exento' => $i->exento, 'activo' => $i->activo,
+            'tasa' => \App\Support\Numero::cantidad($i->tasa), 'exento' => $i->exento, 'activo' => $i->activo,
         ]);
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'impuesto');
@@ -97,7 +97,7 @@ new class extends Component
                     <div class="min-w-0 flex-1">
                         <p @class(['font-semibold', 'text-anil-400 line-through' => ! $i->activo])>{{ $i->nombre }}</p>
                         <p class="text-xs text-anil-600">
-                            {{ $i->tipo->etiqueta() }} · {{ $i->exento ? 'Exento' : rtrim(rtrim((string) $i->tasa, '0'), '.').'%' }} ·
+                            {{ $i->tipo->etiqueta() }} · {{ $i->exento ? 'Exento' : \App\Support\Numero::cantidad($i->tasa).'%' }} ·
                             {{ $i->articulos_count }} {{ $i->articulos_count === 1 ? 'artículo' : 'artículos' }}
                         </p>
                     </div>

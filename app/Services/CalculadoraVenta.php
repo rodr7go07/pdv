@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Numero;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 
@@ -182,7 +183,7 @@ final class CalculadoraVenta
     /** "16.0000" → "16", "8.5000" → "8.5". */
     private static function limpiar(string $numero): string
     {
-        return str_contains($numero, '.') ? rtrim(rtrim($numero, '0'), '.') : $numero;
+        return Numero::cantidad($numero);
     }
 
     private static function cero(): BigDecimal

@@ -139,7 +139,7 @@ new #[Layout('layouts.app')] class extends Component
                     @php
                         $tono = ['agotado' => 'peligro', 'bajo_minimo' => 'aviso', 'cobertura' => 'gris'][$f['estado']];
                         $etiqueta = ['agotado' => 'Agotado', 'bajo_minimo' => 'Bajo el mínimo', 'cobertura' => 'Cobertura baja'][$f['estado']];
-                        $num = fn (string $v, int $max = 3) => rtrim(rtrim(number_format((float) $v, $max), '0'), '.');
+                        $num = fn (string $v, int $max = 3) => \App\Support\Numero::cantidad(number_format((float) $v, $max));
                     @endphp
                     <li wire:key="sg-{{ $f['id'] }}" class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3 md:grid-cols-[minmax(0,1fr)_6rem_6rem_6rem_7rem_7rem] md:px-5">
                         <div class="min-w-0">

@@ -87,7 +87,7 @@ new #[Layout('layouts.app')] class extends Component
             <div class="text-right">
                 <p class="rotulo">Existencia actual</p>
                 <p class="font-display text-3xl font-extrabold">
-                    {{ rtrim(rtrim((string) $articulo->existencia, '0'), '.') ?: '0' }}
+                    {{ \App\Support\Numero::cantidad($articulo->existencia) }}
                     <span class="text-base font-medium text-anil-500">{{ $articulo->unidad->abreviatura }}</span>
                 </p>
             </div>
@@ -144,9 +144,9 @@ new #[Layout('layouts.app')] class extends Component
                             <td class="whitespace-nowrap px-4 py-2.5 font-mono text-xs text-anil-700">{{ $m->created_at->format('d/m/Y H:i') }}</td>
                             <td class="px-3 py-2.5"><x-badge :tono="$cantidad >= 0 ? 'ok' : 'gris'">{{ $m->tipo->etiqueta() }}</x-badge></td>
                             <td @class(['whitespace-nowrap px-3 py-2.5 text-right font-mono font-semibold', 'text-emerald-700' => $cantidad > 0, 'text-red-700' => $cantidad < 0])>
-                                {{ $cantidad > 0 ? '+' : '' }}{{ rtrim(rtrim((string) $m->cantidad, '0'), '.') }}
+                                {{ $cantidad > 0 ? '+' : '' }}{{ \App\Support\Numero::cantidad($m->cantidad) }}
                             </td>
-                            <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono">{{ rtrim(rtrim((string) $m->existencia_resultante, '0'), '.') ?: '0' }}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono">{{ \App\Support\Numero::cantidad($m->existencia_resultante) }}</td>
                             @if ($this->verCostos)
                                 <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono text-anil-700">{{ $m->costo_unitario !== null ? '$'.number_format((float) $m->costo_unitario, 2) : '—' }}</td>
                             @endif

@@ -72,7 +72,7 @@ new #[Layout('layouts.app')] class extends Component
             ));
         }
 
-        $this->exito = 'Ajuste guardado: '.$this->articulo->descripcion.' ahora tiene '.rtrim(rtrim((string) $movimiento->existencia_resultante, '0'), '.').' '.$this->articulo->unidad->abreviatura.'.';
+        $this->exito = 'Ajuste guardado: '.$this->articulo->descripcion.' ahora tiene '.\App\Support\Numero::cantidad($movimiento->existencia_resultante).' '.$this->articulo->unidad->abreviatura.'.';
         $this->reset('articuloId', 'cantidad', 'nota');
         $this->motivo = 'merma';
         $this->direccion = 'salida';
@@ -112,7 +112,7 @@ new #[Layout('layouts.app')] class extends Component
                         <p class="truncate font-semibold">{{ $this->articulo->descripcion }}</p>
                         <p class="font-mono text-xs text-anil-700">{{ $this->articulo->clave }}</p>
                         <p class="mt-1 text-sm">Existencia actual:
-                            <strong class="font-mono">{{ rtrim(rtrim((string) $this->articulo->existencia, '0'), '.') ?: '0' }} {{ $this->articulo->unidad->abreviatura }}</strong>
+                            <strong class="font-mono">{{ \App\Support\Numero::cantidad($this->articulo->existencia) }} {{ $this->articulo->unidad->abreviatura }}</strong>
                         </p>
                     </div>
                     <button type="button" wire:click="cambiarArticulo" class="shrink-0 text-sm font-semibold text-rosa-600 underline">Cambiar</button>
@@ -172,7 +172,7 @@ new #[Layout('layouts.app')] class extends Component
                                 @if ($m->nota)<p class="text-xs text-anil-700">{{ $m->nota }}</p>@endif
                             </div>
                             <span @class(['shrink-0 font-mono font-semibold', 'text-emerald-700' => $c > 0, 'text-red-700' => $c < 0])>
-                                {{ $c > 0 ? '+' : '' }}{{ rtrim(rtrim((string) $m->cantidad, '0'), '.') }} {{ $m->articulo->unidad->abreviatura }}
+                                {{ $c > 0 ? '+' : '' }}{{ \App\Support\Numero::cantidad($m->cantidad) }} {{ $m->articulo->unidad->abreviatura }}
                             </span>
                         </li>
                     @endforeach

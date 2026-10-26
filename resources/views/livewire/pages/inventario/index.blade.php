@@ -150,11 +150,11 @@ new #[Layout('layouts.app')] class extends Component
                             </td>
                             <td class="hidden px-3 py-3 text-anil-700 lg:table-cell">{{ $a->departamento->nombre }}</td>
                             <td class="whitespace-nowrap px-3 py-3 text-right font-display text-base font-extrabold">
-                                {{ rtrim(rtrim((string) $a->existencia, '0'), '.') ?: '0' }}<span class="ml-1 text-xs font-medium text-anil-500">{{ $a->unidad->abreviatura }}</span>
+                                {{ \App\Support\Numero::cantidad($a->existencia) }}<span class="ml-1 text-xs font-medium text-anil-500">{{ $a->unidad->abreviatura }}</span>
                             </td>
                             <td class="hidden whitespace-nowrap px-3 py-3 text-right font-mono text-anil-700 lg:table-cell">
-                                {{ $a->existencia_minima !== null ? rtrim(rtrim((string) $a->existencia_minima, '0'), '.') ?: '0' : '—' }} /
-                                {{ $a->existencia_maxima !== null ? rtrim(rtrim((string) $a->existencia_maxima, '0'), '.') ?: '0' : '—' }}
+                                {{ $a->existencia_minima !== null ? \App\Support\Numero::cantidad($a->existencia_minima) : '—' }} /
+                                {{ $a->existencia_maxima !== null ? \App\Support\Numero::cantidad($a->existencia_maxima) : '—' }}
                             </td>
                             <td class="px-4 py-3 text-right"><x-badge :tono="$estado[0]">{{ $estado[1] }}</x-badge></td>
                         </tr>
@@ -176,7 +176,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <x-badge :tono="$estado[0]" class="mt-1.5">{{ $estado[1] }}</x-badge>
                             </span>
                             <span class="shrink-0 text-right font-display text-xl font-extrabold">
-                                {{ rtrim(rtrim((string) $a->existencia, '0'), '.') ?: '0' }}
+                                {{ \App\Support\Numero::cantidad($a->existencia) }}
                                 <span class="block text-xs font-medium text-anil-500">{{ $a->unidad->abreviatura }}</span>
                             </span>
                         </a>

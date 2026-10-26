@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Configuracion;
 use App\Models\Venta;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -28,7 +30,7 @@ class VentaTicketController extends Controller
             ->groupBy(fn ($i) => $i['nombre'])
             ->map(fn ($grupo, $nombre) => [
                 'nombre' => $nombre,
-                'monto' => (string) $grupo->reduce(fn ($c, $i) => bcadd($c, (string) $i['monto'], 2), '0.00'),
+                'monto' => (string) $grupo->reduce(fn (BigDecimal $c, $i) => $c->plus((string) $i['monto']), BigDecimal::zero())->toScale(2, RoundingMode::HalfUp),
             ])->values();
 
         return view('ventas.ticket', [

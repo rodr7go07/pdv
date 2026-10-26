@@ -135,7 +135,7 @@ new class extends Component
                     @foreach ($this->top as $a)
                         <li class="flex items-center gap-3 px-5 py-3">
                             <span class="grid size-7 shrink-0 place-items-center rounded-full bg-anil-100 font-mono text-xs font-bold text-anil-800">{{ $loop->iteration }}</span>
-                            <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ $a['nombre'] }}</span><span class="text-xs text-anil-600">{{ rtrim(rtrim($a['cantidad'], '0'), '.') }} {{ $a['unidad'] }}</span></span>
+                            <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ $a['nombre'] }}</span><span class="text-xs text-anil-600">{{ \App\Support\Numero::cantidad($a['cantidad']) }} {{ $a['unidad'] }}</span></span>
                             <span class="font-mono font-semibold">{{ $m($a['neto']) }}</span>
                         </li>
                     @endforeach
@@ -150,8 +150,8 @@ new class extends Component
                 <ul class="divide-y divide-anil-50">
                     @foreach ($this->bajoMinimo as $a)
                         <li class="flex items-center gap-3 px-5 py-3">
-                            <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ $a->descripcion }}</span><span class="text-xs text-anil-600">Mínimo {{ rtrim(rtrim((string) $a->existencia_minima, '0'), '.') ?: '0' }} {{ $a->unidad->abreviatura }}</span></span>
-                            <x-badge :tono="(float) $a->existencia <= 0 ? 'peligro' : 'aviso'">{{ rtrim(rtrim((string) $a->existencia, '0'), '.') ?: '0' }} {{ $a->unidad->abreviatura }}</x-badge>
+                            <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ $a->descripcion }}</span><span class="text-xs text-anil-600">Mínimo {{ \App\Support\Numero::cantidad($a->existencia_minima) }} {{ $a->unidad->abreviatura }}</span></span>
+                            <x-badge :tono="(float) $a->existencia <= 0 ? 'peligro' : 'aviso'">{{ \App\Support\Numero::cantidad($a->existencia) }} {{ $a->unidad->abreviatura }}</x-badge>
                         </li>
                     @endforeach
                 </ul>

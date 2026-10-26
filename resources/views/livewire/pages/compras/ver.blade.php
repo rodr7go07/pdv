@@ -92,7 +92,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <span class="block font-semibold">{{ $p->descripcion }}</span>
                                 <span class="font-mono text-xs text-anil-600">{{ $p->clave }}</span>
                             </td>
-                            <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono">{{ rtrim(rtrim((string) $p->cantidad, '0'), '.') }} {{ $p->articulo->unidad->abreviatura }}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono">{{ \App\Support\Numero::cantidad($p->cantidad) }} {{ $p->articulo->unidad->abreviatura }}</td>
                             <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono text-anil-700">${{ number_format((float) $p->costo_unitario, 2) }}</td>
                             <td class="whitespace-nowrap px-5 py-2.5 text-right font-mono font-semibold">${{ number_format((float) $p->total, 2) }}</td>
                         </tr>

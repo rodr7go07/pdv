@@ -1,6 +1,6 @@
 @php
     $dinero = fn ($v) => '$'.number_format((float) $v, 2);
-    $cant = fn ($v) => rtrim(rtrim((string) $v, '0'), '.') ?: '0';
+    $cant = fn ($v) => \App\Support\Numero::cantidad($v);
 @endphp
 <!doctype html>
 <html lang="es-MX">
@@ -74,7 +74,7 @@
             <tr><td colspan="2" class="negrita">{{ $p->descripcion }}</td></tr>
             <tr>
                 <td>{{ $cant($p->cantidad) }} {{ $p->unidad }} x {{ $dinero($p->precio_unitario) }}</td>
-                <td class="der">{{ $dinero(bcadd((string) $p->total, (string) $p->descuento, 2)) }}</td>
+                <td class="der">{{ $dinero((string) \Brick\Math\BigDecimal::of((string) $p->total)->plus((string) $p->descuento)) }}</td>
             </tr>
             @if ((float) $p->descuento > 0)
                 <tr><td>  Descuento</td><td class="der">-{{ $dinero($p->descuento) }}</td></tr>

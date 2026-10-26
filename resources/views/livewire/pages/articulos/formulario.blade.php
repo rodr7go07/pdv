@@ -386,7 +386,7 @@ new #[Layout('layouts.app')] class extends Component
                     @if ($articulo && $articulo->inventariable)
                         <p class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-anil-50 px-4 py-3 text-sm text-anil-800">
                             <span>Existencia actual:
-                                <strong class="font-mono text-base text-anil-900">{{ rtrim(rtrim((string) $articulo->existencia, '0'), '.') ?: '0' }} {{ $articulo->unidad->abreviatura }}</strong>
+                                <strong class="font-mono text-base text-anil-900">{{ \App\Support\Numero::cantidad($articulo->existencia) }} {{ $articulo->unidad->abreviatura }}</strong>
                             </span>
                             <span class="text-anil-600">Cambia con compras, ventas, ajustes o conteos.</span>
                             @can('inventario.ver')

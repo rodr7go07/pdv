@@ -101,7 +101,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->fill([
             'editandoId' => $c->id, 'nombre' => $c->nombre, 'telefono' => $c->telefono ?? '', 'correo' => $c->correo ?? '',
             'rfc' => $c->rfc ?? '', 'direccion' => $c->direccion ?? '', 'lista_precios' => (string) $c->lista_precios,
-            'limite_credito' => rtrim(rtrim((string) $c->limite_credito, '0'), '.') ?: '0', 'notas' => $c->notas ?? '', 'activo' => $c->activo,
+            'limite_credito' => \App\Support\Numero::cantidad($c->limite_credito), 'notas' => $c->notas ?? '', 'activo' => $c->activo,
         ]);
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'cliente');

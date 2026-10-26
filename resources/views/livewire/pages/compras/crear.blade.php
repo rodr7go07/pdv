@@ -51,7 +51,7 @@ new #[Layout('layouts.app')] class extends Component
 
         foreach (array_slice($partidas, 0, $tope, true) as $id => $cantidad) {
             if ($articulo = $articulos->get((int) $id)) {
-                $this->lineas[] = $this->nuevaLinea($articulo, str_contains((string) $cantidad, '.') ? rtrim(rtrim((string) $cantidad, '0'), '.') : (string) $cantidad);
+                $this->lineas[] = $this->nuevaLinea($articulo, str_contains((string) $cantidad, '.') ? \App\Support\Numero::cantidad($cantidad) : (string) $cantidad);
             }
         }
 
@@ -98,7 +98,7 @@ new #[Layout('layouts.app')] class extends Component
             'descripcion' => $articulo->descripcion,
             'unidad' => $articulo->unidad->abreviatura,
             'cantidad' => $cantidad,
-            'costo_unitario' => rtrim(rtrim((string) $articulo->ultimo_costo, '0'), '.') ?: (rtrim(rtrim((string) $articulo->costo, '0'), '.') ?: ''),
+            'costo_unitario' => \App\Support\Numero::cantidad($articulo->ultimo_costo) ?: (\App\Support\Numero::cantidad($articulo->costo) ?: ''),
         ];
     }
 

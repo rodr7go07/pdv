@@ -17,6 +17,7 @@ use App\Models\Turno;
 use App\Models\UnidadMedida;
 use App\Models\User;
 use App\Models\Venta;
+use Brick\Math\BigDecimal;
 use Database\Seeders\RolesYPermisosSeeder;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -328,7 +329,7 @@ it('la última pieza devuelta absorbe el redondeo y el total devuelto nunca pasa
 
     $total = '0';
     foreach ([1, 1, 1] as $_) {
-        $total = bcadd($total, $dev($venta->refresh(), [['partida_id' => $id, 'cantidad' => '1']], 'x', $this->encargado)->total, 2);
+        $total = (string) BigDecimal::of($total)->plus($dev($venta->refresh(), [['partida_id' => $id, 'cantidad' => '1']], 'x', $this->encargado)->total)->toScale(2);
     }
 
     expect($total)->toBe('74.99');

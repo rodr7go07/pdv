@@ -38,7 +38,7 @@ new #[Layout('layouts.app')] class extends Component
 
         // Si ya se contó, se muestra la cantidad anterior para corregirla.
         $previa = $this->conteo->partidas()->where('articulo_id', $id)->value('cantidad_contada');
-        $this->cantidad = $previa !== null ? (rtrim(rtrim((string) $previa, '0'), '.') ?: '0') : '';
+        $this->cantidad = $previa !== null ? \App\Support\Numero::cantidad($previa) : '';
     }
 
     #[Computed]
@@ -61,7 +61,7 @@ new #[Layout('layouts.app')] class extends Component
             return;
         }
 
-        $this->aviso = 'Guardado: '.$this->articulo->descripcion.' = '.(rtrim(rtrim((string) $partida->cantidad_contada, '0'), '.') ?: '0');
+        $this->aviso = 'Guardado: '.$this->articulo->descripcion.' = '.\App\Support\Numero::cantidad($partida->cantidad_contada);
         $this->reset('articuloId', 'cantidad');
         unset($this->articulo, $this->partidas);
         $this->dispatch('enfocar-selector');
@@ -169,10 +169,10 @@ new #[Layout('layouts.app')] class extends Component
                                     <span class="block font-semibold">{{ $p->articulo->descripcion }}</span>
                                     <span class="font-mono text-xs text-anil-600">{{ $p->articulo->clave }}</span>
                                 </td>
-                                <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono text-anil-700">{{ rtrim(rtrim((string) $p->existencia_sistema, '0'), '.') ?: '0' }}</td>
-                                <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono font-semibold">{{ rtrim(rtrim((string) $p->cantidad_contada, '0'), '.') ?: '0' }}</td>
+                                <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono text-anil-700">{{ \App\Support\Numero::cantidad($p->existencia_sistema) }}</td>
+                                <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono font-semibold">{{ \App\Support\Numero::cantidad($p->cantidad_contada) }}</td>
                                 <td @class(['whitespace-nowrap px-3 py-2.5 text-right font-mono font-bold', 'text-emerald-700' => $d > 0, 'text-red-700' => $d < 0, 'text-anil-400' => $d == 0])>
-                                    {{ $d > 0 ? '+' : '' }}{{ rtrim(rtrim($p->diferencia(), '0'), '.') ?: '0' }}
+                                    {{ $d > 0 ? '+' : '' }}{{ \App\Support\Numero::cantidad($p->diferencia()) }}
                                 </td>
                                 @if ($conteo->enProceso())
                                     <td class="px-3 py-2.5">

@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\CalculadoraVenta as Venta;
+use Brick\Math\BigDecimal;
 
 function lin(string $precio, string $cantidad = '1', string $tasa = '0', array $extra = []): array
 {
@@ -63,11 +64,11 @@ it('descuento general por porcentaje sobre el total ya descontado por partida', 
 it('los importes siempre cuadran: subtotal + impuestos = total', function (array $lineas, array $global) {
     $r = Venta::calcular($lineas, $global);
 
-    $suma = bcadd($r['subtotal'], $r['impuestos'], 2);
+    $suma = (string) BigDecimal::of($r['subtotal'])->plus($r['impuestos'])->toScale(2);
     expect($suma)->toBe($r['total']);
 
     foreach ($r['lineas'] as $l) {
-        expect(bcadd($l['subtotal'], $l['impuestos'], 2))->toBe($l['total']);
+        expect((string) BigDecimal::of($l['subtotal'])->plus($l['impuestos'])->toScale(2))->toBe($l['total']);
     }
 })->with([
     'tres partidas con IVA' => [[lin('19.99', '3', '16'), lin('7.35', '2', '16'), lin('1.11', '7', '16')], []],

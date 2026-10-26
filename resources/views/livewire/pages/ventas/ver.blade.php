@@ -121,10 +121,10 @@ new #[Layout('layouts.app')] class extends Component
                                         <span class="font-mono text-xs text-anil-600">{{ $p->clave }}</span>
                                         @if ((float) $p->descuento > 0)<span class="ml-1 text-xs font-semibold text-emerald-700">Desc. ${{ number_format((float) $p->descuento, 2) }}</span>@endif
                                         @if ((float) $p->cantidad_devuelta > 0)
-                                            <span class="mt-0.5 block text-xs font-semibold text-amber-800">Devuelto: {{ rtrim(rtrim((string) $p->cantidad_devuelta, '0'), '.') }} {{ $p->unidad }} (${{ number_format((float) $p->monto_devuelto, 2) }})</span>
+                                            <span class="mt-0.5 block text-xs font-semibold text-amber-800">Devuelto: {{ \App\Support\Numero::cantidad($p->cantidad_devuelta) }} {{ $p->unidad }} (${{ number_format((float) $p->monto_devuelto, 2) }})</span>
                                         @endif
                                     </td>
-                                    <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono">{{ rtrim(rtrim((string) $p->cantidad, '0'), '.') }} {{ $p->unidad }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono">{{ \App\Support\Numero::cantidad($p->cantidad) }} {{ $p->unidad }}</td>
                                     <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono text-anil-700">${{ number_format((float) $p->precio_unitario, 2) }}</td>
                                     <td class="whitespace-nowrap px-5 py-2.5 text-right font-mono font-semibold">${{ number_format((float) $p->total, 2) }}</td>
                                 </tr>
@@ -223,7 +223,7 @@ new #[Layout('layouts.app')] class extends Component
                         <li class="flex items-center gap-3 py-2.5">
                             <div class="min-w-0 flex-1">
                                 <p class="truncate text-sm font-semibold">{{ $p->descripcion }}</p>
-                                <p class="text-xs text-anil-600">Se pueden devolver {{ rtrim(rtrim($max, '0'), '.') ?: '0' }} {{ $p->unidad }}</p>
+                                <p class="text-xs text-anil-600">Se pueden devolver {{ \App\Support\Numero::cantidad($max) }} {{ $p->unidad }}</p>
                             </div>
                             <x-text-input wire:model="devolver.{{ $p->id }}" type="text" inputmode="decimal" class="!w-24 text-center font-mono" placeholder="0" :disabled="(float) $max <= 0" aria-label="Cantidad a devolver de {{ $p->descripcion }}" />
                         </li>

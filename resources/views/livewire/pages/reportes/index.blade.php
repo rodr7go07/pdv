@@ -242,7 +242,7 @@ new #[Layout('layouts.app')] class extends Component
                                     @endif
                                 </td>
                                 @if (in_array($seccion, ['periodo', 'cajero'], true))<td class="px-3 py-2.5 text-right font-mono">{{ number_format($f['ventas']) }}</td>@endif
-                                @if ($seccion === 'articulo')<td class="whitespace-nowrap px-3 py-2.5 text-right font-mono">{{ rtrim(rtrim($f['cantidad'], '0'), '.') ?: '0' }} {{ $f['unidad'] }}</td>@endif
+                                @if ($seccion === 'articulo')<td class="whitespace-nowrap px-3 py-2.5 text-right font-mono">{{ \App\Support\Numero::cantidad($f['cantidad']) }} {{ $f['unidad'] }}</td>@endif
                                 <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono font-semibold">{{ $m($f['neto']) }}</td>
                                 <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono text-anil-700">{{ $m($f['costo']) }}</td>
                                 <td class="whitespace-nowrap px-3 py-2.5 text-right font-mono font-semibold {{ (float) $f['utilidad'] < 0 ? 'text-red-700' : 'text-emerald-700' }}">{{ $m($f['utilidad']) }}</td>

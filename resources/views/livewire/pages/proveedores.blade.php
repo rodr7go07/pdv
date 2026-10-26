@@ -1,7 +1,8 @@
 <?php
 
+use App\Actions\Proveedores\GuardarProveedor;
 use App\Models\Proveedor;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -60,31 +61,21 @@ new #[Layout('layouts.app')] class extends Component
         $this->dispatch('abrir-modal', nombre: 'proveedor');
     }
 
-    public function guardar(): void
+    public function guardar(GuardarProveedor $guardar): void
     {
-        $this->authorize('proveedores.administrar');
+        $this->resetValidation();
 
-        $d = $this->validate([
-            'nombre' => ['required', 'string', 'max:120', Rule::unique('proveedores', 'nombre')->ignore($this->editandoId)],
-            'contacto' => ['nullable', 'string', 'max:120'],
-            'telefono' => ['nullable', 'string', 'max:20'],
-            'correo' => ['nullable', 'email', 'max:120'],
-            'rfc' => ['nullable', 'string', 'regex:/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i'],
-            'notas' => ['nullable', 'string', 'max:2000'],
-            'activo' => ['boolean'],
-        ], ['nombre.unique' => 'Ya existe un proveedor con ese nombre.', 'rfc.regex' => 'El RFC no tiene un formato válido.'], ['rfc' => 'RFC', 'correo' => 'correo']);
+        try {
+            $guardar(
+                $this->editandoId ? Proveedor::query()->findOrFail($this->editandoId) : null,
+                $this->only('nombre', 'contacto', 'telefono', 'correo', 'rfc', 'notas', 'activo'),
+                auth()->user(),
+            );
+        } catch (ValidationException $e) {
+            $this->setErrorBag($e->errors());
 
-        $nulo = fn (?string $v) => ($v = trim((string) $v)) === '' ? null : $v;
-
-        Proveedor::query()->updateOrCreate(['id' => $this->editandoId], [
-            'nombre' => trim($d['nombre']),
-            'contacto' => $nulo($d['contacto']),
-            'telefono' => $nulo($d['telefono']),
-            'correo' => $nulo($d['correo']),
-            'rfc' => $nulo($d['rfc']) ? mb_strtoupper($nulo($d['rfc'])) : null,
-            'notas' => $nulo($d['notas']),
-            'activo' => $d['activo'],
-        ]);
+            return;
+        }
 
         unset($this->lista);
         $this->dispatch('cerrar-modal', nombre: 'proveedor');

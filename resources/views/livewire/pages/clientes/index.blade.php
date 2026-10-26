@@ -1,7 +1,8 @@
 <?php
 
+use App\Actions\Clientes\GuardarCliente;
 use App\Models\Cliente;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -106,41 +107,21 @@ new #[Layout('layouts.app')] class extends Component
         $this->dispatch('abrir-modal', nombre: 'cliente');
     }
 
-    public function guardar(): void
+    public function guardar(GuardarCliente $guardar): void
     {
-        $this->authorize('clientes.administrar');
+        $this->resetValidation();
 
-        $d = $this->validate([
-            'nombre' => ['required', 'string', 'max:120'],
-            'telefono' => ['nullable', 'string', 'max:20'],
-            'correo' => ['nullable', 'email', 'max:120'],
-            'rfc' => ['nullable', 'string', 'regex:/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i'],
-            'direccion' => ['nullable', 'string', 'max:255'],
-            'lista_precios' => ['required', Rule::in(['1', '2', '3'])],
-            'limite_credito' => ['required', 'numeric', 'min:0', 'max:99999999'],
-            'notas' => ['nullable', 'string', 'max:2000'],
-            'activo' => ['boolean'],
-        ], ['rfc.regex' => 'El RFC no tiene un formato válido.'], ['rfc' => 'RFC', 'correo' => 'correo', 'lista_precios' => 'lista de precios', 'limite_credito' => 'límite de crédito']);
+        try {
+            $guardar(
+                $this->editandoId ? Cliente::query()->findOrFail($this->editandoId) : null,
+                $this->only('nombre', 'telefono', 'correo', 'rfc', 'direccion', 'lista_precios', 'limite_credito', 'notas', 'activo'),
+                auth()->user(),
+            );
+        } catch (ValidationException $e) {
+            $this->setErrorBag($e->errors());
 
-        $nulo = fn (?string $v) => ($v = trim((string) $v)) === '' ? null : $v;
-
-        $datos = [
-            'nombre' => trim($d['nombre']),
-            'telefono' => $nulo($d['telefono']),
-            'correo' => $nulo($d['correo']),
-            'rfc' => $nulo($d['rfc']) ? mb_strtoupper($nulo($d['rfc'])) : null,
-            'direccion' => $nulo($d['direccion']),
-            'notas' => $nulo($d['notas']),
-            'activo' => $d['activo'],
-        ];
-
-        // Lista de precios y límite de crédito son decisiones del dueño: requieren su propio permiso.
-        if ($this->puedeCredito) {
-            $datos['lista_precios'] = (int) $d['lista_precios'];
-            $datos['limite_credito'] = $d['limite_credito'];
+            return;
         }
-
-        Cliente::query()->updateOrCreate(['id' => $this->editandoId], $datos);
 
         unset($this->clientes, $this->resumen);
         $this->dispatch('cerrar-modal', nombre: 'cliente');

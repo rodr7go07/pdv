@@ -8,14 +8,17 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /** @extends Factory<UnidadMedida> */
 class UnidadMedidaFactory extends Factory
 {
-    /** Cada artículo de prueba crea su propia unidad: un contador evita agotar el vocabulario de palabras «únicas» de Faker. */
+    /**
+     * Cada artículo de prueba crea su propia unidad. El contador (y no letras al azar) evita agotar el vocabulario
+     * de Faker y que el azar choque con las abreviaturas del catálogo base («pza», «paq»), que son únicas.
+     */
     private static int $contador = 0;
 
     public function definition(): array
     {
         return [
             'nombre' => 'Unidad '.++self::$contador.' '.fake()->word(),
-            'abreviatura' => fake()->unique()->lexify('???'),
+            'abreviatura' => 'u'.self::$contador,
             'permite_decimales' => false,
             'activo' => true,
         ];

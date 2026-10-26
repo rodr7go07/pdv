@@ -18,6 +18,8 @@ class UserFactory extends Factory
      */
     protected static ?string $password;
 
+    private static int $contador = 0;
+
     /**
      * Define the model's default state.
      *
@@ -25,10 +27,12 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $n = ++self::$contador;
+
         return [
             'name' => fake()->name(),
-            'usuario' => fake()->unique()->userName(),
-            'email' => fake()->unique()->safeEmail(),
+            'usuario' => 'usuario.'.$n,
+            'email' => 'usuario'.$n.'@example.test',
             'password' => static::$password ??= Hash::make('password'),
             'activo' => true,
             'remember_token' => Str::random(10),

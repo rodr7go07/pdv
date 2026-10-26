@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\FormaPago;
 use App\Support\Fecha;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -172,8 +173,6 @@ final class ReporteVentas
      */
     public function porFormaPago(): Collection
     {
-        $nombres = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'A crédito'];
-
         return DB::table('venta_pagos as g')
             ->join('ventas as v', 'v.id', '=', 'g.venta_id')
             ->where('v.estado', 'completada')
@@ -183,7 +182,7 @@ final class ReporteVentas
             ->groupBy('g.forma')
             ->selectRaw('g.forma as forma, COUNT(DISTINCT g.venta_id) as ventas, SUM(g.monto) as monto')
             ->get()
-            ->map(fn ($f) => ['forma' => $f->forma, 'etiqueta' => $nombres[$f->forma] ?? $f->forma, 'ventas' => (int) $f->ventas, 'monto' => (string) $this->dec($f->monto)])
+            ->map(fn ($f) => ['forma' => $f->forma, 'etiqueta' => FormaPago::etiquetaDe($f->forma), 'ventas' => (int) $f->ventas, 'monto' => (string) $this->dec($f->monto)])
             ->sortByDesc(fn ($f) => (float) $f['monto'])->values();
     }
 

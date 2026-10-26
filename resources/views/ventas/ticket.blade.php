@@ -1,7 +1,6 @@
 @php
     $dinero = fn ($v) => '$'.number_format((float) $v, 2);
     $cant = fn ($v) => rtrim(rtrim((string) $v, '0'), '.') ?: '0';
-    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'Crédito'];
 @endphp
 <!doctype html>
 <html lang="es-MX">
@@ -100,7 +99,7 @@
 
     <table>
         @foreach ($venta->pagos as $pago)
-            <tr><td>{{ $formas[$pago->forma] ?? $pago->forma }}{{ $pago->referencia ? ' ('.$pago->referencia.')' : '' }}</td><td class="der">{{ $dinero($pago->monto) }}</td></tr>
+            <tr><td>{{ \App\Enums\FormaPago::etiquetaDe($pago->forma) }}{{ $pago->referencia ? ' ('.$pago->referencia.')' : '' }}</td><td class="der">{{ $dinero($pago->monto) }}</td></tr>
         @endforeach
         @if ((float) $venta->efectivo_recibido > 0)
             <tr><td>Efectivo recibido</td><td class="der">{{ $dinero($venta->efectivo_recibido) }}</td></tr>

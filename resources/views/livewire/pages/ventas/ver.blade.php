@@ -160,9 +160,8 @@ new #[Layout('layouts.app')] class extends Component
                     <div class="flex items-baseline justify-between border-t border-anil-100 pt-2"><dt class="font-extrabold">Total</dt><dd class="font-display text-2xl font-extrabold">${{ number_format((float) $venta->total, 2) }}</dd></div>
                 </dl>
                 <dl class="mt-4 space-y-1.5 border-t border-anil-50 pt-4 text-sm">
-                    @php $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'Crédito']; @endphp
                     @foreach ($venta->pagos as $pago)
-                        <div class="flex justify-between"><dt class="text-anil-700">{{ $formas[$pago->forma] ?? $pago->forma }}{{ $pago->referencia ? ' · '.$pago->referencia : '' }}</dt><dd class="font-mono">${{ number_format((float) $pago->monto, 2) }}</dd></div>
+                        <div class="flex justify-between"><dt class="text-anil-700">{{ \App\Enums\FormaPago::etiquetaDe($pago->forma) }}{{ $pago->referencia ? ' · '.$pago->referencia : '' }}</dt><dd class="font-mono">${{ number_format((float) $pago->monto, 2) }}</dd></div>
                     @endforeach
                     @if ((float) $venta->cambio > 0)
                         <div class="flex justify-between"><dt class="text-anil-700">Cambio entregado</dt><dd class="font-mono">${{ number_format((float) $venta->cambio, 2) }}</dd></div>

@@ -2,7 +2,6 @@
 
 @php
     $m = fn ($v) => '$'.number_format((float) $v, 2);
-    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'A crédito (sin cobrar)'];
     $abonosTotal = array_sum(array_map('floatval', $resumen['abonos'] ?? []));
 @endphp
 
@@ -31,8 +30,8 @@
     <div class="grid gap-5 md:grid-cols-2">
         <dl class="space-y-2 rounded-xl border border-anil-100 bg-white p-4 text-sm">
             <p class="rotulo mb-2">Cobrado por forma de pago</p>
-            @foreach ($formas as $clave => $etiqueta)
-                <div class="flex justify-between"><dt class="text-anil-700">{{ $etiqueta }}</dt><dd class="font-mono font-semibold">{{ $m($resumen['pagos'][$clave] ?? 0) }}</dd></div>
+            @foreach (\App\Enums\FormaPago::cases() as $forma)
+                <div class="flex justify-between"><dt class="text-anil-700">{{ $forma->etiquetaCorte() }}</dt><dd class="font-mono font-semibold">{{ $m($resumen['pagos'][$forma->value] ?? 0) }}</dd></div>
             @endforeach
             <div class="flex justify-between border-t border-anil-100 pt-2"><dt class="font-semibold">Total vendido</dt><dd class="font-mono font-extrabold">{{ $m($resumen['ventas']['total']) }}</dd></div>
             @if ($abonosTotal > 0)

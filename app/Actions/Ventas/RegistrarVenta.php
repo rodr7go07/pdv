@@ -4,6 +4,7 @@ namespace App\Actions\Ventas;
 
 use App\Actions\Clientes\RegistrarMovimientoCliente;
 use App\Actions\Inventario\RegistrarMovimientoInventario;
+use App\Enums\FormaPago;
 use App\Enums\TipoMovimiento;
 use App\Models\Articulo;
 use App\Models\Caja;
@@ -32,8 +33,6 @@ use Illuminate\Validation\ValidationException;
  */
 class RegistrarVenta
 {
-    public const FORMAS_PAGO = ['efectivo', 'tarjeta', 'transferencia', 'credito'];
-
     public function __construct(
         private readonly RegistrarMovimientoInventario $movimiento,
         private readonly RegistrarMovimientoCliente $cuenta,
@@ -249,7 +248,7 @@ class RegistrarVenta
             ['pagos' => $pagos],
             [
                 'pagos' => ['required', 'array', 'min:1', 'max:6'],
-                'pagos.*.forma' => ['required', Rule::in(self::FORMAS_PAGO)],
+                'pagos.*.forma' => ['required', Rule::in(FormaPago::valores())],
                 'pagos.*.monto' => ['required', 'numeric', 'gt:0', 'max:99999999'],
                 'pagos.*.referencia' => ['nullable', 'string', 'max:60'],
             ],

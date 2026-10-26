@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\FormaPago;
 use App\Models\Turno;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -16,8 +17,6 @@ use Illuminate\Support\Facades\DB;
  */
 final class ResumenTurno
 {
-    public const FORMAS = ['efectivo', 'tarjeta', 'transferencia', 'credito'];
-
     /**
      * @return array{
      *   fondo_inicial: string,
@@ -60,12 +59,12 @@ final class ResumenTurno
         $dinero = fn ($v) => (string) BigDecimal::of((string) ($v ?? 0))->toScale(2, RoundingMode::HalfUp);
 
         $porForma = [];
-        foreach (self::FORMAS as $forma) {
+        foreach (FormaPago::valores() as $forma) {
             $porForma[$forma] = $dinero($pagos[$forma] ?? 0);
         }
 
         $abonosPorForma = [];
-        foreach (['efectivo', 'tarjeta', 'transferencia'] as $forma) {
+        foreach (FormaPago::cobradas() as $forma) {
             $abonosPorForma[$forma] = $dinero($abonos[$forma] ?? 0);
         }
 

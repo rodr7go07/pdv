@@ -1,6 +1,5 @@
 @php
     $m = fn ($v) => '$'.number_format((float) $v, 2);
-    $formas = ['efectivo' => 'Efectivo', 'tarjeta' => 'Tarjeta', 'transferencia' => 'Transferencia', 'credito' => 'A crédito (sin cobrar)'];
 @endphp
 <!doctype html>
 <html lang="es-MX">
@@ -53,8 +52,8 @@
     <hr class="linea">
     <div class="negrita">FORMAS DE PAGO</div>
     <table>
-        @foreach ($formas as $clave => $etiqueta)
-            <tr><td>{{ $etiqueta }}</td><td class="der">{{ $m($d['pagos'][$clave] ?? 0) }}</td></tr>
+        @foreach (\App\Enums\FormaPago::cases() as $forma)
+            <tr><td>{{ $forma->etiquetaCorte() }}</td><td class="der">{{ $m($d['pagos'][$forma->value] ?? 0) }}</td></tr>
         @endforeach
     </table>
 

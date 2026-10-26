@@ -2,6 +2,7 @@
 
 namespace App\Actions\Clientes;
 
+use App\Enums\FormaPago;
 use App\Models\Cliente;
 use App\Models\ClienteMovimiento;
 use App\Models\Turno;
@@ -32,7 +33,7 @@ class RegistrarAbono
             ['monto' => $monto, 'forma' => $forma, 'referencia' => $referencia],
             [
                 'monto' => ['required', 'numeric', 'gt:0', 'max:99999999'],
-                'forma' => ['required', Rule::in(['efectivo', 'tarjeta', 'transferencia'])],
+                'forma' => ['required', Rule::in(FormaPago::cobradas())],
                 'referencia' => ['nullable', 'string', 'max:60'],
             ],
             ['monto.gt' => 'El abono debe ser mayor que cero.', 'monto.required' => 'Escribe el monto del abono.'],

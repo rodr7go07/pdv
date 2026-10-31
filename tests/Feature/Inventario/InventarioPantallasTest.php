@@ -92,6 +92,25 @@ it('muestra existencias, alertas y filtros en el inventario', function () {
         ->set('filtro', 'agotados')->assertSee('LECHE ENTERA')->assertDontSee('FRIJOL SUFICIENTE');
 });
 
+it('los totales de inventario no cuentan dos veces un artículo agotado', function () {
+    Articulo::query()->delete();
+    $acabando = Articulo::factory()->create(['existencia_minima' => '5']);
+    app(RegistrarMovimientoInventario::class)($acabando, TipoMovimiento::Ajuste, '2');
+    Articulo::factory()->create(['existencia_minima' => '5']); // agotado, con mínimo
+
+    $c = Volt::actingAs($this->admin)->test('pages.inventario.index')->instance();
+
+    expect($c->resumen['bajo'])->toBe(1)->and($c->resumen['agotados'])->toBe(1);
+});
+
+it('Inicio avisa de los agotados que no tienen mínimo', function () {
+    Articulo::query()->delete();
+    Articulo::factory()->create(); // agotado y sin mínimo
+
+    Volt::actingAs($this->admin)->test('dashboard.metricas')
+        ->assertSee('no tiene existencia mínima')->assertSee('Ver agotados');
+});
+
 it('el kardex lista los movimientos y permite filtrar', function () {
     $mov = app(RegistrarMovimientoInventario::class);
     $mov($this->articulo, TipoMovimiento::Ajuste, '10', motivo: 'correccion', nota: 'Inventario inicial');

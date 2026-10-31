@@ -66,6 +66,13 @@ new class extends Component
         return Articulo::query()->activos()->bajoMinimo()->count();
     }
 
+    /** Agotados que no tienen mínimo configurado: no entran en «Por reabastecer», así que se avisan aparte. */
+    #[Computed]
+    public function agotadosSinMinimo(): int
+    {
+        return Articulo::query()->activos()->agotados()->whereNull('existencia_minima')->count();
+    }
+
     #[Computed]
     public function turnosAbiertos()
     {
@@ -159,6 +166,14 @@ new class extends Component
                     <div class="border-t border-anil-50 px-5 py-3"><a href="{{ route('inventario.index', ['filtro' => 'bajo']) }}" wire:navigate class="text-sm font-semibold text-rosa-600 underline">Ver todos</a></div>
                 @endcan
             @endif
+            @can('inventario.ver')
+                @if ($this->agotadosSinMinimo > 0)
+                    <div class="border-t border-anil-50 px-5 py-3 text-sm text-anil-700">
+                        {{ number_format($this->agotadosSinMinimo) }} {{ $this->agotadosSinMinimo === 1 ? 'artículo agotado no tiene' : 'artículos agotados no tienen' }} existencia mínima, por eso no avisan aquí.
+                        <a href="{{ route('inventario.index', ['filtro' => 'agotados']) }}" wire:navigate class="font-semibold text-rosa-600 underline">Ver agotados</a>
+                    </div>
+                @endif
+            @endcan
         </x-card>
     </div>
 

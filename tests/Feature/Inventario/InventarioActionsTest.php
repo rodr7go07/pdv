@@ -318,6 +318,23 @@ it('detecta artículos bajo el mínimo', function () {
         ->and($bien->refresh()->estaBajoMinimo())->toBeFalse();
 });
 
+it('separa lo agotado de lo que apenas se está acabando', function () {
+    $acabando = Articulo::factory()->create(['existencia_minima' => '5']);
+    ($this->movimiento)($acabando, TipoMovimiento::Ajuste, '3');
+    $agotadoConMinimo = Articulo::factory()->create(['existencia_minima' => '5']);
+    $agotadoSinMinimo = Articulo::factory()->create();
+    $negativo = Articulo::factory()->create();
+    $negativo->forceFill(['existencia' => '-2'])->save();
+    $servicio = Articulo::factory()->create(['inventariable' => false]);
+
+    $propios = [$acabando->id, $agotadoConMinimo->id, $agotadoSinMinimo->id, $negativo->id, $servicio->id];
+
+    // «Bajo el mínimo» (completo) incluye al agotado que tiene mínimo; sin traslape, no.
+    expect(Articulo::bajoMinimo()->whereKey($propios)->pluck('id')->all())->toEqualCanonicalizing([$acabando->id, $agotadoConMinimo->id])
+        ->and(Articulo::bajoMinimoConExistencia()->whereKey($propios)->pluck('id')->all())->toBe([$acabando->id])
+        ->and(Articulo::agotados()->whereKey($propios)->pluck('id')->all())->toEqualCanonicalizing([$agotadoConMinimo->id, $agotadoSinMinimo->id, $negativo->id]);
+});
+
 it('al recapturar, el conteo se compara con la existencia de ese momento', function () {
     ($this->movimiento)($this->articulo, TipoMovimiento::Ajuste, '10');
     $gestor = app(GestionarConteo::class);

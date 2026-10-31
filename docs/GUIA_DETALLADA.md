@@ -156,7 +156,7 @@ En teléfono y tableta hay un botón de **cámara** junto a estos campos. Lee **
 - **Formulario de artículo:** *Clave principal* y *Claves alternas*.
 
 ### Existencias
-*Inventario* muestra existencias, los artículos **bajo el mínimo** y **agotados**, y el valor de la mercancía. Cada artículo tiene su **kardex** con todos sus movimientos.
+*Inventario* muestra existencias, los artículos **bajo el mínimo** y **agotados**, y el valor de la mercancía. Las dos cifras no se traslapan: **agotado** es el que ya no tiene existencia (cero o negativa); **bajo el mínimo** es el que se está acabando pero todavía tiene. En Inicio, *Por reabastecer* cuenta los que están en o bajo su mínimo (incluye agotados que tienen mínimo) y avisa aparte cuántos agotados **no tienen mínimo** configurado, porque sin mínimo el sistema no sabe avisarte. Cada artículo tiene su **kardex** con todos sus movimientos.
 
 ### Escaneos (bitácora)
 *Mercancía → Escaneos* (permiso `reportes.ver`): bitácora de cada código capturado.

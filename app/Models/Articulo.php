@@ -71,7 +71,19 @@ class Articulo extends Model
         $query->where('activo', true);
     }
 
-    /** Artículos con inventario cuya existencia está en o por debajo del mínimo configurado. */
+    /** Artículos con inventario sin existencia (cero o negativa), tengan o no mínimo configurado. */
+    public function scopeAgotados(Builder $query): void
+    {
+        $query->where('inventariable', true)->where('existencia', '<=', 0);
+    }
+
+    /** Lo que se está acabando pero todavía hay: en o por debajo del mínimo, sin contar los agotados. */
+    public function scopeBajoMinimoConExistencia(Builder $query): void
+    {
+        $query->bajoMinimo()->where('existencia', '>', 0);
+    }
+
+    /** Artículos con inventario cuya existencia está en o por debajo del mínimo configurado (incluye los agotados que tienen mínimo). */
     public function scopeBajoMinimo(Builder $query): void
     {
         $query->where('inventariable', true)

@@ -51,8 +51,9 @@ new #[Layout('layouts.app')] class extends Component
         $base = Articulo::query()->activos()->where('inventariable', true);
 
         return [
-            'bajo' => (clone $base)->bajoMinimo()->count(),
-            'agotados' => (clone $base)->where('existencia', '<=', 0)->count(),
+            // Sin traslape: un artículo agotado cuenta como agotado, no también como «bajo el mínimo».
+            'bajo' => (clone $base)->bajoMinimoConExistencia()->count(),
+            'agotados' => (clone $base)->agotados()->count(),
             'valor' => $this->verCostos ? (string) ((clone $base)->where('existencia', '>', 0)->sum(\DB::raw('existencia * costo'))) : null,
             'articulos' => (clone $base)->count(),
         ];
@@ -67,8 +68,8 @@ new #[Layout('layouts.app')] class extends Component
             ->where('inventariable', true)
             ->buscar($this->buscar)
             ->when($this->departamento !== '', fn ($q) => $q->where('departamento_id', $this->departamento))
-            ->when($this->filtro === 'bajo', fn ($q) => $q->bajoMinimo())
-            ->when($this->filtro === 'agotados', fn ($q) => $q->where('existencia', '<=', 0))
+            ->when($this->filtro === 'bajo', fn ($q) => $q->bajoMinimoConExistencia())
+            ->when($this->filtro === 'agotados', fn ($q) => $q->agotados())
             ->orderBy('descripcion')
             ->paginate(20);
     }

@@ -20,6 +20,8 @@ use Illuminate\Validation\ValidationException;
  * el archivo corregido se pueda volver a subir sin duplicar nada.
  * Si la clave ya existe se actualiza ese artículo; las celdas vacías conservan
  * el valor actual. Los departamentos y proveedores que no existen se crean.
+ * Dos datos secundarios no detienen la carga, se corrigen y se avisan: un artículo «a granel» con una unidad de piezas
+ * se carga como no granel, y una clave alterna que ya es de otro artículo se omite.
  * La columna `existencia` solo se usa en artículos nuevos (la existencia de uno que ya existe solo cambia con
  * movimientos de inventario) y una existencia negativa se carga como cero.
  */
@@ -30,6 +32,12 @@ class ImportarArticulos
     private int $existenciaOmitida = 0;
 
     private bool $puedeExistencia = true;
+
+    /** @var list<string> filas con «a granel» y unidad de piezas, que se cargaron como no granel */
+    private array $granelAjustado = [];
+
+    /** @var list<string> claves alternas omitidas porque ya son de otro artículo */
+    private array $alternasOmitidas = [];
 
     public function __construct(private readonly GuardarArticulo $guardar) {}
 
@@ -47,6 +55,8 @@ class ImportarArticulos
         $this->negativas = 0;
         $this->existenciaOmitida = 0;
         $this->puedeExistencia = $usuario->can('inventario.ajustar'); // meter existencia es un movimiento de inventario
+        $this->granelAjustado = [];
+        $this->alternasOmitidas = [];
 
         DB::beginTransaction();
 
@@ -75,7 +85,7 @@ class ImportarArticulos
 
                 try {
                     $existente = $clave === '' ? null : Articulo::query()->with(['impuestos', 'clavesAlternas'])->where('clave', $clave)->first();
-                    $datos = $this->armarDatos($fila, $existente, $catalogos);
+                    $datos = $this->armarDatos($fila, $existente, $catalogos, $numero);
 
                     ($this->guardar)($existente, $datos, $usuario, $puedePrecios, origen: 'importacion');
 
@@ -104,6 +114,18 @@ class ImportarArticulos
 
         if ($this->negativas > 0) {
             $avisos[] = $this->negativas.' '.($this->negativas === 1 ? 'artículo traía existencia negativa: se cargó' : 'artículos traían existencia negativa: se cargaron').' sin existencia.';
+        }
+
+        if ($this->granelAjustado !== []) {
+            $n = count($this->granelAjustado);
+            $avisos[] = $n.' '.($n === 1 ? 'artículo venía marcado a granel pero con unidad de piezas: se cargó como no granel' : 'artículos venían marcados a granel pero con unidad de piezas: se cargaron como no granel')
+                .' (filas '.implode(', ', array_slice($this->granelAjustado, 0, 15)).($n > 15 ? ' y '.($n - 15).' más' : '').'). Si se venden por peso, cámbiales la unidad a kilogramo y márcalos a granel en su ficha.';
+        }
+
+        if ($this->alternasOmitidas !== []) {
+            $n = count($this->alternasOmitidas);
+            $avisos[] = ($n === 1 ? 'Una clave alterna ya era de otro artículo y se omitió' : $n.' claves alternas ya eran de otros artículos y se omitieron').': '
+                .implode('; ', array_slice($this->alternasOmitidas, 0, 10)).($n > 10 ? '; y '.($n - 10).' más' : '').'.';
         }
 
         if ($this->existenciaOmitida > 0) {
@@ -135,7 +157,7 @@ class ImportarArticulos
      * @param  array<string, array<string, mixed>>  $catalogos
      * @return array<string, mixed>
      */
-    private function armarDatos(array $fila, ?Articulo $existente, array &$catalogos): array
+    private function armarDatos(array $fila, ?Articulo $existente, array &$catalogos, int $numero): array
     {
         $base = $existente ? $this->datosActuales($existente) : [
             'inventariable' => true, 'granel' => false, 'activo' => true,
@@ -215,10 +237,43 @@ class ImportarArticulos
         }
 
         if ($texto('claves_alternas') !== '') {
-            $datos['claves_alternas'] = array_values(array_filter(array_map('trim', preg_split('/[,;|]/', $texto('claves_alternas')))));
+            $datos['claves_alternas'] = $this->sinClavesAjenas(
+                array_values(array_filter(array_map('trim', preg_split('/[,;|]/', $texto('claves_alternas'))))),
+                $existente,
+                $numero,
+                $datos['clave'],
+            );
+        }
+
+        // «A granel» necesita una unidad con decimales; si la unidad es de piezas se carga como no granel y se avisa.
+        if ($datos['granel'] && ! empty($datos['unidad_medida_id']) && ! UnidadMedida::query()->whereKey($datos['unidad_medida_id'])->value('permite_decimales')) {
+            $datos['granel'] = false;
+            $this->granelAjustado[] = "{$numero} ({$datos['clave']})";
         }
 
         return $datos;
+    }
+
+    /**
+     * Quita las claves alternas que ya son clave principal o alterna de otro artículo (no del mismo).
+     *
+     * @param  list<string>  $claves
+     * @return list<string>
+     */
+    private function sinClavesAjenas(array $claves, ?Articulo $existente, int $numero, string $clavePrincipal): array
+    {
+        return array_values(array_filter($claves, function (string $clave) use ($existente, $numero, $clavePrincipal) {
+            $dueno = Articulo::query()->where('clave', $clave)->first(['id', 'clave', 'descripcion'])
+                ?? Articulo::query()->whereHas('clavesAlternas', fn ($q) => $q->where('clave', $clave))->first(['id', 'clave', 'descripcion']);
+
+            if (! $dueno || ($existente && $dueno->id === $existente->id) || mb_strtolower($clave) === mb_strtolower($clavePrincipal)) {
+                return true; // libre, del mismo artículo, o igual a su clave principal (eso lo reporta la validación)
+            }
+
+            $this->alternasOmitidas[] = "fila {$numero}: la clave alterna {$clave} ya es de «{$dueno->descripcion}» ({$dueno->clave}); se omitió";
+
+            return false;
+        }));
     }
 
     /** @return array<string, mixed> */

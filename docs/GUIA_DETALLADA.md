@@ -76,7 +76,8 @@ Cada cambio de costo o de precio queda en el **historial** al final de la pantal
 - Además de las columnas de la plantilla se entienden las de otros sistemas: `clave1` a `clave6` (de la 2 a la 6 se guardan como claves alternas), `precio1`, `precio2`, `precio3`, `inv_min`, `inv_max`, `(s/n) inventariable`, `(s/n) granel`, `(s/n) imp IVA 16%` y `(s/n) imp IEPS 8%`. El resto de las columnas se ignoran.
 - Es **todo o nada**: si una fila tiene un error no se guarda ninguna y el sistema te dice la fila exacta y qué corregir.
 - Un catálogo grande (miles de filas) también se puede cargar desde la terminal, sin el límite de tiempo del navegador: `php artisan articulos:importar ruta\del\archivo.xlsx --usuario=admin`. Hace lo mismo (todo o nada, con las mismas columnas y avisos) y muestra la tabla de errores si hay alguno.
-- Un artículo marcado **a granel** necesita una unidad que permita decimales (kilogramo, litro, metro); si el archivo trae uno a granel con unidad de piezas, esa fila sale con error.
+- Un artículo marcado **a granel** necesita una unidad que permita decimales (kilogramo, litro, metro). Si el archivo trae uno a granel con unidad de piezas, **se carga como no granel** y el sistema te lista esas filas para que, si se venden por peso, les cambies la unidad a kilogramo y las marques a granel en su ficha. La unidad no puede quedar vacía.
+- Una **clave alterna** que ya es de otro artículo (por ejemplo una clave2 repetida en un producto que ya tenías) **no detiene la carga**: se omite y el aviso dice a qué artículo pertenece.
 
 ### Etiquetas de precio
 *Artículos → Etiquetas.* Elige los artículos y las copias; imprime en rollo de 50×30 mm o en hoja carta.

@@ -289,3 +289,40 @@ it('el comando no guarda nada si hay errores y rechaza archivos o usuarios que n
     $this->artisan('articulos:importar', ['archivo' => '/no/existe.xlsx'])->assertFailed();
     unlink($ruta);
 });
+
+// ─── Datos secundarios que no detienen la carga ──────────────────────────────
+
+it('un artículo a granel con unidad de piezas se carga como no granel y se avisa', function () {
+    $r = ($this->importar)([
+        fila(['clave' => 'G1', 'descripcion' => 'LONGANIZA', 'granel' => 'SI']),            // unidad pza
+        fila(['clave' => 'G2', 'descripcion' => 'QUESO', 'granel' => 'SI', 'unidad' => 'kg']), // kg: sí es granel
+    ], $this->admin, true);
+
+    expect($r['errores'])->toBe([])->and($r['creados'])->toBe(2)
+        ->and(Articulo::where('clave', 'G1')->first()->granel)->toBeFalse()
+        ->and(Articulo::where('clave', 'G2')->first()->granel)->toBeTrue()
+        ->and($r['avisos'][0])->toContain('se cargó como no granel')->toContain('(G1)')->not->toContain('(G2)');
+});
+
+it('una clave alterna que ya es de otro artículo se omite y se avisa quién la tiene', function () {
+    ($this->importar)([fila(['clave' => 'EXISTE', 'descripcion' => 'REFRESCO VIEJO'])], $this->admin, true);
+
+    $r = ($this->importar)([
+        fila(['clave' => 'NUEVO', 'descripcion' => 'REFRESCO NUEVO', 'claves_alternas' => 'EXISTE, LIBRE']),
+        fila(['clave' => 'OTRO', 'descripcion' => 'OTRO', 'claves_alternas' => 'NUEVO']),
+    ], $this->admin, true);
+
+    // «NUEVO» se crea en la fila 2 y en la fila 3 ya es de ese artículo: también se omite.
+    expect($r['errores'])->toBe([])->and($r['creados'])->toBe(2)
+        ->and(Articulo::where('clave', 'NUEVO')->first()->clavesAlternas->pluck('clave')->all())->toBe(['LIBRE'])
+        ->and($r['avisos'][0])->toContain('2 claves alternas')->toContain('«REFRESCO VIEJO» (EXISTE)')->toContain('«REFRESCO NUEVO» (NUEVO)');
+});
+
+it('las claves alternas del propio artículo no se consideran ajenas al volver a importarlo', function () {
+    ($this->importar)([fila(['claves_alternas' => 'A1, A2'])], $this->admin, true);
+
+    $r = ($this->importar)([fila(['precio_1' => '30', 'claves_alternas' => 'A1, A2, A3'])], $this->admin, true);
+
+    expect($r['errores'])->toBe([])->and($r['avisos'])->toBe([])
+        ->and(Articulo::where('clave', '7501')->first()->clavesAlternas->pluck('clave')->all())->toEqualCanonicalizing(['A1', 'A2', 'A3']);
+});

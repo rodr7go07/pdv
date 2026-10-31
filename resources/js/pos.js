@@ -152,6 +152,10 @@ export function registrarPos(Alpine) {
         get total() {
             return this.sumaLineas - this.descuentoGeneral;
         },
+        /** Lo que costaría la venta sin ningún descuento: referencia que se muestra pequeña en el cobro. */
+        get totalSinDescuento() {
+            return this.lineas.reduce((s, l) => s + this.brutoLinea(l), 0);
+        },
         get descuentoTotal() {
             return this.lineas.reduce((s, l) => s + this.descuentoLinea(l), 0) + this.descuentoGeneral;
         },

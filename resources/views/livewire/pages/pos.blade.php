@@ -786,6 +786,9 @@ new #[Layout('layouts.pos')] class extends Component
                 <div class="overflow-y-auto px-5 py-4">
                     <p class="rotulo text-center">Total a cobrar</p>
                     <p class="text-center font-display text-5xl font-extrabold tracking-tight text-anil-900 [font-stretch:112%]" x-text="dinero(totalCobro)"></p>
+                    <p x-show="descuentoTotal > 0 && cobro.totalServidor !== null" x-cloak class="mt-1 text-center text-xs text-anil-600">
+                        Sin descuento: <span class="font-mono line-through" x-text="dinero(totalSinDescuento)"></span>
+                    </p>
 
                     <p x-show="cobro.error" x-text="cobro.error" class="mt-3 rounded-lg bg-red-50 px-3 py-2.5 text-sm font-medium text-red-800 ring-1 ring-red-200" role="alert"></p>
 

@@ -42,3 +42,9 @@ it('buscar por nombre para las coincidencias no anota un escaneo en la bitácora
 
     expect(Escaneo::count())->toBe(0);
 });
+
+it('la ventana de cobro muestra el total sin descuento como referencia', function () {
+    abrirTurno(Caja::factory()->create(), $this->usuario);
+
+    $this->actingAs($this->usuario)->get('/venta')->assertOk()->assertSee('totalSinDescuento', false)->assertSee('Sin descuento:', false);
+});

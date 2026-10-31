@@ -5,6 +5,7 @@ import { registrarEscaner } from './escaner';
 import { registrarFoto } from './foto';
 import { registrarPwa } from './pwa';
 import { registrarConexion } from './conexion';
+import './compartir';
 
 document.addEventListener('alpine:init', () => {
     registrarPos(window.Alpine);

@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Configuracion;
 use App\Models\Venta;
-use Brick\Math\BigDecimal;
-use Brick\Math\RoundingMode;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -24,14 +22,7 @@ class VentaTicketController extends Controller
 
         $venta->load(['partidas', 'pagos', 'caja', 'cajero:id,name', 'devoluciones']);
 
-        // Desglose de impuestos del ticket: suma por nombre y tasa.
-        $impuestos = $venta->partidas
-            ->flatMap(fn ($p) => $p->impuestos_detalle ?? [])
-            ->groupBy(fn ($i) => $i['nombre'])
-            ->map(fn ($grupo, $nombre) => [
-                'nombre' => $nombre,
-                'monto' => (string) $grupo->reduce(fn (BigDecimal $c, $i) => $c->plus((string) $i['monto']), BigDecimal::zero())->toScale(2, RoundingMode::HalfUp),
-            ])->values();
+        $impuestos = $venta->desgloseImpuestos();
 
         return view('ventas.ticket', [
             'venta' => $venta,

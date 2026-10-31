@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -77,6 +79,23 @@ class Venta extends Model
     public function devoluciones(): HasMany
     {
         return $this->hasMany(Devolucion::class);
+    }
+
+    /**
+     * Impuestos de la venta sumados por nombre (para el ticket): [['nombre' => 'IVA 16%', 'monto' => '6.90'], …].
+     * Necesita las partidas cargadas.
+     *
+     * @return list<array{nombre: string, monto: string}>
+     */
+    public function desgloseImpuestos(): array
+    {
+        return $this->partidas
+            ->flatMap(fn ($p) => $p->impuestos_detalle ?? [])
+            ->groupBy(fn ($i) => $i['nombre'])
+            ->map(fn ($grupo, $nombre) => [
+                'nombre' => (string) $nombre,
+                'monto' => (string) $grupo->reduce(fn (BigDecimal $c, $i) => $c->plus((string) $i['monto']), BigDecimal::zero())->toScale(2, RoundingMode::HalfUp),
+            ])->values()->all();
     }
 
     public function estaCancelada(): bool

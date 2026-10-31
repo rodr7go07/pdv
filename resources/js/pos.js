@@ -6,6 +6,7 @@
  */
 
 import { camaraDisponible, iniciarLector } from './camara';
+import { compartirTicket } from './compartir';
 
 const moneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
@@ -813,6 +814,16 @@ export function registrarPos(Alpine) {
                 this.cobro.error = 'No se pudo conectar con el servidor. La venta NO se registró: revisa tu internet e inténtalo de nuevo.';
             }
             this.cobro.procesando = false;
+        },
+
+        /** Manda el ticket como texto por WhatsApp u otra app (en la computadora lo copia). */
+        async compartirTicket(id, folio) {
+            try {
+                const r = await compartirTicket(this.cfg.urlTicketTexto.replace('__ID__', id), folio);
+                if (r === 'copiado') this.avisar('Ticket copiado: pégalo en WhatsApp u otra app.', 'ok', 5000);
+            } catch (e) {
+                this.avisar(e.message, 'error', 6000);
+            }
         },
 
         imprimirTicket(id) {

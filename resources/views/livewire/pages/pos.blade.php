@@ -79,6 +79,7 @@ new #[Layout('layouts.pos')] class extends Component
             'urlBuscar' => route('pos.buscar'),
             'urlPorIds' => route('pos.por-ids'),
             'urlTicket' => route('ventas.ticket', ['venta' => '__ID__']),
+            'urlTicketTexto' => route('ventas.ticket-texto', ['venta' => '__ID__']),
             'puedeDescuento' => auth()->user()->can('ventas.descuento'),
             'descuentoEfectivoPct' => (float) Configuracion::actual()->descuento_efectivo_pct,
             'puedeCliente' => auth()->user()->can('clientes.ver'),
@@ -886,6 +887,8 @@ new #[Layout('layouts.pos')] class extends Component
                 <div class="mt-5 grid gap-2">
                     <x-primary-button type="button" x-on:click="nuevaVenta()" class="w-full">Nueva venta <span class="font-mono text-xs opacity-80">Enter</span></x-primary-button>
                     <x-secondary-button x-on:click="imprimirTicket(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir ticket</x-secondary-button>
+                    <x-secondary-button x-on:click="compartirTicket(exito.id, exito.folio)" class="w-full"><x-phosphor-share-network-bold class="size-4" /> Compartir ticket</x-secondary-button>
+                    <p x-show="aviso" x-text="aviso" x-cloak :class="avisoTipo === 'error' ? 'text-red-700' : 'text-emerald-700'" class="text-sm font-semibold" role="status"></p>
                 </div>
             </div>
 

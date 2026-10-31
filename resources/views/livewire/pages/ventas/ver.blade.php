@@ -241,6 +241,14 @@ new #[Layout('layouts.app')] class extends Component
                     <div><dt class="rotulo">Caja</dt><dd>{{ $venta->caja->nombre }}</dd></div>
                     <div><dt class="rotulo">Atendió</dt><dd>{{ $venta->cajero?->name ?? '—' }}</dd></div>
                 </dl>
+                <div x-data="{ mensaje: '', error: false }" class="mt-4">
+                    <button type="button"
+                            x-on:click="mensaje = ''; window.compartirTicket(@js(route('ventas.ticket-texto', $venta)), @js($venta->folio)).then((r) => { error = false; mensaje = r === 'copiado' ? 'Ticket copiado: pégalo en WhatsApp u otra app.' : ''; }).catch((e) => { error = true; mensaje = e.message; })"
+                            class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
+                        <x-phosphor-share-network-bold class="size-4" /> Compartir ticket
+                    </button>
+                    <p x-show="mensaje" x-text="mensaje" x-cloak :class="error ? 'text-red-700' : 'text-emerald-700'" class="mt-2 text-sm font-semibold" role="status"></p>
+                </div>
             </x-card>
 
             @if (! $venta->estaCancelada() && ! $venta->cancelacionTardia())

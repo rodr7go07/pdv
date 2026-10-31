@@ -75,6 +75,8 @@ Cada cambio de costo o de precio queda en el **historial** al final de la pantal
 - La columna **existencia** solo se usa en artículos nuevos (queda como «Existencia inicial» y pide permiso de ajustar inventario). En un artículo que ya existe se ignora, porque su existencia solo cambia con compras, ventas, ajustes y conteos. Una existencia negativa se carga como 0 y el sistema te avisa cuántas fueron.
 - Además de las columnas de la plantilla se entienden las de otros sistemas: `clave1` a `clave6` (de la 2 a la 6 se guardan como claves alternas), `precio1`, `precio2`, `precio3`, `inv_min`, `inv_max`, `(s/n) inventariable`, `(s/n) granel`, `(s/n) imp IVA 16%` y `(s/n) imp IEPS 8%`. El resto de las columnas se ignoran.
 - Es **todo o nada**: si una fila tiene un error no se guarda ninguna y el sistema te dice la fila exacta y qué corregir.
+- Un catálogo grande (miles de filas) también se puede cargar desde la terminal, sin el límite de tiempo del navegador: `php artisan articulos:importar ruta\del\archivo.xlsx --usuario=admin`. Hace lo mismo (todo o nada, con las mismas columnas y avisos) y muestra la tabla de errores si hay alguno.
+- Un artículo marcado **a granel** necesita una unidad que permita decimales (kilogramo, litro, metro); si el archivo trae uno a granel con unidad de piezas, esa fila sale con error.
 
 ### Etiquetas de precio
 *Artículos → Etiquetas.* Elige los artículos y las copias; imprime en rollo de 50×30 mm o en hoja carta.

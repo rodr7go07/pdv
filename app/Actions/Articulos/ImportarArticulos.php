@@ -103,7 +103,7 @@ class ImportarArticulos
         $avisos = [];
 
         if ($this->negativas > 0) {
-            $avisos[] = $this->negativas.' '.($this->negativas === 1 ? 'artículo traía' : 'artículos traían').' existencia negativa: se cargó'.($this->negativas === 1 ? '' : 'ron').' sin existencia.';
+            $avisos[] = $this->negativas.' '.($this->negativas === 1 ? 'artículo traía existencia negativa: se cargó' : 'artículos traían existencia negativa: se cargaron').' sin existencia.';
         }
 
         if ($this->existenciaOmitida > 0) {

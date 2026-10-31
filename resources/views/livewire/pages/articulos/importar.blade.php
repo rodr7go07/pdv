@@ -47,6 +47,9 @@ new #[Layout('layouts.app')] class extends Component
         $this->resultado = null;
         $this->fallo = null;
 
+        // Un catálogo grande tarda: se le da más tiempo que el predeterminado de la web.
+        @set_time_limit(300);
+
         try {
             $filas = LectorHoja::leer($this->archivo->getRealPath());
 

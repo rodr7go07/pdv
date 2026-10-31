@@ -251,3 +251,41 @@ it('la plantilla trae las columnas existencia y proveedor', function () {
     expect(PlantillaArticulos::ENCABEZADOS)->toContain('existencia', 'proveedor', 'claves_alternas')
         ->and(count(PlantillaArticulos::ENCABEZADOS))->toBe(17);
 });
+
+// ─── Comando ─────────────────────────────────────────────────────────────────
+
+it('el comando importa un archivo completo y reporta los avisos', function () {
+    $hoja = new Spreadsheet;
+    $hoja->getActiveSheet()->fromArray([
+        ['clave1 *', 'descripción *', 'departamento', 'unidad', 'costo', 'precio1', 'existencia'],
+        ['7001', 'ARROZ 1 KG', 'Abarrotes', 'PZA', 10, 15, 3],
+        ['7002', 'FRIJOL 1 KG', 'Abarrotes', 'PIEZA', 12, 18, -4],
+    ]);
+    $ruta = tempnam(sys_get_temp_dir(), 'xl').'.xlsx';
+    (new Xlsx($hoja))->save($ruta);
+
+    $this->artisan('articulos:importar', ['archivo' => $ruta, '--usuario' => $this->admin->usuario])
+        ->expectsOutputToContain('2 artículos nuevos')->expectsOutputToContain('existencia negativa')->assertSuccessful();
+    unlink($ruta);
+
+    expect(Articulo::count())->toBe(2)->and(Articulo::where('clave', '7001')->first()->existencia)->toBe('3.000');
+});
+
+it('el comando no guarda nada si hay errores y rechaza archivos o usuarios que no sirven', function () {
+    $hoja = new Spreadsheet;
+    $hoja->getActiveSheet()->fromArray([
+        ['clave', 'descripcion', 'departamento', 'unidad', 'precio_1'],
+        ['A1', 'BIEN', 'Abarrotes', 'pza', 10],
+        ['A2', 'MAL', 'Abarrotes', 'galones', 10],
+    ]);
+    $ruta = tempnam(sys_get_temp_dir(), 'xl').'.xlsx';
+    (new Xlsx($hoja))->save($ruta);
+
+    $this->artisan('articulos:importar', ['archivo' => $ruta, '--usuario' => $this->admin->usuario])->expectsOutputToContain('No se guardó nada')->assertFailed();
+    expect(Articulo::count())->toBe(0);
+
+    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->artisan('articulos:importar', ['archivo' => $ruta, '--usuario' => $cajero->usuario])->assertFailed();
+    $this->artisan('articulos:importar', ['archivo' => '/no/existe.xlsx'])->assertFailed();
+    unlink($ruta);
+});

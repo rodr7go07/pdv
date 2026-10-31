@@ -95,6 +95,7 @@ Pantalla completa pensada para escáner y teclado. El cursor siempre está en el
 | Quieres… | Haz esto |
 |---|---|
 | Agregar un artículo | Escanea el código (o escríbelo) y Enter. Si lo escaneas otra vez suma una pieza. |
+| Buscar mientras escribes | Con 2 o más caracteres, debajo del campo aparecen hasta 8 coincidencias (nombre o clave, con precio y existencia). Toca una, o muévete con ↑ ↓ y Enter, para agregarla. Sin elegir nada con las flechas, **Enter funciona igual que siempre** (código exacto = agrega; nombre parcial = abre la búsqueda). `3*coca` + elegir agrega 3. Esc cierra la lista. Un lector de códigos escribe sin pausas y termina con Enter, por lo que no dispara la búsqueda. Estas consultas no se anotan en la bitácora de escaneos. |
 | Escanear con la cámara | En teléfono y tableta (menos de 1024 px) hay un botón de cámara junto al campo de captura. Abre una ventana con la cámara trasera y agrega cada artículo sin cerrarse. Un código que sigue a la vista cuenta una sola vez; para sumar otra pieza hay que apartarlo ~2 s. Incluye linterna si el dispositivo la tiene. Detalles en *Escanear con la cámara*, más abajo. |
 | Varias piezas | Escribe `5*` y escanea, o `5*7501055300075`. |
 | Vender a granel | Escanea el artículo e indica el peso. Si tu navegador lo permite, hay un botón para leer la báscula (experimental). |

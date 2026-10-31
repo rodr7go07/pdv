@@ -46,6 +46,10 @@ export function registrarPos(Alpine) {
         cliente: null,
         clientes: { texto: '', resultados: [], cargando: false },
         busqueda: { texto: '', resultados: [], cargando: false, enfocado: 0 },
+        // Coincidencias que aparecen debajo del campo de captura mientras se escribe (enfocado = -1: nada elegido con flechas).
+        sugerencias: { lista: [], enfocado: -1 },
+        _sugT: null,
+        _sugId: 0,
         descGlobal: { tipo: '', valor: '' },
         descLinea: { indice: -1, tipo: 'pct', valor: '' },
         peso: { articulo: null, valor: '' },
@@ -218,6 +222,7 @@ export function registrarPos(Alpine) {
         async enviarEntrada(medio = 'lector') {
             const texto = this.entrada.trim();
             this.entrada = '';
+            this.cerrarSugerencias();
             if (!texto) return;
 
             // "5*" deja el multiplicador listo para el siguiente artículo.
@@ -448,6 +453,60 @@ export function registrarPos(Alpine) {
                 });
                 if (cambios) this.avisar('Se actualizaron precios o artículos de esta venta.', 'info', 6000);
             } catch { /* si falla, el servidor revalida al cobrar */ }
+        },
+
+        // ─── Coincidencias mientras se escribe ──────────────────────────────────────
+        /**
+         * Con cada tecla (con una pausa corta) se buscan coincidencias y se muestran debajo del campo. Un lector de
+         * códigos escribe sin pausas y termina con Enter, así que no llega a buscar: el Enter de siempre sigue igual.
+         */
+        sugerir() {
+            clearTimeout(this._sugT);
+            const id = ++this._sugId;
+            const texto = this.entrada.trim().replace(/^\d+(?:\.\d+)?\s*[*xX]\s*/, ''); // «5*coca» busca «coca»
+
+            if (texto.length < 2 || texto.length > 80) { this.sugerencias = { lista: [], enfocado: -1 }; return; }
+
+            this._sugT = setTimeout(async () => {
+                try {
+                    const { articulos } = await this.consultar(texto);
+                    // Si mientras tanto se siguió escribiendo, se envió o se limpió el campo, esta respuesta ya no sirve.
+                    if (id === this._sugId && this.entrada.trim() !== '') this.sugerencias = { lista: articulos.slice(0, 8), enfocado: -1 };
+                } catch { /* sin conexión o sesión vencida: las coincidencias son un extra, el Enter avisa del error */ }
+            }, 200);
+        },
+
+        cerrarSugerencias() {
+            clearTimeout(this._sugT);
+            this._sugId++;
+            this.sugerencias = { lista: [], enfocado: -1 };
+        },
+
+        /** Flechas ↑/↓ dentro del campo: recorren las coincidencias; sin coincidencias siguen moviendo la lista de la venta. */
+        flechaSugerencia(e, paso) {
+            const n = this.sugerencias.lista.length;
+            if (!n) return;
+            e.preventDefault();
+            e.stopPropagation();
+            this.sugerencias.enfocado = Math.max(-1, Math.min(n - 1, this.sugerencias.enfocado + paso));
+        },
+
+        /** Enter en el campo: si se eligió una coincidencia con las flechas se agrega; si no, funciona como siempre. */
+        entrarOElegir() {
+            const elegida = this.sugerencias.lista[this.sugerencias.enfocado];
+            if (elegida) this.elegirSugerencia(elegida);
+            else this.enviarEntrada();
+        },
+
+        elegirSugerencia(a) {
+            // «5*coca» + elegir = 5 piezas de ese artículo
+            const conMult = this.entrada.trim().match(/^(\d+(?:\.\d+)?)\s*[*xX]\s*/);
+            const cantidad = conMult ? parseFloat(conMult[1]) : this.multiplicador;
+            this.entrada = '';
+            this.multiplicador = null;
+            this.cerrarSugerencias();
+            this.agregar(a, cantidad);
+            this.enfocar();
         },
 
         // ─── Búsqueda por descripción (F2) ──────────────────────────────────────────
@@ -767,6 +826,7 @@ export function registrarPos(Alpine) {
             const enModal = this.modal !== null;
 
             if (e.key === 'Escape') {
+                if (!enModal && this.sugerencias.lista.length) { this.cerrarSugerencias(); e.preventDefault(); return; }
                 if (enModal && this.modal !== 'exito') { this.modal = null; this.enfocar(); e.preventDefault(); }
                 else if (this.modal === 'exito') this.nuevaVenta();
                 else if (this.multiplicador) { this.multiplicador = null; this.aviso = ''; }

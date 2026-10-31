@@ -368,9 +368,12 @@ new #[Layout('layouts.pos')] class extends Component
             {{-- Captura y carrito --}}
             <section class="flex min-h-0 flex-1 flex-col">
                 <div class="shrink-0 border-b border-anil-100 bg-white p-3 sm:p-4">
-                    <div class="relative flex items-stretch gap-2">
+                    <div class="relative flex items-stretch gap-2" x-on:focusout="if (!$el.contains($event.relatedTarget)) cerrarSugerencias()">
                         <x-phosphor-barcode-bold class="pointer-events-none absolute left-3.5 top-1/2 size-6 -translate-y-1/2 text-anil-400" />
-                        <input x-ref="entrada" x-model="entrada" x-on:keydown.enter.prevent="enviarEntrada()" type="text" inputmode="text" autofocus
+                        <input x-ref="entrada" x-model="entrada" x-on:input="sugerir()" x-on:keydown.enter.prevent="entrarOElegir()"
+                               x-on:keydown.arrow-down="flechaSugerencia($event, 1)" x-on:keydown.arrow-up="flechaSugerencia($event, -1)"
+                               role="combobox" aria-autocomplete="list" aria-controls="sugerencias-venta" :aria-expanded="sugerencias.lista.length > 0 && !modal"
+                               type="text" inputmode="text" autofocus
                                autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Código del artículo"
                                placeholder="Escanea o escribe el código  ·  5* para varias piezas"
                                class="block w-full min-w-0 rounded-xl border-2 border-anil-200 bg-white py-3.5 pl-12 pr-4 font-mono text-lg text-tinta placeholder:font-sans placeholder:text-base placeholder:text-anil-300 focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
@@ -378,6 +381,26 @@ new #[Layout('layouts.pos')] class extends Component
                                 class="grid w-14 shrink-0 place-items-center rounded-xl bg-anil-900 text-white shadow-[0_3px_0_0_var(--color-anil-950)] active:translate-y-[3px] active:shadow-none lg:hidden">
                             <x-phosphor-camera-bold class="size-6" />
                         </button>
+                        {{-- Coincidencias mientras se escribe: tocar una la agrega; ↑ ↓ y Enter también; el Enter normal sigue funcionando --}}
+                        <ul id="sugerencias-venta" role="listbox" x-show="sugerencias.lista.length && !modal" x-cloak
+                            class="absolute inset-x-0 top-full z-30 mt-1.5 max-h-[45dvh] divide-y divide-anil-50 overflow-y-auto rounded-xl border border-anil-200 bg-white shadow-xl">
+                            <template x-for="(a, i) in sugerencias.lista" :key="a.id">
+                                <li role="option" :aria-selected="sugerencias.enfocado === i">
+                                    <button type="button" x-on:mousedown.prevent x-on:click="elegirSugerencia(a)" :class="sugerencias.enfocado === i ? 'bg-rosa-50' : ''"
+                                            class="flex min-h-12 w-full items-center justify-between gap-3 px-3.5 py-2 text-left hover:bg-anil-50">
+                                        <span class="min-w-0">
+                                            <span class="block truncate font-semibold" x-text="a.descripcion"></span>
+                                            <span class="block font-mono text-xs text-anil-600" x-text="a.clave"></span>
+                                        </span>
+                                        <span class="shrink-0 text-right">
+                                            <span class="block font-display text-base font-extrabold" x-text="dinero(Math.round(parseFloat(a.precios[0]) * 100))"></span>
+                                            <span class="block text-xs text-anil-600" x-show="a.inventariable" x-text="'Existencia ' + (Math.round(parseFloat(a.existencia) * 1000) / 1000)"></span>
+                                        </span>
+                                    </button>
+                                </li>
+                            </template>
+                        </ul>
+
                     </div>
                     <div class="mt-2 flex min-h-6 flex-wrap items-center gap-2 text-sm apaisado:min-h-0" aria-live="polite">
                         <template x-if="multiplicador">

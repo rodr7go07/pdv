@@ -1,12 +1,14 @@
 <?php
 
 use App\Actions\Usuarios\GuardarUsuario;
+use App\Enums\Permiso;
 use App\Enums\Rol;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Spatie\Permission\Models\Role;
 
 new #[Layout('layouts.app')] class extends Component
 {
@@ -83,11 +85,14 @@ new #[Layout('layouts.app')] class extends Component
         $this->dispatch('cerrar-modal', nombre: 'usuario');
     }
 
-    /** @return array<string, list<string>> permisos legibles de cada rol */
+    /** @return array<string, list<string>> permisos legibles de cada rol (los de la base de datos: se editan en Roles) */
     #[Computed]
     public function roles(): array
     {
-        return collect(Rol::cases())->mapWithKeys(fn (Rol $r) => [$r->value => array_map(fn ($p) => $p->etiqueta(), $r->permisos())])->all();
+        return Role::query()->with('permissions:id,name')->get()
+            ->sortBy(fn (Role $r) => [Rol::orden($r->name), mb_strtolower($r->name)])
+            ->mapWithKeys(fn (Role $r) => [$r->name => $r->permissions->map(fn ($p) => Permiso::tryFrom($p->name)?->etiqueta())->filter()->values()->all()])
+            ->all();
     }
 }; ?>
 
@@ -121,6 +126,9 @@ new #[Layout('layouts.app')] class extends Component
         </x-card>
 
         <x-card titulo="Qué puede hacer cada rol" descripcion="Elige el rol según lo que esa persona necesita.">
+            @can('roles.administrar')
+                <a href="{{ route('roles') }}" wire:navigate class="-mt-2 mb-4 inline-block text-sm font-semibold text-rosa-600 underline">Crear o cambiar roles</a>
+            @endcan
             <div class="space-y-5">
                 @foreach ($this->roles as $nombre => $permisos)
                     <details class="group" @if ($loop->first) open @endif>
@@ -162,7 +170,7 @@ new #[Layout('layouts.app')] class extends Component
                 <div>
                     <x-input-label for="u_rol" value="Rol" />
                     <x-select wire:model="rol" id="u_rol">
-                        @foreach (App\Enums\Rol::cases() as $r)<option value="{{ $r->value }}">{{ $r->value }}</option>@endforeach
+                        @foreach (array_keys($this->roles) as $nombreRol)<option value="{{ $nombreRol }}">{{ $nombreRol }}</option>@endforeach
                     </x-select>
                     <x-input-error :messages="$errors->get('rol')" class="mt-1.5" />
                 </div>

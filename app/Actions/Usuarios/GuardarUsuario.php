@@ -34,12 +34,13 @@ class GuardarUsuario
             'usuario' => ['required', 'string', 'min:3', 'max:40', 'regex:/^[a-z0-9._-]+$/', Rule::unique('users', 'usuario')->ignore($usuario?->id)],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($usuario?->id)],
             'password' => [$usuario ? 'nullable' : 'required', 'string', Password::min(8)],
-            'rol' => ['required', Rule::enum(Rol::class)],
+            'rol' => ['required', Rule::exists('roles', 'name')],
         ], [
             'usuario.regex' => 'El usuario solo puede tener letras minúsculas, números, punto, guion y guion bajo (sin espacios).',
             'usuario.unique' => 'Ese usuario ya existe.',
             'email.unique' => 'Ese correo ya lo usa otra persona.',
             'password.required' => 'Escribe una contraseña para el usuario nuevo.',
+            'rol.exists' => 'Elige un rol de la lista.',
         ], ['name' => 'nombre', 'usuario' => 'usuario', 'email' => 'correo', 'password' => 'contraseña', 'rol' => 'rol'])->validate();
 
         return DB::transaction(function () use ($usuario, $datos, $validado, $quienLoHace) {

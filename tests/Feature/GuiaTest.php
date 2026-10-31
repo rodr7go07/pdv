@@ -31,7 +31,7 @@ it('la guía explica cada módulo del sistema', function (string $texto) {
     'retiros' => 'Dinero que entra o sale de la caja',
     'crédito' => 'Clientes que te deben',
     'reportes' => 'Saber cuánto vendiste y cuánto ganaste',
-    'usuarios' => 'usuarios, cajas y ajustes',
+    'usuarios' => 'usuarios, roles, cajas y ajustes',
     'problemas' => 'Si algo no funciona',
 ]);
 
@@ -44,6 +44,8 @@ it('la guía explica las funciones de escaneo, foto, compra sugerida e instalaci
     'sugerencia' => 'Sugerencia de compra',
     'escaneos' => '¿Qué se ha escaneado?',
     'instalar' => 'Instálalo como una app',
+    'roles' => 'Nuevo rol',
+    'autorización' => 'Pedir autorización para cancelar',
 ]);
 
 it('tiene buscador y un índice con anclas a cada sección', function () {

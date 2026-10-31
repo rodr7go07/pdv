@@ -14,6 +14,13 @@ Manual completo de uso, con los términos del sistema. La versión en lenguaje s
 | Encargado | La persona de confianza que supervisa | Todo menos administrar usuarios y la configuración de la tienda |
 | Cajero | Quien cobra | Abrir y cerrar su turno, cobrar, consultar artículos, ver sus ventas y recibir abonos |
 
+Estos tres son los roles **de fábrica**. Desde *Roles* (menú → Administración, permiso `roles.administrar`, solo el Administrador al inicio) se pueden **crear roles nuevos** (por ejemplo «Almacenista») y **cambiar los permisos** de Encargado y Cajero:
+- Cada rol es un conjunto de casillas agrupadas por módulo; el cambio aplica de inmediato a quienes lo tienen.
+- El **Administrador** siempre tiene todos los permisos y no se edita. Encargado y Cajero se pueden editar (hay un botón *Permisos de fábrica* para volver a como venían) pero **no** se renombran ni se borran.
+- Un rol propio solo se borra si **nadie lo tiene**.
+- Nadie puede dar un permiso que él mismo no tiene, así que un rol no sirve para subirse de nivel.
+- En *Usuarios* el rol se elige de esta misma lista. Al actualizar el sistema, los permisos que cambiaste **no** se reescriben.
+
 **Turno.** Antes de vender, el cajero *abre su turno* en una caja con un *fondo inicial* (el efectivo que deja en el cajón para dar cambio). Todo lo que cobre queda ligado a ese turno. Al terminar, *cierra el turno* contando el dinero (arqueo). Solo puede haber un turno abierto por caja y por persona.
 
 **Existencia y movimientos.** La cantidad de cada artículo nunca se escribe a mano: cambia únicamente cuando ocurre algo (compra, venta, devolución, cancelación, ajuste o conteo físico). Cada cambio queda en el *kardex* del artículo con fecha, cantidad y responsable.

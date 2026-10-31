@@ -45,6 +45,7 @@ enum Permiso: string
 
     case ConfiguracionEditar = 'configuracion.editar';
     case UsuariosAdministrar = 'usuarios.administrar';
+    case RolesAdministrar = 'roles.administrar';
 
     /** Lo que significa el permiso, en palabras de todos los días. */
     public function etiqueta(): string
@@ -81,6 +82,22 @@ enum Permiso: string
             self::ReportesVer => 'Ver reportes y el tablero',
             self::ConfiguracionEditar => 'Cambiar la configuración de la tienda',
             self::UsuariosAdministrar => 'Administrar usuarios',
+            self::RolesAdministrar => 'Crear y editar roles y sus permisos',
+        };
+    }
+
+    /** Módulo al que pertenece, para agrupar los permisos en la pantalla de roles. */
+    public function grupo(): string
+    {
+        return match ($this) {
+            self::ArticulosVer, self::ArticulosCrear, self::ArticulosEditar, self::ArticulosEditarPrecio, self::ArticulosImportar => 'Artículos',
+            self::InventarioVer, self::InventarioAjustar, self::InventarioConteo => 'Inventario',
+            self::ComprasVer, self::ComprasRegistrar, self::ComprasCancelar, self::ProveedoresAdministrar => 'Compras y proveedores',
+            self::VentasCobrar, self::VentasVerTodas, self::VentasDescuento, self::VentasCancelar, self::VentasAutorizarCancelacion, self::VentasDevolver => 'Ventas',
+            self::CajaAbrir, self::CajaRetiro, self::CajaCorte, self::CajaSupervisar, self::CajasAdministrar => 'Caja',
+            self::ClientesVer, self::ClientesAdministrar, self::ClientesCredito, self::ClientesAbonar => 'Clientes y crédito',
+            self::ReportesVer => 'Reportes',
+            self::CatalogosAdministrar, self::ConfiguracionEditar, self::UsuariosAdministrar, self::RolesAdministrar => 'Administración',
         };
     }
 }

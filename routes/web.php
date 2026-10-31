@@ -48,6 +48,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
     });
 
     Volt::route('usuarios', 'pages.usuarios')->middleware('can:usuarios.administrar')->name('usuarios');
+    Volt::route('roles', 'pages.roles')->middleware('can:roles.administrar')->name('roles');
 
     // Reportes y tablero (Fase 7)
     Volt::route('reportes', 'pages.reportes.index')->middleware('can:reportes.ver')->name('reportes');

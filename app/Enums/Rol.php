@@ -8,8 +8,22 @@ enum Rol: string
     case Encargado = 'Encargado';
     case Cajero = 'Cajero';
 
+    /** Lugar del rol en las listas: primero los del sistema en su orden y después los de la tienda. */
+    public static function orden(string $nombre): int
+    {
+        $i = array_search($nombre, array_map(fn (self $r) => $r->value, self::cases()), true);
+
+        return $i === false ? 99 : $i;
+    }
+
+    /** Los tres roles que trae el sistema: no se borran ni se renombran (el Administrador tampoco cambia de permisos). */
+    public static function esBase(string $nombre): bool
+    {
+        return self::tryFrom($nombre) !== null;
+    }
+
     /**
-     * Permisos que recibe cada rol al sembrar la base.
+     * Permisos con los que nace cada rol (después se pueden cambiar desde la pantalla Roles, salvo los del Administrador).
      *
      * @return list<Permiso>
      */
@@ -20,7 +34,7 @@ enum Rol: string
 
             self::Encargado => array_values(array_filter(
                 Permiso::cases(),
-                fn (Permiso $p) => ! in_array($p, [Permiso::UsuariosAdministrar, Permiso::ConfiguracionEditar], true),
+                fn (Permiso $p) => ! in_array($p, [Permiso::UsuariosAdministrar, Permiso::ConfiguracionEditar, Permiso::RolesAdministrar], true),
             )),
 
             self::Cajero => [

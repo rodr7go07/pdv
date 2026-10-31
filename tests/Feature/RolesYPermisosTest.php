@@ -65,3 +65,27 @@ it('el tablero se adapta al rol', function () {
     $this->actingAs($cajero)->get('/dashboard')->assertOk()->assertDontSee('Datos de la tienda');
     $this->actingAs($admin)->get('/dashboard')->assertOk()->assertSee('Datos de la tienda');
 });
+
+it('el seeder no pisa los permisos que la tienda cambió en Encargado y Cajero, pero el Administrador siempre tiene todo', function () {
+    Role::findByName('Cajero')->givePermissionTo(Permiso::ReportesVer->value);
+    Role::findByName('Encargado')->revokePermissionTo(Permiso::ArticulosEditarPrecio->value);
+    Role::findByName('Administrador')->revokePermissionTo(Permiso::ConfiguracionEditar->value);
+
+    $this->seed(RolesYPermisosSeeder::class);
+
+    expect(Role::findByName('Cajero')->hasPermissionTo(Permiso::ReportesVer->value))->toBeTrue()
+        ->and(Role::findByName('Encargado')->hasPermissionTo(Permiso::ArticulosEditarPrecio->value))->toBeFalse()
+        ->and(Role::findByName('Administrador')->permissions)->toHaveCount(count(Permiso::cases()));
+});
+
+it('solo el administrador administra roles de fábrica', function () {
+    expect(Role::findByName('Administrador')->hasPermissionTo(Permiso::RolesAdministrar->value))->toBeTrue()
+        ->and(Role::findByName('Encargado')->hasPermissionTo(Permiso::RolesAdministrar->value))->toBeFalse()
+        ->and(Role::findByName('Cajero')->hasPermissionTo(Permiso::RolesAdministrar->value))->toBeFalse();
+});
+
+it('cada permiso tiene etiqueta y módulo', function () {
+    foreach (Permiso::cases() as $p) {
+        expect($p->etiqueta())->not->toBe('')->and($p->grupo())->not->toBe('');
+    }
+});

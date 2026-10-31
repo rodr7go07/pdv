@@ -22,6 +22,7 @@
                     ['Encargado', 'Persona de confianza. Supervisa, pero no cambia usuarios ni la configuración.'],
                     ['Cajero', 'Quien cobra. Abre su caja, vende y cierra su caja.'],
                 ]],
+                ['p' => 'El dueño puede crear más roles (por ejemplo «Almacenista») y cambiar lo que puede hacer cada uno en **Roles**.'],
                 ['p' => '**Instálalo como una app.** Así abre con su propio ícono, sin la barra del navegador, como cualquier otra aplicación del teléfono o de la computadora.'],
                 ['lista' => [
                     '**En Android o en la computadora:** toca el botón **Instalar** (arriba en el teléfono; en la computadora, abajo del menú) y confirma. Cuando ya está instalada, el botón desaparece.',
@@ -49,7 +50,7 @@
                 ]],
                 ['enlaces' => [
                     ['Mi cuenta', 'profile', null], ['Configuración', 'configuracion', 'configuracion.editar'], ['Catálogos', 'catalogos', 'catalogos.administrar'],
-                    ['Cajas', 'cajas', 'cajas.administrar'], ['Usuarios', 'usuarios', 'usuarios.administrar'], ['Artículos', 'articulos.index', 'articulos.ver'],
+                    ['Cajas', 'cajas', 'cajas.administrar'], ['Usuarios', 'usuarios', 'usuarios.administrar'], ['Roles', 'roles', 'roles.administrar'], ['Artículos', 'articulos.index', 'articulos.ver'],
                 ]],
                 ['consejo' => 'Antes de pedirle a alguien que cobre, haz una venta de prueba tú mismo con un producto barato y mira cómo sale el ticket.'],
             ],
@@ -257,9 +258,10 @@
             ],
         ],
         [
-            'id' => 'administrar', 'titulo' => 'Para el dueño: usuarios, cajas y ajustes', 'icono' => 'gear', 'para' => 'Dueño',
+            'id' => 'administrar', 'titulo' => 'Para el dueño: usuarios, roles, cajas y ajustes', 'icono' => 'gear', 'para' => 'Dueño',
             'intro' => 'Aquí decides quién puede hacer qué y cómo funciona tu tienda.',
             'bloques' => [
+                ['p' => '**Roles.** Un rol es un conjunto de cosas que alguien puede hacer. Además del Administrador, el Encargado y el Cajero, puedes crear los tuyos (por ejemplo «Almacenista»): toca **Nuevo rol**, ponle nombre y marca las casillas de lo que puede hacer. También puedes cambiar los permisos del Encargado y del Cajero. Los cambios valen de inmediato para quienes tienen ese rol. El Administrador siempre puede todo, y un rol solo se borra si nadie lo tiene.'],
                 ['p' => '**Usuarios.** Da de alta a cada persona con su usuario, contraseña y rol. En la misma pantalla ves qué puede hacer cada rol. Si alguien deja de trabajar contigo, **desactívalo** (no se borra su historial). Siempre debe haber al menos un administrador.'],
                 ['p' => '**Cajas.** Cada caja tiene una letra de serie que abre los folios de sus tickets (por ejemplo A-000123), el ancho del papel y si el ticket se imprime solo.'],
                 ['p' => '**Turnos y cortes.** Ahí ves los turnos de todos los cajeros, si cuadraron, y puedes cerrar un turno que alguien olvidó cerrar.'],

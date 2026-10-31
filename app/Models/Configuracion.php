@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 #[Table('configuracion')]
-#[Fillable(['nombre_tienda', 'razon_social', 'rfc', 'direccion', 'telefono', 'leyenda_ticket', 'logo_ruta', 'metodo_costeo', 'vender_sin_existencia'])]
+#[Fillable(['nombre_tienda', 'razon_social', 'rfc', 'direccion', 'telefono', 'leyenda_ticket', 'logo_ruta', 'metodo_costeo', 'vender_sin_existencia', 'descuento_efectivo_pct'])]
 class Configuracion extends Model
 {
     private const CACHE_KEY = 'configuracion.tienda';
@@ -34,6 +34,7 @@ class Configuracion extends Model
         return [
             'metodo_costeo' => MetodoCosteo::class,
             'vender_sin_existencia' => 'boolean',
+            'descuento_efectivo_pct' => 'decimal:2',
         ];
     }
 

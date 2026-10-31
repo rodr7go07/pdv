@@ -4,6 +4,7 @@ namespace App\Livewire\Forms;
 
 use App\Enums\MetodoCosteo;
 use App\Models\Configuracion;
+use App\Support\Numero;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 
@@ -25,11 +26,15 @@ class ConfiguracionForm extends Form
 
     public bool $vender_sin_existencia = true;
 
+    /** Porcentaje de descuento al pagar todo en efectivo (0 = apagado). */
+    public string $descuento_efectivo_pct = '5';
+
     public function cargar(Configuracion $configuracion): void
     {
         $this->fill([
             'metodo_costeo' => $configuracion->metodo_costeo?->value ?? 'promedio',
             'vender_sin_existencia' => (bool) $configuracion->vender_sin_existencia,
+            'descuento_efectivo_pct' => Numero::cantidad($configuracion->descuento_efectivo_pct ?? '5'),
             'nombre_tienda' => $configuracion->nombre_tienda,
             'razon_social' => $configuracion->razon_social ?? '',
             'rfc' => $configuracion->rfc ?? '',
@@ -51,6 +56,7 @@ class ConfiguracionForm extends Form
             'leyenda_ticket' => ['nullable', 'string', 'max:255'],
             'metodo_costeo' => ['required', Rule::enum(MetodoCosteo::class)],
             'vender_sin_existencia' => ['boolean'],
+            'descuento_efectivo_pct' => ['required', 'numeric', 'min:0', 'max:100'],
         ];
     }
 
@@ -65,6 +71,7 @@ class ConfiguracionForm extends Form
             'direccion' => 'dirección',
             'leyenda_ticket' => 'leyenda del ticket',
             'metodo_costeo' => 'método de costeo',
+            'descuento_efectivo_pct' => 'descuento por pago en efectivo',
         ];
     }
 

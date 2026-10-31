@@ -36,7 +36,7 @@ Estos tres son los roles **de fábrica**. Desde *Roles* (menú → Administraci�
 Haz estos pasos en orden:
 
 1. **Cambia tu contraseña** en *Mi cuenta*.
-2. **Configuración:** nombre de la tienda, razón social, RFC, dirección, teléfono, leyenda del ticket y logotipo. A la derecha ves cómo queda el ticket.
+2. **Configuración:** nombre de la tienda, razón social, RFC, dirección, teléfono, leyenda del ticket, logotipo y el porcentaje de descuento por pago en efectivo. A la derecha ves cómo queda el ticket.
    - *Costo que se usa para la utilidad*: **costo promedio** (mezcla lo que tenías con lo nuevo) o **último costo** (lo que pagaste la última vez). Se guardan siempre los dos; esta opción solo decide cuál se usa para márgenes y utilidad.
    - *Permitir vender aunque no haya existencia*: útil si a veces vendes antes de capturar la compra.
 3. **Catálogos:** crea tus departamentos (solo viene «General») y revisa las unidades de medida y los impuestos que ya vienen (IVA 16 %, IVA 0 %, Exento, IEPS 8 %). Agrega los que falten.
@@ -103,6 +103,7 @@ Pantalla completa pensada para escáner y teclado. El cursor siempre está en el
 | Cambiar cantidad | Los botones **+ / −**, o escribe la cantidad en su casilla. |
 | Quitar un artículo | El bote de basura, o **Supr** con el artículo seleccionado (↑ ↓ para moverte). |
 | Descuento a un artículo o a toda la venta | El botón de porcentaje en cada renglón, o **F6** para toda la venta (solo con permiso). |
+| Descuento por pagar en efectivo | En la ventana de cobro, el interruptor *Descuento por pago en efectivo* (permiso `ventas.descuento`). Porcentaje inicial: el de *Configuración → Cobro* (5 % de fábrica, 0 lo apaga), editable en esa ventana para cada venta. Es un descuento general en porcentaje que se reparte entre las partidas como cualquier otro; el servidor exige que **todos** los pagos sean en efectivo, así que con tarjeta, transferencia o crédito se rechaza. Solo se puede usar si la venta no tiene otro descuento general. Al cerrar el cobro sin cobrar, o al guardar la venta en espera, se quita. La venta queda marcada (`descuento_efectivo`) y el detalle y el ticket muestran «Descuentos (efectivo)». |
 | Elegir un cliente | **F7** (usa su lista de precios y su crédito). |
 | Dejar la venta en espera | **F3**; recupérala con **F4**. |
 | Cobrar | **F8** o *Cobrar*. |

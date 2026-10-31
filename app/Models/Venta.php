@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'serie', 'numero', 'folio', 'caja_id', 'turno_id', 'user_id', 'cliente_id', 'estado', 'lista_precios',
-    'subtotal', 'descuento', 'impuestos', 'total', 'efectivo_recibido', 'cambio',
+    'subtotal', 'descuento', 'descuento_efectivo', 'impuestos', 'total', 'efectivo_recibido', 'cambio',
     'cancelada_at', 'cancelada_por', 'autorizada_por', 'motivo_cancelacion',
 ])]
 class Venta extends Model
@@ -23,6 +23,7 @@ class Venta extends Model
             'total' => 'decimal:2',
             'efectivo_recibido' => 'decimal:2',
             'cambio' => 'decimal:2',
+            'descuento_efectivo' => 'boolean',
             'cancelada_at' => 'datetime',
         ];
     }

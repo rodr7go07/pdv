@@ -90,7 +90,7 @@
             <tr><td>{{ $i['nombre'] }}</td><td class="der">{{ $dinero($i['monto']) }}</td></tr>
         @endforeach
         @if ((float) $venta->descuento > 0)
-            <tr><td>Descuentos</td><td class="der">-{{ $dinero($venta->descuento) }}</td></tr>
+            <tr><td>Descuentos{{ $venta->descuento_efectivo ? ' (efectivo)' : '' }}</td><td class="der">-{{ $dinero($venta->descuento) }}</td></tr>
         @endif
         <tr class="negrita grande"><td>TOTAL</td><td class="der">{{ $dinero($venta->total) }}</td></tr>
     </table>

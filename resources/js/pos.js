@@ -50,7 +50,8 @@ export function registrarPos(Alpine) {
         sugerencias: { lista: [], enfocado: -1 },
         _sugT: null,
         _sugId: 0,
-        descGlobal: { tipo: '', valor: '' },
+        descGlobal: { tipo: '', valor: '' }, // motivo: 'efectivo' cuando es el descuento por pagar todo en efectivo (solo dentro del cobro)
+        pctEfectivo: '', // porcentaje del descuento por pago en efectivo para esta venta (arranca en el de Configuración)
         descLinea: { indice: -1, tipo: 'pct', valor: '' },
         peso: { articulo: null, valor: '' },
         pesoError: '',
@@ -70,7 +71,7 @@ export function registrarPos(Alpine) {
             const previo = guardado.leer(this.claveGuardado());
             if (previo && Array.isArray(previo.lineas) && previo.lineas.length) {
                 this.lineas = previo.lineas.map((l) => ({ ...l, uid: ++uid }));
-                this.descGlobal = previo.descGlobal || { tipo: '', valor: '' };
+                this.descGlobal = this.sinDescuentoEfectivo(previo.descGlobal);
                 this.cliente = this.cfg.puedeCliente ? (previo.cliente || null) : null;
                 this.refrescarPrecios();
             }
@@ -79,7 +80,9 @@ export function registrarPos(Alpine) {
             this.$watch('descGlobal', () => this.persistir());
             this.$watch('cliente', () => this.persistir());
             // Al abrir una ventana, el cursor pasa a su primer campo (con un respiro para que termine de mostrarse).
-            this.$watch('modal', (nombre) => {
+            this.$watch('modal', (nombre, anterior) => {
+                // El descuento por pagar en efectivo vive solo dentro del cobro: si se cierra sin cobrar, se quita.
+                if (anterior === 'cobro' && nombre !== 'cobro' && nombre !== 'exito') this.quitarDescuentoEfectivo();
                 if (nombre !== 'camara') this.cerrarCamara();
                 if (!nombre || nombre === 'exito' || nombre === 'esperas') return;
                 setTimeout(() => {
@@ -629,15 +632,82 @@ export function registrarPos(Alpine) {
         },
 
         descuentoPayload() {
-            return this.descGlobal.tipo && parseFloat(this.descGlobal.valor) > 0
-                ? { tipo: this.descGlobal.tipo, valor: String(this.descGlobal.valor) }
-                : {};
+            if (!(this.descGlobal.tipo && parseFloat(this.descGlobal.valor) > 0)) return {};
+
+            return {
+                tipo: this.descGlobal.tipo,
+                valor: String(this.descGlobal.valor),
+                ...(this.descGlobal.motivo === 'efectivo' ? { motivo: 'efectivo' } : {}),
+            };
+        },
+
+        /** El descuento general sin el de «pago en efectivo» (ese no se guarda en la venta en espera ni en el carrito). */
+        sinDescuentoEfectivo(d) {
+            return d && d.motivo !== 'efectivo' ? d : { tipo: '', valor: '' };
+        },
+
+        // ─── Descuento por pagar en efectivo ────────────────────────────────────────
+        get puedeDescEfectivo() {
+            return this.cfg.puedeDescuento && this.cfg.descuentoEfectivoPct > 0;
+        },
+        get descEfectivoActivo() {
+            return this.descGlobal.motivo === 'efectivo';
+        },
+        get hayOtroDescuentoGeneral() {
+            return !!this.descGlobal.tipo && this.descGlobal.motivo !== 'efectivo';
+        },
+        get todoEfectivo() {
+            return this.cobro.pagos.length > 0 && this.cobro.pagos.every((p) => p.forma === 'efectivo');
+        },
+        get descEfectivoMonto() {
+            return this.descEfectivoActivo ? this.descuentoGeneral : 0;
+        },
+
+        quitarDescuentoEfectivo() {
+            if (this.descEfectivoActivo) this.descGlobal = { tipo: '', valor: '' };
+        },
+
+        /** Activa o quita el descuento por pago en efectivo y recalcula el total en el servidor. */
+        async alternarDescEfectivo() {
+            if (this.cobro.procesando || this.hayOtroDescuentoGeneral) return;
+
+            if (this.descEfectivoActivo) {
+                this.quitarDescuentoEfectivo();
+            } else {
+                if (!this.todoEfectivo) { this.cobro.error = 'El descuento por pago en efectivo solo aplica si toda la venta se paga en efectivo.'; return; }
+                if (!this.aplicarPctEfectivo()) return;
+            }
+
+            await this.recalcularCobro();
+        },
+
+        /** Cambió el porcentaje: si el descuento está activo se vuelve a calcular. */
+        async cambiarPctEfectivo() {
+            if (!this.descEfectivoActivo) return;
+            if (!this.aplicarPctEfectivo()) { this.quitarDescuentoEfectivo(); }
+            await this.recalcularCobro();
+        },
+
+        aplicarPctEfectivo() {
+            const v = parseFloat(String(this.pctEfectivo).replace(',', '.'));
+            if (!(v > 0) || v > 100) { this.cobro.error = 'El descuento por pago en efectivo debe ser mayor que 0 y no pasar de 100%.'; return false; }
+            this.cobro.error = '';
+            this.descGlobal = { tipo: 'pct', valor: String(v), motivo: 'efectivo' };
+            return true;
         },
 
         async abrirCobro() {
             if (!this.lineas.length) { this.avisar('Agrega al menos un artículo.', 'error'); return; }
             this.cobro = { pagos: [], procesando: true, error: '', totalServidor: null, disponible: 0 };
+            this.pctEfectivo = String(this.cfg.descuentoEfectivoPct || '');
             this.modal = 'cobro';
+            await this.recalcularCobro();
+        },
+
+        /** Pide al servidor el total exacto con el descuento actual y deja un solo pago en efectivo por ese total. */
+        async recalcularCobro() {
+            this.cobro.procesando = true;
+            this.cobro.error = '';
 
             try {
                 const r = await this.$wire.previsualizar(this.payload(), this.descuentoPayload(), this.listaActual, this.cliente?.id ?? null);
@@ -680,7 +750,8 @@ export function registrarPos(Alpine) {
                 && this.creditoUsado <= (this.cobro.disponible || 0)
                 && this.sinEfectivo <= this.totalCobro
                 && this.faltante === 0
-                && !(this.efectivoNecesario === 0 && this.efectivoRecibido > 0);
+                && !(this.efectivoNecesario === 0 && this.efectivoRecibido > 0)
+                && !(this.descEfectivoActivo && !this.todoEfectivo); // el descuento por efectivo exige pagar todo en efectivo
         },
 
         agregarPago(forma) {
@@ -757,7 +828,7 @@ export function registrarPos(Alpine) {
         // ─── Ventas en espera ───────────────────────────────────────────────────────
         async guardarEnEspera() {
             if (!this.lineas.length) { this.avisar('No hay nada que guardar.', 'error'); return; }
-            const r = await this.$wire.guardarEspera(this.lineas, this.descGlobal, this.esperas.nombre || null);
+            const r = await this.$wire.guardarEspera(this.lineas, this.sinDescuentoEfectivo(this.descGlobal), this.esperas.nombre || null);
             if (!r.ok) { this.avisar(r.mensaje, 'error'); return; }
             this.limpiarVenta();
             this.modal = null;
@@ -777,7 +848,7 @@ export function registrarPos(Alpine) {
             const r = await this.$wire.recuperarEspera(id);
             if (!r.ok) { this.avisar(r.mensaje, 'error'); return; }
             this.lineas = r.lineas.map((l) => ({ ...l, uid: ++uid }));
-            this.descGlobal = r.descGlobal || { tipo: '', valor: '' };
+            this.descGlobal = this.sinDescuentoEfectivo(r.descGlobal);
             this.modal = null;
             await this.refrescarPrecios();
             this.avisar('Venta recuperada.', 'ok');

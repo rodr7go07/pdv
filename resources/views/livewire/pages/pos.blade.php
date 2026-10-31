@@ -80,6 +80,7 @@ new #[Layout('layouts.pos')] class extends Component
             'urlPorIds' => route('pos.por-ids'),
             'urlTicket' => route('ventas.ticket', ['venta' => '__ID__']),
             'puedeDescuento' => auth()->user()->can('ventas.descuento'),
+            'descuentoEfectivoPct' => (float) Configuracion::actual()->descuento_efectivo_pct,
             'puedeCliente' => auth()->user()->can('clientes.ver'),
             'puedeAlta' => $this->puedeAlta,
             'autoImprimir' => (bool) $this->caja?->imprimir_automatico,
@@ -314,7 +315,18 @@ new #[Layout('layouts.pos')] class extends Component
     /** @return array<string, mixed> */
     private function limpiarDescuento(array $d): array
     {
-        return in_array($d['tipo'] ?? null, ['pct', 'monto'], true) ? ['tipo' => $d['tipo'], 'valor' => (string) ($d['valor'] ?? '')] : [];
+        if (! in_array($d['tipo'] ?? null, ['pct', 'monto'], true)) {
+            return [];
+        }
+
+        $limpio = ['tipo' => $d['tipo'], 'valor' => (string) ($d['valor'] ?? '')];
+
+        // Descuento por pagar en efectivo: el servidor comprueba que todos los pagos sean en efectivo.
+        if (($d['motivo'] ?? null) === RegistrarVenta::MOTIVO_EFECTIVO) {
+            $limpio['motivo'] = RegistrarVenta::MOTIVO_EFECTIVO;
+        }
+
+        return $limpio;
     }
 
     /** @return array{tipo: string, valor: string} */
@@ -776,6 +788,29 @@ new #[Layout('layouts.pos')] class extends Component
                     <p class="text-center font-display text-5xl font-extrabold tracking-tight text-anil-900 [font-stretch:112%]" x-text="dinero(totalCobro)"></p>
 
                     <p x-show="cobro.error" x-text="cobro.error" class="mt-3 rounded-lg bg-red-50 px-3 py-2.5 text-sm font-medium text-red-800 ring-1 ring-red-200" role="alert"></p>
+
+                    {{-- Descuento por pagar todo en efectivo: el porcentaje arranca en el de Configuración y se puede cambiar para esta venta --}}
+                    <div x-show="puedeDescEfectivo && cobro.totalServidor !== null" x-cloak class="mt-4 rounded-xl border p-3" :class="descEfectivoActivo ? 'border-emerald-300 bg-emerald-50' : 'border-anil-200'">
+                        <div class="flex items-center gap-3">
+                            <button type="button" role="switch" :aria-checked="descEfectivoActivo" x-on:click="alternarDescEfectivo()"
+                                    :disabled="cobro.procesando || hayOtroDescuentoGeneral || (!descEfectivoActivo && !todoEfectivo)"
+                                    :class="descEfectivoActivo ? 'bg-emerald-600' : 'bg-anil-300'"
+                                    class="relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-40" aria-label="Descuento por pago en efectivo">
+                                <span :class="descEfectivoActivo ? 'translate-x-5' : 'translate-x-0.5'" class="absolute left-0 top-0.5 size-6 rounded-full bg-white shadow transition"></span>
+                            </button>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-semibold text-anil-900">Descuento por pago en efectivo</p>
+                                <p class="text-xs text-emerald-800" x-show="descEfectivoActivo" x-text="'Se descontaron ' + dinero(descEfectivoMonto)"></p>
+                            </div>
+                            <label class="flex shrink-0 items-center gap-1 text-sm font-semibold text-anil-800">
+                                <input x-model="pctEfectivo" x-on:change="cambiarPctEfectivo()" type="text" inputmode="decimal" autocomplete="off" aria-label="Porcentaje de descuento por pago en efectivo"
+                                       class="h-10 w-16 rounded-lg border border-anil-200 bg-white px-2 text-right font-mono text-base font-bold focus:border-rosa-500 focus:ring-2 focus:ring-rosa-500/20 focus:outline-none">
+                                %
+                            </label>
+                        </div>
+                        <p x-show="hayOtroDescuentoGeneral" class="mt-2 text-xs text-anil-700">Esta venta ya tiene un descuento general: quítalo para usar el de efectivo.</p>
+                        <p x-show="!hayOtroDescuentoGeneral && !todoEfectivo" class="mt-2 text-xs text-anil-700" x-text="descEfectivoActivo ? 'Solo aplica si toda la venta se paga en efectivo: vuelve a dejar solo efectivo o quita el descuento.' : 'Solo se puede dar si toda la venta se paga en efectivo.'"></p>
+                    </div>
 
                     <div class="mt-4 space-y-3" x-show="cobro.totalServidor !== null">
                         <template x-for="(p, i) in cobro.pagos" :key="i">

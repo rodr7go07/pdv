@@ -142,6 +142,20 @@ new #[Layout('layouts.app')] class extends Component
                             ayuda="Útil si a veces vendes antes de capturar la compra. La existencia puede quedar en negativo hasta que la regularices." />
             </div>
 
+            <div class="space-y-5 border-t border-anil-100 pt-6">
+                <div>
+                    <h2 class="text-lg font-extrabold text-anil-900">Cobro</h2>
+                    <p class="mt-1 text-sm text-anil-700">Descuento que se puede dar cuando el cliente paga todo en efectivo.</p>
+                </div>
+
+                <div class="max-w-xs">
+                    <x-input-label for="descuento_efectivo_pct" value="Descuento por pago en efectivo (%)" />
+                    <x-text-input wire:model.live.debounce.300ms="form.descuento_efectivo_pct" id="descuento_efectivo_pct" type="text" inputmode="decimal" class="font-mono" maxlength="6" />
+                    <p class="mt-1.5 text-xs text-anil-600">Empieza en 5. Se ofrece en la ventana de cobro a quien tenga permiso de dar descuentos, y ahí se puede cambiar para una venta en particular. Escribe 0 para apagarlo.</p>
+                    <x-input-error :messages="$errors->get('form.descuento_efectivo_pct')" class="mt-2" />
+                </div>
+            </div>
+
             <div>
                 <x-input-label for="logo" value="Logotipo" />
                 <div class="flex flex-wrap items-center gap-4">

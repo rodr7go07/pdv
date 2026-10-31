@@ -222,7 +222,7 @@ new #[Layout('layouts.app')] class extends Component
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between"><dt class="text-anil-700">Subtotal</dt><dd class="font-mono">${{ number_format((float) $venta->subtotal, 2) }}</dd></div>
                     <div class="flex justify-between"><dt class="text-anil-700">Impuestos</dt><dd class="font-mono">${{ number_format((float) $venta->impuestos, 2) }}</dd></div>
-                    @if ((float) $venta->descuento > 0)<div class="flex justify-between"><dt class="text-anil-700">Descuentos</dt><dd class="font-mono text-emerald-700">−${{ number_format((float) $venta->descuento, 2) }}</dd></div>@endif
+                    @if ((float) $venta->descuento > 0)<div class="flex justify-between"><dt class="text-anil-700">Descuentos{{ $venta->descuento_efectivo ? ' (pago en efectivo)' : '' }}</dt><dd class="font-mono text-emerald-700">−${{ number_format((float) $venta->descuento, 2) }}</dd></div>@endif
                     <div class="flex items-baseline justify-between border-t border-anil-100 pt-2"><dt class="font-extrabold">Total</dt><dd class="font-display text-2xl font-extrabold">${{ number_format((float) $venta->total, 2) }}</dd></div>
                 </dl>
                 <dl class="mt-4 space-y-1.5 border-t border-anil-50 pt-4 text-sm">

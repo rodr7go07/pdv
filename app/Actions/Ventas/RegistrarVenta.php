@@ -34,6 +34,9 @@ use Illuminate\Validation\ValidationException;
  */
 class RegistrarVenta
 {
+    /** Marca del descuento general que se da por pagar todo en efectivo (la venta lo recuerda). */
+    public const MOTIVO_EFECTIVO = 'efectivo';
+
     public function __construct(
         private readonly RegistrarMovimientoInventario $movimiento,
         private readonly RegistrarMovimientoCliente $cuenta,
@@ -113,6 +116,7 @@ class RegistrarVenta
                 'lista_precios' => $lista,
                 'subtotal' => $calculo['subtotal'],
                 'descuento' => $calculo['descuento'],
+                'descuento_efectivo' => ($descuentoGlobal['motivo'] ?? null) === self::MOTIVO_EFECTIVO && BigDecimal::of($calculo['descuento'])->isPositive(),
                 'impuestos' => $calculo['impuestos'],
                 'total' => $calculo['total'],
                 'efectivo_recibido' => (string) $recibido,
@@ -258,6 +262,11 @@ class RegistrarVenta
                 'pagos.*.monto.gt' => 'Cada pago debe ser mayor que cero.',
             ],
         )->validate();
+
+        // El descuento por pagar en efectivo solo vale si TODO se paga en efectivo.
+        if (($descuentoGlobal['motivo'] ?? null) === self::MOTIVO_EFECTIVO && collect($pagos)->contains(fn ($p) => ($p['forma'] ?? null) !== FormaPago::Efectivo->value)) {
+            throw ValidationException::withMessages(['descuento' => 'El descuento por pago en efectivo solo aplica si toda la venta se paga en efectivo.']);
+        }
     }
 
     /**
@@ -278,6 +287,7 @@ class RegistrarVenta
                 'lineas.*.descuento_valor' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
                 'descuento_global.tipo' => ['nullable', Rule::in(['pct', 'monto'])],
                 'descuento_global.valor' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+                'descuento_global.motivo' => ['nullable', Rule::in([self::MOTIVO_EFECTIVO])],
                 'lista' => ['required', Rule::in([1, 2, 3])],
             ],
             [
@@ -291,6 +301,10 @@ class RegistrarVenta
                 if (($l['descuento_tipo'] ?? null) === 'pct' && is_numeric($l['descuento_valor'] ?? null) && (float) $l['descuento_valor'] > 100) {
                     $v->errors()->add("lineas.$i.descuento_valor", 'El descuento no puede ser mayor al 100%.');
                 }
+            }
+
+            if (($descuentoGlobal['motivo'] ?? null) === self::MOTIVO_EFECTIVO && ($descuentoGlobal['tipo'] ?? null) !== 'pct') {
+                $v->errors()->add('descuento_global.motivo', 'El descuento por pago en efectivo es un porcentaje.');
             }
 
             if (($descuentoGlobal['tipo'] ?? null) === 'pct' && is_numeric($descuentoGlobal['valor'] ?? null) && (float) $descuentoGlobal['valor'] > 100) {

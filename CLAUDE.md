@@ -44,7 +44,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - Verificación visual: Playwright viene instalado (`require('playwright')`); levantar `php artisan serve` con una base SQLite temporal (`DB_CONNECTION=sqlite DB_DATABASE=<ruta> SESSION_DRIVER=file CACHE_STORE=file`) y revisar a 1280, 390 y 800×360 px. No usar `pkill -f`/`pgrep -f` (matan el propio shell): guardar el PID en un archivo.
 
 ## Estado del proyecto
-- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–70).
+- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–71).
 - La guía de uso vive en `resources/views/guia.blade.php` (lenguaje sencillo) y `docs/GUIA_DETALLADA.md`. Todo cambio de flujo o de atajos debe actualizar ambas (hay pruebas en `GuiaTest`).
 - Pendientes por confirmar con el dueño de la tienda: método de costeo, precios con impuestos incluidos y si necesita abrir el cajón de dinero. Además, el catálogo cargado casi no marca IVA: confirmar qué artículos llevan impuesto.
 - Pendientes técnicos conocidos: probar con MySQL real, impresora de tickets y lector físico; ejecutar la Fase 8 en el servidor; el historial de git conserva un `punto_venta` (SQLite) subido por error con hashes de contraseñas de desarrollo (reescribir historial solo si el usuario lo pide).
@@ -55,7 +55,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - **Inventario:** «agotado» (existencia ≤ 0) y «bajo el mínimo» (hay pero ≤ mínimo) no se traslapan (`scopeAgotados`, `scopeBajoMinimoConExistencia`).
 - **Compras:** artículos con proveedor principal (`articulos.proveedor_id`) y proveedores con `dias_visita`; la sugerencia de compra es editable y se filtra por proveedor (`SugerenciaCompra`, `Proveedor::diasHastaSiguienteVisita`).
 - **Importación de artículos:** `Artículos → Importar` o `php artisan articulos:importar "ruta.xlsx" --usuario=admin` (todo o nada). Acepta los encabezados de la plantilla y los de otros sistemas (`clave1…clave6`, `precio1`, `inv_min`, `(s/n) …`); columnas `existencia` (solo artículos nuevos; negativas = 0) y `proveedor` (se crea si no existe). Un granel con unidad de piezas se carga como no granel y una clave alterna ajena se omite, siempre con aviso.
-- **Venta:** lector físico global (`capturarEnCampo`), cámara continua con confirmación del último artículo, coincidencias mientras se escribe (`sugerir()`), diseño en dos columnas con el teléfono acostado (variantes CSS `apaisado` y `ancha`), franja de falta de internet. PWA instalable; el service worker no guarda páginas ni ventas.
+- **Venta:** lector físico global (`capturarEnCampo`), cámara continua con confirmación del último artículo, coincidencias mientras se escribe (`sugerir()`), descuento por pagar en efectivo en el cobro (decisión 71), diseño en dos columnas con el teléfono acostado (variantes CSS `apaisado` y `ancha`), franja de falta de internet. PWA instalable; el service worker no guarda páginas ni ventas.
 
 ## Reglas aprendidas (no repetir errores)
 - **Dinero e inventario:** la existencia solo cambia con `RegistrarMovimientoInventario` y el saldo del cliente solo con `RegistrarMovimientoCliente`. Bloquear los artículos siempre **en orden de id** (venta, devolución, cancelaciones, conteo) y generar folios con `Services\Folios` dentro de la transacción.
@@ -70,6 +70,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - **Livewire desde Alpine:** `$wire.propiedad = valor` solo queda pendiente (no hace petición); para que el servidor reaccione usar `$wire.$set('propiedad', valor)` o llamar un método justo después. Al probar filtros con Playwright, usar varios registros: con uno solo no se nota si la lista se filtró.
 - **Inputs que Livewire vuelve a pintar:** si el servidor devuelve el mismo `value` que ya tenía el atributo, el campo conserva lo que se tecleó; para que se note un rechazo, mostrar un error junto al campo (como en la sugerencia de compra).
 - **Playwright:** `addInitScript` solo admite un argumento; para simular la cámara sobrescribir `getUserMedia` con un canvas (un archivo de video falso no funciona).
+- **Configuración en caché:** `Configuracion::actual()` guarda sus columnas en caché (`configuracion.tienda`); una migración que agregue columnas a `configuracion` debe hacer `Cache::forget('configuracion.tienda')`.
 - **Pint** puede reformatear archivos que no tocaste (llaves de constructores vacíos): revisar el `git diff` antes de confirmar.
 - Antes de dar por buena una pantalla, revisarla a 360 px de ancho sin scroll horizontal (grids con `grid-cols-[minmax(0,1fr)]` en móvil).
 

@@ -150,3 +150,22 @@ it('refleja el nombre de la tienda en la pantalla de acceso', function () {
 
     $this->get('/login')->assertSee('Abarrotes La Esquina');
 });
+
+it('el descuento por pago en efectivo empieza en 5% y el administrador lo cambia o lo apaga', function () {
+    $admin = User::factory()->conRol(Rol::Administrador)->create();
+    expect(Configuracion::actual()->descuento_efectivo_pct)->toBe('5.00');
+
+    $pantalla = Volt::actingAs($admin)->test('pages.configuracion')->assertSet('form.descuento_efectivo_pct', '5');
+
+    $pantalla->set('form.descuento_efectivo_pct', '7.5')->call('guardar')->assertHasNoErrors();
+    expect(Configuracion::actual()->descuento_efectivo_pct)->toBe('7.50');
+
+    $pantalla->set('form.descuento_efectivo_pct', '0')->call('guardar')->assertHasNoErrors();
+    expect(Configuracion::actual()->descuento_efectivo_pct)->toBe('0.00');
+});
+
+it('rechaza un porcentaje de descuento por efectivo fuera de 0 a 100', function (string $valor) {
+    $admin = User::factory()->conRol(Rol::Administrador)->create();
+
+    Volt::actingAs($admin)->test('pages.configuracion')->set('form.descuento_efectivo_pct', $valor)->call('guardar')->assertHasErrors('form.descuento_efectivo_pct');
+})->with(['-1', '101', 'mucho', '']);

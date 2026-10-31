@@ -20,6 +20,7 @@ use App\Models\Venta;
 use Brick\Math\BigDecimal;
 use Database\Seeders\RolesYPermisosSeeder;
 use Illuminate\Validation\ValidationException;
+use Livewire\Volt\Volt;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
@@ -360,4 +361,63 @@ it('no se devuelve una venta cancelada y exige permiso', function () {
     app(CancelarVenta::class)($venta, 'Error', $this->encargado);
 
     expect(fn () => app(RegistrarDevolucion::class)($venta->refresh(), [['partida_id' => $id, 'cantidad' => '1']], 'x', $this->encargado))->toThrow(ValidationException::class);
+});
+
+// ─── Descuento por pago en efectivo ──────────────────────────────────────────
+
+it('el descuento por pago en efectivo se aplica como descuento general y la venta lo recuerda', function () {
+    $venta = venderTodo(
+        [['articulo_id' => $this->leche->id, 'cantidad' => '4']],           // $100
+        [pago('efectivo', '100')],
+        ['tipo' => 'pct', 'valor' => '5', 'motivo' => 'efectivo'],
+        $this->encargado,
+    );
+
+    expect($venta->descuento)->toBe('5.00')->and($venta->total)->toBe('95.00')->and($venta->descuento_efectivo)->toBeTrue()
+        ->and($venta->cambio)->toBe('5.00');
+});
+
+it('el porcentaje del descuento por efectivo es editable en cada venta y un descuento normal no queda marcado', function () {
+    $diez = venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '4']], [pago('efectivo', '90')], ['tipo' => 'pct', 'valor' => '10', 'motivo' => 'efectivo'], $this->encargado);
+    $normal = venderTodo([['articulo_id' => $this->leche->id, 'cantidad' => '4']], [pago('efectivo', '100')], ['tipo' => 'pct', 'valor' => '5'], $this->encargado);
+
+    expect($diez->total)->toBe('90.00')->and($diez->descuento_efectivo)->toBeTrue()
+        ->and($normal->total)->toBe('95.00')->and($normal->descuento_efectivo)->toBeFalse();
+});
+
+it('el descuento por efectivo solo vale si todo se paga en efectivo', function () {
+    $global = ['tipo' => 'pct', 'valor' => '5', 'motivo' => 'efectivo'];
+    $lineas = [['articulo_id' => $this->leche->id, 'cantidad' => '4']];
+
+    expect(fn () => venderTodo($lineas, [pago('tarjeta', '95')], $global, $this->encargado))->toThrow(ValidationException::class, 'toda la venta se paga en efectivo')
+        ->and(fn () => venderTodo($lineas, [pago('efectivo', '50'), pago('tarjeta', '45')], $global, $this->encargado))->toThrow(ValidationException::class, 'toda la venta se paga en efectivo');
+
+    expect(Venta::count())->toBe(0);
+});
+
+it('el descuento por efectivo pide el permiso de descuentos y solo acepta porcentajes', function () {
+    $lineas = [['articulo_id' => $this->leche->id, 'cantidad' => '4']];
+
+    expect(fn () => venderTodo($lineas, [pago('efectivo', '100')], ['tipo' => 'pct', 'valor' => '5', 'motivo' => 'efectivo'], $this->cajero))
+        ->toThrow(ValidationException::class, 'No tienes permiso para aplicar descuentos')
+        ->and(fn () => venderTodo($lineas, [pago('efectivo', '100')], ['tipo' => 'monto', 'valor' => '5', 'motivo' => 'efectivo'], $this->encargado))
+        ->toThrow(ValidationException::class, 'es un porcentaje')
+        ->and(fn () => venderTodo($lineas, [pago('efectivo', '100')], ['tipo' => 'pct', 'valor' => '5', 'motivo' => 'tarjeta'], $this->encargado))
+        ->toThrow(ValidationException::class)
+        ->and(fn () => venderTodo($lineas, [pago('efectivo', '100')], ['tipo' => 'pct', 'valor' => '101', 'motivo' => 'efectivo'], $this->encargado))
+        ->toThrow(ValidationException::class, '100%');
+});
+
+it('la caja manda el descuento por efectivo al servidor y expone el porcentaje de Configuración', function () {
+    $encargado = $this->encargado;
+    $c = Volt::actingAs($encargado)->test('pages.pos')->instance();
+    $lineas = [['articulo_id' => $this->leche->id, 'cantidad' => '4']];
+    $efectivo = ['tipo' => 'pct', 'valor' => '5', 'motivo' => 'efectivo'];
+
+    expect($c->configuracionJs())->toMatchArray(['descuentoEfectivoPct' => 5.0, 'puedeDescuento' => true])
+        ->and($c->previsualizar($lineas, $efectivo, 1))->toMatchArray(['ok' => true, 'total' => '95.00'])
+        ->and($c->cobrar($lineas, [pago('tarjeta', '95')], $efectivo, 1))->toMatchArray(['ok' => false])
+        ->and($c->cobrar($lineas, [pago('efectivo', '95')], $efectivo, 1))->toMatchArray(['ok' => true, 'total' => '95.00']);
+
+    expect(Venta::latest('id')->first()->descuento_efectivo)->toBeTrue();
 });

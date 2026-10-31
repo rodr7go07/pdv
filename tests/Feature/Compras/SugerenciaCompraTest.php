@@ -207,3 +207,123 @@ it('exporta la sugerencia a Excel con los mismos filtros', function () {
     $r->assertOk()->assertDownload();
     expect($r->headers->get('content-disposition'))->toContain('sugerencia-de-compra-')->toContain('.xlsx');
 });
+
+// ─── Edición de la sugerencia ────────────────────────────────────────────────
+
+it('permite cambiar la cantidad de un renglón y la compra usa lo editado', function () {
+    $a = Articulo::factory()->create(['existencia_minima' => '10', 'costo' => '5']);
+    ($this->existencia)($a, '4');
+
+    $pantalla = Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')
+        ->call('fijarCantidad', $a->id, '9');
+
+    $fila = $pantalla->get('filas')->firstWhere('id', $a->id);
+    expect($fila['sugerido'])->toBe('9')->and($fila['editado'])->toBeTrue()->and($fila['importe'])->toBe('45.00')
+        ->and($pantalla->get('total'))->toBe('45.00');
+
+    $pantalla->call('crearCompra')->assertRedirect(route('compras.crear'));
+    expect(session('compra_sugerida')['partidas'])->toBe([$a->id => '9']);
+});
+
+it('quita renglones, agrega artículos que no se sugirieron y vuelve a la sugerencia original', function () {
+    $sugerido = Articulo::factory()->create(['existencia_minima' => '10']);
+    ($this->existencia)($sugerido, '4');
+    $extra = Articulo::factory()->create(['existencia_minima' => '2', 'costo' => '3']);
+    ($this->existencia)($extra, '50'); // arriba del mínimo: el cálculo no lo sugiere
+
+    $pantalla = Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')
+        ->call('quitar', $sugerido->id)
+        ->call('agregar', $extra->id)
+        ->call('fijarCantidad', $extra->id, '12');
+
+    $filas = $pantalla->get('filas');
+    expect($filas->pluck('id')->all())->toBe([$extra->id])
+        ->and($filas->first()['manual'])->toBeTrue()->and($filas->first()['sugerido'])->toBe('12')->and($filas->first()['importe'])->toBe('36.00')
+        ->and($pantalla->get('hayCambios'))->toBeTrue();
+
+    $pantalla->call('restablecer');
+    expect($pantalla->get('filas')->pluck('id')->all())->toBe([$sugerido->id])->and($pantalla->get('hayCambios'))->toBeFalse();
+});
+
+it('volver a agregar un artículo que se había quitado lo regresa con su cantidad sugerida', function () {
+    $a = Articulo::factory()->create(['existencia_minima' => '10']);
+    ($this->existencia)($a, '4');
+
+    $pantalla = Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')->call('quitar', $a->id);
+    expect($pantalla->get('filas'))->toBeEmpty();
+
+    $pantalla->call('agregar', $a->id);
+    expect($pantalla->get('filas')->firstWhere('id', $a->id)['sugerido'])->toBe('6');
+});
+
+it('rechaza cantidades inválidas, decimales en piezas enteras y no deja crear la compra', function () {
+    $a = Articulo::factory()->create(['existencia_minima' => '10']);
+    ($this->existencia)($a, '4');
+
+    $pantalla = Volt::actingAs($this->encargado)->test('pages.compras.sugerencia');
+
+    foreach (['abc', '', '0', '-3', '2.5', '1e3', '9999999999'] as $malo) {
+        $pantalla->call('fijarCantidad', $a->id, $malo);
+        expect($pantalla->get('filas')->firstWhere('id', $a->id)['error'])->not->toBeNull("«{$malo}» debió rechazarse");
+    }
+
+    $pantalla->call('crearCompra')->assertHasErrors('cantidades')->assertNoRedirect();
+
+    $pantalla->call('fijarCantidad', $a->id, '7');
+    expect($pantalla->get('filas')->firstWhere('id', $a->id)['error'])->toBeNull();
+});
+
+it('un artículo a granel acepta hasta tres decimales', function () {
+    $kilo = Articulo::factory()->create(['granel' => true, 'existencia_minima' => '10', 'unidad_medida_id' => UnidadMedida::query()->where('abreviatura', 'kg')->value('id')]);
+    ($this->existencia)($kilo, '1');
+
+    $pantalla = Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')->call('fijarCantidad', $kilo->id, '2.5');
+    expect($pantalla->get('filas')->firstWhere('id', $kilo->id))->toMatchArray(['sugerido' => '2.5', 'error' => null]);
+
+    $pantalla->call('fijarCantidad', $kilo->id, '2.5555');
+    expect($pantalla->get('filas')->firstWhere('id', $kilo->id)['error'])->not->toBeNull();
+});
+
+it('cambiar los filtros descarta lo editado a mano', function () {
+    $a = Articulo::factory()->create(['existencia_minima' => '10']);
+    ($this->existencia)($a, '4');
+
+    $pantalla = Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')->call('fijarCantidad', $a->id, '99');
+    expect($pantalla->get('hayCambios'))->toBeTrue();
+
+    $pantalla->set('cobertura', '20');
+    expect($pantalla->get('hayCambios'))->toBeFalse()->and($pantalla->get('cantidades'))->toBe([]);
+});
+
+it('el cajero no puede editar la sugerencia', function () {
+    $a = Articulo::factory()->create(['existencia_minima' => '10']);
+    Volt::actingAs($this->cajero)->test('pages.compras.sugerencia')->assertForbidden();
+
+    // Quien solo puede consultar compras ve la sugerencia pero no la modifica.
+    $consulta = User::factory()->create();
+    $consulta->givePermissionTo('compras.ver');
+    Volt::actingAs($consulta)->test('pages.compras.sugerencia')->call('quitar', $a->id)->assertForbidden();
+});
+
+it('exporta a Excel lo que se ve en pantalla, con los cambios', function () {
+    $a = Articulo::factory()->create(['existencia_minima' => '10', 'descripcion' => 'ARROZ EDITADO']);
+    ($this->existencia)($a, '4');
+
+    Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')
+        ->call('fijarCantidad', $a->id, '25')->call('exportar')
+        ->assertRedirect(route('compras.sugerencia.exportar', ['editada' => 1]));
+
+    expect(session('sugerencia_editada')['filas'][0])->toMatchArray(['id' => $a->id, 'sugerido' => '25']);
+
+    $this->actingAs($this->encargado)->withSession(['sugerencia_editada' => session('sugerencia_editada')])
+        ->get('/compras/sugerencia/exportar?editada=1')->assertOk()->assertDownload();
+});
+
+it('una exportación editada caducada o ausente vuelve a calcular la sugerencia', function () {
+    $a = Articulo::factory()->create(['existencia_minima' => '5']);
+    ($this->existencia)($a, '0');
+
+    $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?editada=1')->assertOk()->assertDownload();
+    $this->actingAs($this->encargado)->withSession(['sugerencia_editada' => ['en' => now()->subHour()->timestamp, 'dias' => 30, 'filas' => []]])
+        ->get('/compras/sugerencia/exportar?editada=1')->assertOk()->assertDownload();
+});

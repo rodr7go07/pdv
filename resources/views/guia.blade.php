@@ -94,6 +94,7 @@
                 ['lista' => [
                     'Arriba puedes cambiar cuántos **días de venta** revisar (30 por defecto), cuántos **días quieres cubrir** (15 por defecto) y el **departamento**.',
                     'En cada producto ves cuánto tienes, cuánto vendiste, **cuántos días te alcanza** y cuánto **comprar**. Los que ya se acabaron salen primero, luego los que están bajo el mínimo.',
+                    '**Puedes cambiar la sugerencia.** Escribe otra cantidad en cualquier producto, toca el bote de basura (o **Quitar de la compra** en el teléfono) para sacar el que no vas a comprar, o busca otro producto en **Agregar otro artículo a la compra**. Si te arrepientes, toca **Volver a la sugerencia original**. Si cambias los días o el departamento, tus cambios se borran.',
                     'Toca **Crear compra** para abrir una compra nueva con esos productos y cantidades ya puestos; puedes corregirlos antes de registrarla. O toca **Exportar a Excel** (el archivo se llama *sugerencia-de-compra* con la fecha de hoy) para llevarle la lista a tu proveedor. Una compra admite hasta 500 productos: si la sugerencia trae más, se cargan los 500 más urgentes y te avisa.',
                 ]],
                 ['consejo' => 'Un producto que apenas empezaste a vender puede salir con menos cantidad de la que necesitas, porque el sistema reparte lo vendido entre todos los días revisados. Corrige la cantidad si lo conoces mejor que él.'],

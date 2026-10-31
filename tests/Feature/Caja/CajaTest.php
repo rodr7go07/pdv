@@ -219,12 +219,39 @@ it('no se devuelve dinero sin ningún turno abierto', function () {
         ->toThrow(ValidationException::class, 'turno de caja abierto');
 });
 
-it('no se cancela una venta de un turno ya cerrado', function () {
+it('una venta de un turno ya cerrado se cancela como devolución total desde la caja abierta de quien la cancela', function () {
+    $t = ($this->abrir)($this->caja, $this->cajero, '0');
+    $v = venta($t, '2', [['forma' => 'efectivo', 'monto' => '100']]);
+    app(CerrarTurno::class)->cerrar($t, '100', $this->cajero);
+
+    $cajaAdmin = Caja::factory()->create(['serie' => 'Z']);
+    $turnoAdmin = ($this->abrir)($cajaAdmin, $this->admin, '200');
+
+    $venta = app(CancelarVenta::class)($v->refresh(), 'El cliente la regresó completa', $this->admin);
+
+    // La venta y el corte cerrado no cambian: la devolución sale del cajón del admin y queda marcada como cancelación.
+    $d = $venta->cancelacionTardia();
+    expect($venta->estado)->toBe('completada')->and($venta->autorizada_por)->toBe($this->admin->id)
+        ->and($d)->not->toBeNull()->and($d->es_cancelacion)->toBeTrue()->and($d->total)->toBe('100.00')->and($d->turno_id)->toBe($turnoAdmin->id)
+        ->and(ResumenTurno::calcular($turnoAdmin)['efectivo_esperado'])->toBe('100.00')
+        ->and(ResumenTurno::calcular($t->refresh())['ventas']['total'])->toBe('100.00');
+});
+
+it('la cancelación de un turno cerrado pide caja abierta, no se repite y no la hace un cajero', function () {
     $t = ($this->abrir)($this->caja, $this->cajero, '0');
     $v = venta($t, '1', [['forma' => 'efectivo', 'monto' => '50']]);
     app(CerrarTurno::class)->cerrar($t, '50', $this->cajero);
 
-    expect(fn () => app(CancelarVenta::class)($v, 'Tarde', $this->admin))->toThrow(ValidationException::class, 'devolución');
+    // El dinero tiene que salir de algún cajón.
+    expect(fn () => app(CancelarVenta::class)($v->refresh(), 'Tarde', $this->admin))->toThrow(ValidationException::class, 'turno de caja abierto');
+
+    // Un cajero, ni siquiera con autorización, cancela ventas de turnos cerrados.
+    expect(fn () => app(CancelarVenta::class)($v->refresh(), 'Tarde', $this->cajero, $this->admin))->toThrow(ValidationException::class, 'pídele a un administrador');
+
+    ($this->abrir)(Caja::factory()->create(['serie' => 'Z']), $this->admin, '100');
+    app(CancelarVenta::class)($v->refresh(), 'Tarde', $this->admin);
+
+    expect(fn () => app(CancelarVenta::class)($v->refresh(), 'Otra vez', $this->admin))->toThrow(ValidationException::class, 'devoluciones');
 });
 
 // ─── Cortes ──────────────────────────────────────────────────────────────────

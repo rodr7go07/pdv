@@ -269,12 +269,16 @@ it('la devolución con datos incorrectos muestra el error', function () {
         ->assertHasErrors('devolucion');
 });
 
-it('el cajero no puede cancelar ni devolver desde el detalle', function () {
+it('el cajero no cancela ni devuelve por su cuenta desde el detalle: necesita un supervisor', function () {
     $venta = ventaDe($this->cajero);
 
     Volt::actingAs($this->cajero)->test('pages.ventas.ver', ['venta' => $venta])
-        ->assertDontSee('Cancelar venta')
-        ->set('motivo', 'x')->call('cancelar')->assertForbidden();
+        ->assertDontSee('Devolución')
+        ->assertSee('Pedir autorización para cancelar')
+        ->set('motivo', 'x')->call('cancelar')->assertHasErrors('autorizacion')
+        ->set('devolver', [$venta->partidas[0]->id => '1'])->set('motivoDevolucion', 'x')->call('registrarDevolucion')->assertForbidden();
+
+    expect($venta->refresh()->estado)->toBe('completada');
 });
 
 it('la caja ofrece escanear con la cámara del teléfono', function () {

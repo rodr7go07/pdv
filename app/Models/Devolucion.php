@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table('devoluciones')]
-#[Fillable(['folio', 'venta_id', 'turno_id', 'user_id', 'motivo', 'total', 'monto_credito', 'forma'])]
+#[Fillable(['folio', 'venta_id', 'turno_id', 'user_id', 'motivo', 'total', 'monto_credito', 'forma', 'es_cancelacion'])]
 class Devolucion extends Model
 {
     protected function casts(): array
     {
-        return ['total' => 'decimal:2', 'monto_credito' => 'decimal:2'];
+        return ['total' => 'decimal:2', 'monto_credito' => 'decimal:2', 'es_cancelacion' => 'boolean'];
     }
 
     public function venta(): BelongsTo

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'serie', 'numero', 'folio', 'caja_id', 'turno_id', 'user_id', 'cliente_id', 'estado', 'lista_precios',
     'subtotal', 'descuento', 'impuestos', 'total', 'efectivo_recibido', 'cambio',
-    'cancelada_at', 'cancelada_por', 'motivo_cancelacion',
+    'cancelada_at', 'cancelada_por', 'autorizada_por', 'motivo_cancelacion',
 ])]
 class Venta extends Model
 {
@@ -50,6 +50,17 @@ class Venta extends Model
     public function canceladaPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelada_por');
+    }
+
+    public function autorizadaPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'autorizada_por');
+    }
+
+    /** La devolución total con la que se canceló esta venta cuando su turno ya había cerrado (si fue así). */
+    public function cancelacionTardia(): ?Devolucion
+    {
+        return $this->devoluciones->firstWhere('es_cancelacion', true);
     }
 
     public function partidas(): HasMany

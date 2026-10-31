@@ -27,6 +27,7 @@ enum Permiso: string
     case VentasVerTodas = 'ventas.ver_todas';
     case VentasDescuento = 'ventas.descuento';
     case VentasCancelar = 'ventas.cancelar';
+    case VentasAutorizarCancelacion = 'ventas.autorizar_cancelacion';
     case VentasDevolver = 'ventas.devolver';
 
     case CajaAbrir = 'caja.abrir';
@@ -66,6 +67,7 @@ enum Permiso: string
             self::VentasVerTodas => 'Ver las ventas de todos los cajeros',
             self::VentasDescuento => 'Dar descuentos',
             self::VentasCancelar => 'Cancelar ventas',
+            self::VentasAutorizarCancelacion => 'Autorizar que un cajero cancele su venta (con su usuario y contraseña)',
             self::VentasDevolver => 'Hacer devoluciones',
             self::CajaAbrir => 'Abrir su turno de caja',
             self::CajaRetiro => 'Registrar entradas y retiros de efectivo',

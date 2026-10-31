@@ -90,7 +90,9 @@ new #[Layout('layouts.app')] class extends Component
     #[Computed]
     public function ventas()
     {
-        return $this->consulta()->with(['caja:id,nombre', 'cajero:id,name'])->withCount('partidas')->latest()->paginate(20);
+        return $this->consulta()->with(['caja:id,nombre', 'cajero:id,name'])->withCount('partidas')
+            ->withExists(['devoluciones as cancelada_tarde' => fn ($q) => $q->where('es_cancelacion', true)]) // cancelada con devolución total (turno ya cerrado)
+            ->latest()->paginate(20);
     }
 }; ?>
 
@@ -150,7 +152,7 @@ new #[Layout('layouts.app')] class extends Component
                             </span>
                             <span @class(['col-start-2 row-start-1 justify-self-end font-display text-lg font-extrabold sm:col-auto sm:row-start-auto', 'text-anil-400 line-through' => $v->estaCancelada()])>${{ number_format((float) $v->total, 2) }}</span>
                             <span class="sm:justify-self-end">
-                                <x-badge :tono="$v->estaCancelada() ? 'peligro' : 'ok'">{{ $v->estaCancelada() ? 'Cancelada' : 'Completada' }}</x-badge>
+                                <x-badge :tono="$v->estaCancelada() || $v->cancelada_tarde ? 'peligro' : 'ok'">{{ $v->estaCancelada() ? 'Cancelada' : ($v->cancelada_tarde ? 'Cancelada (devuelta)' : 'Completada') }}</x-badge>
                             </span>
                         </a>
                     </li>

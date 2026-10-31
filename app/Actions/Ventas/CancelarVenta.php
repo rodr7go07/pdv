@@ -16,17 +16,33 @@ use Illuminate\Validation\ValidationException;
 /**
  * Cancela una venta (no se borra): regresa el inventario y deja motivo, usuario y fecha.
  * Una venta con devoluciones ya no se puede cancelar.
+ *
+ *  - Con el turno de la venta todavía abierto se cancela de verdad: la venta ya no cuenta en el corte.
+ *  - Con el turno ya cerrado el corte no se toca: se registra una devolución total (el dinero sale de la caja
+ *    abierta de quien cancela) marcada como cancelación. Solo lo hace quien tiene el permiso `ventas.cancelar`.
+ *  - Quien no tiene ese permiso (un cajero) solo puede cancelar su propia venta con el turno abierto y con la
+ *    autorización de un supervisor (`ventas.autorizar_cancelacion`), que debe venir ya verificada.
  */
 class CancelarVenta
 {
     public function __construct(
         private readonly RegistrarMovimientoInventario $movimiento,
         private readonly RegistrarMovimientoCliente $cuenta,
+        private readonly RegistrarDevolucion $devolver,
     ) {}
 
-    public function __invoke(Venta $venta, string $motivo, User $usuario): Venta
+    public function __invoke(Venta $venta, string $motivo, User $usuario, ?User $autorizo = null): Venta
     {
-        abort_unless($usuario->can('ventas.cancelar'), 403, 'No tienes permiso para cancelar ventas.');
+        $directo = $usuario->can('ventas.cancelar');
+
+        if (! $directo) {
+            abort_unless(
+                $autorizo && $autorizo->activo && $autorizo->can('ventas.autorizar_cancelacion')
+                    && $usuario->can('ventas.cobrar') && $venta->user_id === $usuario->id,
+                403,
+                'No tienes permiso para cancelar ventas.',
+            );
+        }
 
         $motivo = trim($motivo);
 
@@ -38,7 +54,9 @@ class CancelarVenta
             throw ValidationException::withMessages(['motivo' => 'El motivo es demasiado largo (máximo 255 caracteres).']);
         }
 
-        return DB::transaction(function () use ($venta, $motivo, $usuario) {
+        $autorizo = $directo ? $usuario : $autorizo;
+
+        return DB::transaction(function () use ($venta, $motivo, $usuario, $directo, $autorizo) {
             $venta = Venta::query()->lockForUpdate()->findOrFail($venta->id);
 
             if ($venta->estaCancelada()) {
@@ -49,12 +67,16 @@ class CancelarVenta
                 throw ValidationException::withMessages(['venta' => 'Esta venta ya tiene devoluciones y no se puede cancelar.']);
             }
 
-            // Una venta de un turno ya cortado no se cancela (cambiaría un corte cerrado): se usa una devolución.
+            // Una venta de un turno ya cortado no se cancela (cambiaría un corte cerrado): se devuelve completa.
             if ($venta->turno_id) {
                 $turno = Turno::query()->lockForUpdate()->find($venta->turno_id);
 
                 if (! $turno?->estaAbierto()) {
-                    throw ValidationException::withMessages(['venta' => 'El turno de esta venta ya se cerró. Registra una devolución en lugar de cancelarla.']);
+                    if (! $directo) {
+                        throw ValidationException::withMessages(['venta' => 'El turno de esta venta ya se cerró: pídele a un administrador que la cancele.']);
+                    }
+
+                    return $this->cancelarComoDevolucion($venta, $motivo, $usuario, $autorizo);
                 }
             }
 
@@ -89,10 +111,23 @@ class CancelarVenta
                 'estado' => 'cancelada',
                 'cancelada_at' => now(),
                 'cancelada_por' => $usuario->id,
+                'autorizada_por' => $autorizo?->id,
                 'motivo_cancelacion' => $motivo,
             ]);
 
             return $venta->load(['partidas', 'pagos']);
         });
+    }
+
+    /** Venta de un turno cerrado: devolución total marcada como cancelación, con quién la autorizó. */
+    private function cancelarComoDevolucion(Venta $venta, string $motivo, User $usuario, ?User $autorizo): Venta
+    {
+        $items = $venta->partidas()->get()->map(fn ($p) => ['partida_id' => $p->id, 'cantidad' => (string) $p->cantidad])->all();
+
+        ($this->devolver)($venta, $items, $motivo, $usuario, esCancelacion: true);
+
+        $venta->update(['autorizada_por' => $autorizo?->id]);
+
+        return $venta->load(['partidas', 'pagos', 'devoluciones']);
     }
 }

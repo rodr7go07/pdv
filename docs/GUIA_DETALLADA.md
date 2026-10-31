@@ -129,7 +129,10 @@ Con el **teléfono acostado** (horizontal) la venta pone el resumen y los botone
 
 ## 5. Cancelar y devolver
 
-- **Cancelar una venta** (Encargado/Administrador): *Ventas →* abre la venta → *Cancelar venta* con motivo. Regresa el inventario. **Solo se puede mientras el turno de esa venta siga abierto** y si todavía no tiene devoluciones.
+- **Cancelar una venta** (permiso `ventas.cancelar`: Administrador y Encargado): *Ventas →* abre la venta → *Cancelar venta* con motivo. Regresa el inventario. Solo si todavía no tiene devoluciones.
+  - **Turno abierto:** la venta queda `cancelada` y ya no cuenta en el corte.
+  - **Turno cerrado:** el corte cerrado nunca cambia, así que se registra una **devolución total** marcada como cancelación (la venta sigue `completada` y se ve como *Cancelada con devolución total*, con quién y por qué). El dinero cobrado en efectivo sale del cajón **del turno abierto de quien cancela** (si no tiene turno abierto, no se puede). La parte a crédito baja la deuda del cliente.
+- **Autorización para cancelar (cajero):** un cajero (sin `ventas.cancelar`) ve *Pedir autorización para cancelar* solo en **su propia venta con el turno abierto**. Escribe el motivo y un supervisor (permiso `ventas.autorizar_cancelacion`: Administrador y Encargado por defecto) escribe su **usuario y contraseña** en la misma ventana; el sistema no cambia de sesión. Se guarda en la venta quién la canceló y quién la autorizó (`ventas.autorizada_por`; quien cancela directo queda como su propio autorizador). Los errores de autorización siempre dicen lo mismo (no revelan si falló el usuario, la contraseña o el permiso) y tras 5 intentos fallidos se bloquea por 5 minutos al cajero que pide. El cajero **no** puede cancelar ventas de un turno cerrado.
 - **Devolución** (parcial o total): *Ventas →* abre la venta → *Devolución*, indica cuántas piezas regresan. Se reembolsa lo que el cliente realmente pagó (con su descuento). El dinero sale del cajón del turno de quien procesa la devolución; si la venta fue a crédito, esa parte baja la deuda del cliente en lugar de sacar efectivo.
 - **Reimprimir un ticket:** *Ventas →* abre la venta → *Ver / reimprimir ticket*. El cajero solo ve sus propias ventas.
 

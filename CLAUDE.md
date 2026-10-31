@@ -36,7 +36,7 @@
 - Ejecutar las pruebas antes de dar una tarea por terminada.
 
 ## Estado del proyecto
-- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–67).
+- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–68).
 - La guía de uso vive en `resources/views/guia.blade.php` (lenguaje sencillo) y `docs/GUIA_DETALLADA.md`. Todo cambio de flujo o de atajos debe actualizar ambas.
 - Pendientes por confirmar con el dueño de la tienda: método de costeo, precios con impuestos incluidos y si necesita abrir el cajón de dinero.
 

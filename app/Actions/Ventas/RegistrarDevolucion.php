@@ -67,7 +67,7 @@ class RegistrarDevolucion
      *
      * @throws ValidationException
      */
-    public function __invoke(Venta $venta, array $items, string $motivo, User $usuario): Devolucion
+    public function __invoke(Venta $venta, array $items, string $motivo, User $usuario, bool $esCancelacion = false): Devolucion
     {
         abort_unless($usuario->can('ventas.devolver'), 403, 'No tienes permiso para registrar devoluciones.');
 
@@ -91,7 +91,7 @@ class RegistrarDevolucion
             throw ValidationException::withMessages(['items' => 'Indica cuántas piezas se devuelven.']);
         }
 
-        return DB::transaction(function () use ($venta, $items, $motivo, $usuario) {
+        return DB::transaction(function () use ($venta, $items, $motivo, $usuario, $esCancelacion) {
             $venta = Venta::query()->lockForUpdate()->findOrFail($venta->id);
 
             if ($venta->estaCancelada()) {
@@ -156,6 +156,7 @@ class RegistrarDevolucion
                 'total' => (string) $total->toScale(2),
                 'monto_credito' => (string) $montoCredito,
                 'forma' => 'efectivo',
+                'es_cancelacion' => $esCancelacion,
             ]);
 
             if ($montoCredito->isPositive()) {

@@ -1,9 +1,12 @@
 <?php
 
+use App\Actions\Usuarios\VerificarAutorizacion;
 use App\Actions\Ventas\CancelarVenta;
 use App\Actions\Ventas\RegistrarDevolucion;
+use App\Models\Turno;
 use App\Models\Venta;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
@@ -12,6 +15,11 @@ new #[Layout('layouts.app')] class extends Component
     public Venta $venta;
 
     public string $motivo = '';
+
+    /** Usuario y contraseña del supervisor que autoriza la cancelación (cuando quien cancela no tiene el permiso). */
+    public string $supervisor = '';
+
+    public string $claveSupervisor = '';
 
     /** @var array<int, string> cantidad a devolver por partida */
     public array $devolver = [];
@@ -35,24 +43,67 @@ new #[Layout('layouts.app')] class extends Component
 
     private function recargar(): void
     {
-        $this->venta = Venta::query()->with(['partidas.articulo', 'pagos', 'caja', 'cajero:id,name', 'canceladaPor:id,name', 'devoluciones.usuario:id,name'])->findOrFail($this->venta->id);
+        unset($this->puedeCancelarDirecto, $this->puedePedirAutorizacion, $this->turnoAbierto);
+
+        $this->venta = Venta::query()->with(['partidas.articulo', 'pagos', 'caja', 'cajero:id,name', 'canceladaPor:id,name', 'autorizadaPor:id,name', 'devoluciones.usuario:id,name'])->findOrFail($this->venta->id);
     }
 
-    public function cancelar(CancelarVenta $cancelar): void
+    /** Quien tiene el permiso cancela directo; un cajero necesita que un supervisor lo autorice. */
+    #[Computed]
+    public function puedeCancelarDirecto(): bool
+    {
+        return auth()->user()->can('ventas.cancelar');
+    }
+
+    /** Un cajero puede pedir autorización para cancelar su propia venta mientras su turno siga abierto. */
+    #[Computed]
+    public function puedePedirAutorizacion(): bool
+    {
+        $u = auth()->user();
+
+        return ! $this->puedeCancelarDirecto()
+            && $u->can('ventas.cobrar')
+            && $this->venta->user_id === $u->id
+            && ! $this->venta->estaCancelada()
+            && $this->venta->devoluciones->isEmpty()
+            && $this->turnoAbierto;
+    }
+
+    /** El turno de la venta sigue abierto (si no, la cancelación se hace como devolución total). */
+    #[Computed]
+    public function turnoAbierto(): bool
+    {
+        return ! $this->venta->turno_id || Turno::query()->abiertos()->whereKey($this->venta->turno_id)->exists();
+    }
+
+    public function cancelar(CancelarVenta $cancelar, VerificarAutorizacion $verificar): void
     {
         $this->resetValidation();
+        $usuario = auth()->user();
 
         try {
-            $cancelar($this->venta, $this->motivo, auth()->user());
+            $autorizo = null;
+
+            if (! $this->puedeCancelarDirecto) {
+                abort_unless($this->puedePedirAutorizacion, 403, 'No tienes permiso para cancelar ventas.');
+
+                $autorizo = $verificar($this->supervisor, $this->claveSupervisor, 'ventas.autorizar_cancelacion', $usuario);
+            }
+
+            $cancelar($this->venta, $this->motivo, $usuario, $autorizo);
         } catch (ValidationException $e) {
-            $this->addError('motivo', (string) collect($e->errors())->flatten()->first());
+            // Los datos del supervisor nunca se quedan en la pantalla después de un intento.
+            $this->reset('claveSupervisor');
+            $this->addError(isset($e->errors()['autorizacion']) ? 'autorizacion' : 'motivo', (string) collect($e->errors())->flatten()->first());
 
             return;
         }
 
-        $this->reset('motivo');
+        $this->reset('motivo', 'supervisor', 'claveSupervisor');
         $this->recargar();
-        $this->exito = 'Venta cancelada. El inventario ya se regresó.';
+        $this->exito = $this->venta->cancelacionTardia()
+            ? 'Venta cancelada con una devolución total ('.$this->venta->cancelacionTardia()->folio.'). Entrega al cliente $'.number_format((float) $this->venta->cancelacionTardia()->total, 2).' en lo que haya pagado en efectivo; el corte de aquel turno no cambia.'
+            : 'Venta cancelada. El inventario ya se regresó.';
         $this->dispatch('cerrar-modal', nombre: 'cancelar-venta');
     }
 
@@ -96,7 +147,22 @@ new #[Layout('layouts.app')] class extends Component
     @if ($venta->estaCancelada())
         <div class="mb-5 rounded-xl bg-red-50 px-5 py-4 text-red-900 ring-1 ring-red-200" role="status">
             <p class="font-extrabold">Venta cancelada</p>
-            <p class="mt-1 text-sm">{{ $venta->cancelada_at->format('d/m/Y H:i') }} por {{ $venta->canceladaPor?->name ?? 'un usuario' }}. Motivo: {{ $venta->motivo_cancelacion }}</p>
+            <p class="mt-1 text-sm">
+                {{ $venta->cancelada_at->format('d/m/Y H:i') }} por {{ $venta->canceladaPor?->name ?? 'un usuario' }}.
+                @if ($venta->autorizada_por && $venta->autorizada_por !== $venta->cancelada_por)Autorizó: {{ $venta->autorizadaPor?->name ?? 'un supervisor' }}.@endif
+                Motivo: {{ $venta->motivo_cancelacion }}
+            </p>
+        </div>
+    @elseif ($venta->cancelacionTardia())
+        @php $tardia = $venta->cancelacionTardia(); @endphp
+        <div class="mb-5 rounded-xl bg-red-50 px-5 py-4 text-red-900 ring-1 ring-red-200" role="status">
+            <p class="font-extrabold">Cancelada con devolución total</p>
+            <p class="mt-1 text-sm">
+                {{ $tardia->created_at->format('d/m/Y H:i') }} por {{ $tardia->usuario?->name ?? 'un usuario' }}
+                ({{ $tardia->folio }}, ${{ number_format((float) $tardia->total, 2) }}).
+                @if ($venta->autorizada_por && $venta->autorizada_por !== $tardia->user_id)Autorizó: {{ $venta->autorizadaPor?->name ?? 'un supervisor' }}.@endif
+                Motivo: {{ $tardia->motivo }}. El turno de la venta ya estaba cerrado: su corte no cambió.
+            </p>
         </div>
     @endif
 
@@ -177,41 +243,59 @@ new #[Layout('layouts.app')] class extends Component
                 </dl>
             </x-card>
 
-            @if (! $venta->estaCancelada())
+            @if (! $venta->estaCancelada() && ! $venta->cancelacionTardia())
                 <div class="flex flex-wrap gap-3">
                     @can('ventas.devolver')
                         <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'devolucion' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
                             <x-phosphor-arrow-u-up-left-bold class="size-4" /> Devolución
                         </button>
                     @endcan
-                    @can('ventas.cancelar')
-                        @if ($venta->devoluciones->isEmpty())
-                            <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'cancelar-venta' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-peligro hover:bg-red-50">
-                                <x-phosphor-prohibit-bold class="size-4" /> Cancelar venta
-                            </button>
-                        @endif
-                    @endcan
+                    @if ($venta->devoluciones->isEmpty() && ($this->puedeCancelarDirecto || $this->puedePedirAutorizacion))
+                        <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'cancelar-venta' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-peligro hover:bg-red-50">
+                            <x-phosphor-prohibit-bold class="size-4" /> {{ $this->puedeCancelarDirecto ? 'Cancelar venta' : 'Pedir autorización para cancelar' }}
+                        </button>
+                    @endif
                 </div>
             @endif
         </div>
     </div>
 
-    @can('ventas.cancelar')
-        <x-modal nombre="cancelar-venta" titulo="Cancelar venta">
-            <form wire:submit="cancelar" class="space-y-4">
-                <p class="text-sm text-anil-800">Los artículos regresan al inventario. La venta no se borra: queda marcada como cancelada con tu nombre y el motivo.</p>
+    @if ($this->puedeCancelarDirecto || $this->puedePedirAutorizacion)
+        <x-modal nombre="cancelar-venta" :titulo="$this->puedeCancelarDirecto ? 'Cancelar venta' : 'Pedir autorización para cancelar'">
+            <form wire:submit="cancelar" class="space-y-4" autocomplete="off">
+                @if (! $this->puedeCancelarDirecto)
+                    <p class="text-sm text-anil-800">Para cancelar esta venta necesitas que un <strong>supervisor</strong> la autorice: escribe el motivo y pídele que ponga su usuario y su contraseña aquí. Los artículos regresan al inventario y queda anotado quién la autorizó.</p>
+                @elseif (! $this->turnoAbierto)
+                    <p class="text-sm text-anil-800">El turno de esta venta ya se cerró y su corte no se puede cambiar. Se hará una <strong>devolución total</strong>: los artículos regresan al inventario y el dinero cobrado en efectivo sale de <strong>tu caja abierta</strong> (necesitas tener tu turno abierto). La venta queda marcada como cancelada con tu nombre y el motivo.</p>
+                @else
+                    <p class="text-sm text-anil-800">Los artículos regresan al inventario. La venta no se borra: queda marcada como cancelada con tu nombre y el motivo.</p>
+                @endif
                 <div>
                     <x-input-label for="motivo" value="Motivo" />
                     <x-text-input wire:model="motivo" id="motivo" type="text" maxlength="255" required autocomplete="off" />
                     <x-input-error :messages="$errors->get('motivo')" class="mt-1.5" />
                 </div>
+                @if (! $this->puedeCancelarDirecto)
+                    <fieldset class="space-y-3 rounded-lg bg-anil-50 p-4">
+                        <legend class="rotulo px-1">Autoriza el supervisor</legend>
+                        <div>
+                            <x-input-label for="supervisor" value="Usuario del supervisor" />
+                            <x-text-input wire:model="supervisor" id="supervisor" type="text" required autocomplete="off" autocapitalize="off" spellcheck="false" />
+                        </div>
+                        <div>
+                            <x-input-label for="claveSupervisor" value="Contraseña del supervisor" />
+                            <x-text-input wire:model="claveSupervisor" id="claveSupervisor" type="password" required autocomplete="new-password" />
+                        </div>
+                        <x-input-error :messages="$errors->get('autorizacion')" />
+                    </fieldset>
+                @endif
                 <div class="flex justify-end gap-3">
                     <x-secondary-button x-on:click="$dispatch('cerrar-modal')">No cancelar</x-secondary-button>
-                    <x-primary-button>Cancelar venta</x-primary-button>
+                    <x-primary-button>{{ $this->puedeCancelarDirecto ? 'Cancelar venta' : 'Autorizar y cancelar' }}</x-primary-button>
                 </div>
             </form>
         </x-modal>
-    @endcan
+    @endif
 
     @can('ventas.devolver')
         <x-modal nombre="devolucion" titulo="Devolución" max-width="lg">

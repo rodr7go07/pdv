@@ -180,13 +180,14 @@
             ],
         ],
         [
-            'id' => 'problemas-venta', 'titulo' => 'Cuando una venta salió mal (cancelar y devolver)', 'icono' => 'arrow-u-up-left', 'para' => 'Encargado · Dueño',
+            'id' => 'problemas-venta', 'titulo' => 'Cuando una venta salió mal (cancelar y devolver)', 'icono' => 'arrow-u-up-left', 'para' => 'Cajero · Encargado · Dueño',
             'intro' => 'Nada se borra: todo queda anotado con tu nombre y el motivo.',
             'bloques' => [
-                ['p' => '**Cancelar una venta completa.** Úsalo si te equivocaste al cobrar. Solo se puede **mientras el turno en que se hizo la venta siga abierto**, y solo si esa venta **no tiene devoluciones**. Si ya se cerró ese turno, usa una devolución.'],
+                ['p' => '**Cancelar una venta completa.** Úsalo si te equivocaste al cobrar, y solo si esa venta **no tiene devoluciones**. El **encargado y el dueño** cancelan directo. El **cajero** puede cancelar **su propia venta mientras su turno siga abierto**, pero necesita que un supervisor la **autorice**: toca **Pedir autorización para cancelar**, escribe el motivo y pídele al encargado o al dueño que escriba **su usuario y su contraseña** en esa misma ventana (no tiene que cerrar tu sesión). Queda anotado quién la autorizó. Si falla 5 veces seguidas, hay que esperar unos minutos.'],
+                ['p' => '**¿Ya se cerró el turno de esa venta?** El corte cerrado no se cambia. El dueño o el encargado pueden cancelarla igual: el sistema hace una **devolución total** y la venta queda marcada como *Cancelada con devolución total*. El dinero que se regresa al cliente sale de **su caja abierta**, así que primero tiene que abrir su turno. El cajero no puede cancelar ventas de un turno cerrado.'],
                 ['pasos' => [
                     'Entra a **Ventas** y abre la venta.',
-                    'Toca **Cancelar venta** y escribe el motivo.',
+                    'Toca **Cancelar venta** (o **Pedir autorización para cancelar**, si eres cajero) y escribe el motivo.',
                     'Los productos regresan al inventario.',
                     'Si el cliente había pagado en efectivo, el cajero debe regresarle ese dinero: el sistema ya no cuenta esa venta en el corte.',
                 ]],

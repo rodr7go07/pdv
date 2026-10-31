@@ -214,6 +214,17 @@ it('administra proveedores', function () {
     expect($p->refresh()->activo)->toBeFalse();
 });
 
+it('el proveedor guarda sus días de visita desde la pantalla y los muestra en la lista', function () {
+    Volt::actingAs($this->admin)->test('pages.proveedores')
+        ->call('nuevo')->set('nombre', 'Sabritas')->set('dias_visita', ['1', '4'])->call('guardar')->assertHasNoErrors()
+        ->assertSee('Visita: Lun, Jue');
+
+    $p = Proveedor::where('nombre', 'Sabritas')->first();
+    expect($p->dias_visita)->toBe([1, 4]);
+
+    Volt::actingAs($this->admin)->test('pages.proveedores')->call('editar', $p->id)->assertSet('dias_visita', ['1', '4']);
+});
+
 // ─── Compras ─────────────────────────────────────────────────────────────────
 
 it('flujo completo de compra, detalle y cancelación', function () {

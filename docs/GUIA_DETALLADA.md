@@ -53,6 +53,7 @@ Haz estos pasos en orden:
 - **Costo, margen y precio.** Los tres están enlazados: si cambias el costo o el margen, el sistema sugiere el precio; si cambias el precio, calcula el margen. El margen es la utilidad sobre el costo, calculada con el precio sin impuestos.
 - **IVA e IEPS.** Un artículo lleva como máximo un IVA y puede llevar IEPS.
 - **Precios 2 y 3 (mayoreo):** opcionales; se usan con clientes que tengan esa lista de precios.
+- **Proveedor principal:** opcional. Sirve para armar la sugerencia de compra por proveedor. Si el proveedor ya se desactivó, sigue apareciendo en el artículo para no quitárselo sin querer.
 - **Inventario:** si el artículo se cuenta o no, existencia mínima (para las alertas) y máxima.
 - **Existencia inicial:** solo al crear (y con permiso de ajustar inventario): cuánto hay hoy. Se anota en el historial como «Existencia inicial»; después la existencia solo cambia con compras, ventas, ajustes y conteos.
 - **Imagen:** opcional. En teléfono y tableta hay dos botones: **Tomar foto** (abre la cámara trasera) y **Elegir de la galería**; en computadora solo *Elegir archivo*. Antes de subirla, el navegador la reduce a máximo 1600 px por lado y la convierte a JPEG (calidad 85 %), porque el servidor acepta hasta 2 MB y una foto de celular pesa varios; las imágenes chicas se suben sin tocar. Formatos: PNG, JPG o WebP. *Quitar imagen* la elimina.
@@ -63,7 +64,9 @@ Cada cambio de costo o de precio queda en el **historial** al final de la pantal
 ### Importar desde Excel
 *Artículos → Importar.* Descarga la plantilla, llénala y súbela. La plantilla trae instrucciones y la lista de departamentos, unidades e impuestos.
 - Si una **clave ya existe**, se actualiza ese artículo (las celdas vacías no borran el dato actual).
-- Los departamentos nuevos se crean solos; las unidades y los impuestos deben existir.
+- Los departamentos y los **proveedores** nuevos se crean solos (el proveedor se busca por nombre, sin importar mayúsculas ni acentos); las unidades y los impuestos deben existir.
+- La columna **existencia** solo se usa en artículos nuevos (queda como «Existencia inicial» y pide permiso de ajustar inventario). En un artículo que ya existe se ignora, porque su existencia solo cambia con compras, ventas, ajustes y conteos. Una existencia negativa se carga como 0 y el sistema te avisa cuántas fueron.
+- Además de las columnas de la plantilla se entienden las de otros sistemas: `clave1` a `clave6` (de la 2 a la 6 se guardan como claves alternas), `precio1`, `precio2`, `precio3`, `inv_min`, `inv_max`, `(s/n) inventariable`, `(s/n) granel`, `(s/n) imp IVA 16%` y `(s/n) imp IEPS 8%`. El resto de las columnas se ignoran.
 - Es **todo o nada**: si una fila tiene un error no se guarda ninguna y el sistema te dice la fila exacta y qué corregir.
 
 ### Etiquetas de precio
@@ -146,6 +149,8 @@ Con el **teléfono acostado** (horizontal) la venta pone el resumen y los botone
 - **Costo estimado** con el último costo de compra (o el costo del artículo si nunca se compró).
 
 **La sugerencia se puede editar** (requiere `compras.registrar`): cambia la cantidad de cualquier renglón (solo números mayores que cero; enteros, o hasta 3 decimales en artículos a granel o de unidad con decimales), **quita** con el bote de basura los que no vas a comprar y **agrega** otros artículos con el campo *Agregar otro artículo a la compra* (aparecen marcados como *Agregado por ti*). Debajo de la cantidad editada se ve lo que el sistema había sugerido; *Volver a la sugerencia original* deshace todo. Al cambiar los días vendidos, la cobertura o el departamento se descartan los cambios, porque los renglones ya no son los mismos. Con una cantidad inválida no se puede crear la compra ni exportar. Quien solo tiene `compras.ver` ve la sugerencia sin poder modificarla.
+
+**Por proveedor y por semana:** el filtro *Proveedor* arma la sugerencia solo con los artículos de ese proveedor (o los que no tienen proveedor asignado). Debajo de los filtros, *Cubrir* pone la cobertura rápido: **Una semana (7 días)** o, si el proveedor tiene días de visita (*Compras → Proveedores*), **Hasta su siguiente visita**. Ese cálculo cubre lo que hay que vender hasta la visita siguiente a la próxima: con un proveedor que pasa lunes y jueves, el martes propone 6 días (jueves y luego lunes); el lunes, 3 días (hasta el jueves). Al elegir un proveedor con días de visita la cobertura se llena sola con ese número, y se puede cambiar. **Crear compra** desde la sugerencia de un proveedor abre la compra con ese proveedor ya elegido, y el Excel lleva una columna de proveedor.
 
 Se puede filtrar por departamento, **exportar a Excel** (`sugerencia-de-compra-AAAA-MM-DD.xlsx`) (el archivo lleva lo que ves en pantalla, con tus cambios) o **Crear compra**, que abre *Nueva compra* con las partidas y cantidades que dejaste para revisarlas (máximo 500 partidas por compra: si hay más se cargan las más urgentes y se avisa; la sugerencia caduca a los 10 minutos si no se llega a la compra). Un artículo nuevo, con pocos días a la venta, puede parecer de baja rotación porque el promedio se divide entre todo el periodo.
 

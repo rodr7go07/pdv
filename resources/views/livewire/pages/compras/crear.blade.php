@@ -44,6 +44,11 @@ new #[Layout('layouts.app')] class extends Component
             return;
         }
 
+        // Si la sugerencia era de un proveedor, la compra ya lo trae elegido (solo si sigue activo).
+        if (! empty($sugerida['proveedor_id']) && Proveedor::query()->activos()->whereKey((int) $sugerida['proveedor_id'])->exists()) {
+            $this->proveedor_id = (string) (int) $sugerida['proveedor_id'];
+        }
+
         // Una compra admite hasta RegistrarCompra::MAXIMO_PARTIDAS partidas; la sugerencia viene ordenada de lo más urgente a lo menos.
         $partidas = $sugerida['partidas'];
         $tope = RegistrarCompra::MAXIMO_PARTIDAS;

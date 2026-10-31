@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
-    'clave', 'descripcion', 'departamento_id', 'unidad_medida_id',
+    'clave', 'descripcion', 'departamento_id', 'unidad_medida_id', 'proveedor_id',
     'costo', 'precio_1', 'precio_2', 'precio_3',
     'inventariable', 'granel', 'existencia_minima', 'existencia_maxima',
     'imagen_ruta', 'activo',
@@ -44,6 +44,11 @@ class Articulo extends Model
     public function departamento(): BelongsTo
     {
         return $this->belongsTo(Departamento::class)->withTrashed();
+    }
+
+    public function proveedor(): BelongsTo
+    {
+        return $this->belongsTo(Proveedor::class)->withTrashed();
     }
 
     public function unidad(): BelongsTo

@@ -4,6 +4,7 @@ use App\Enums\Rol;
 use App\Models\Articulo;
 use App\Models\Departamento;
 use App\Models\Impuesto;
+use App\Models\Proveedor;
 use App\Models\UnidadMedida;
 use App\Models\User;
 use Database\Seeders\CatalogosBaseSeeder;
@@ -102,6 +103,23 @@ it('crea un artículo desde el formulario', function () {
     expect($articulo)->not->toBeNull()
         ->and($articulo->clavesAlternas->pluck('clave')->all())->toBe(['ALT1'])
         ->and($articulo->impuestos->pluck('nombre')->all())->toBe(['IVA 16%']);
+});
+
+it('el formulario del artículo deja elegir el proveedor principal y conserva uno que ya se desactivó', function () {
+    $activo = Proveedor::factory()->create(['nombre' => 'Proveedor Activo']);
+    $inactivo = Proveedor::factory()->create(['nombre' => 'Proveedor Viejo', 'activo' => false]);
+    $a = Articulo::factory()->create(['proveedor_id' => $inactivo->id]);
+
+    Volt::actingAs($this->admin)->test('pages.articulos.formulario')->assertSee('Proveedor Activo')->assertDontSee('Proveedor Viejo');
+
+    $pantalla = Volt::actingAs($this->admin)->test('pages.articulos.formulario', ['articulo' => $a])
+        ->assertSet('form.proveedor_id', (string) $inactivo->id)->assertSee('Proveedor Viejo');
+
+    $pantalla->set('form.descripcion', 'OTRO NOMBRE')->call('guardar')->assertHasNoErrors();
+    expect($a->fresh()->proveedor_id)->toBe($inactivo->id);
+
+    $pantalla->set('form.proveedor_id', (string) $activo->id)->call('guardar')->assertHasNoErrors();
+    expect($a->fresh()->proveedor_id)->toBe($activo->id);
 });
 
 it('muestra el error cuando la clave ya existe', function () {

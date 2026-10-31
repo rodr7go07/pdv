@@ -5,8 +5,10 @@ namespace App\Actions\Articulos;
 use App\Models\Articulo;
 use App\Models\Departamento;
 use App\Models\Impuesto;
+use App\Models\Proveedor;
 use App\Models\UnidadMedida;
 use App\Models\User;
+use Brick\Math\BigDecimal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -17,15 +19,23 @@ use Illuminate\Validation\ValidationException;
  * Es de todo o nada: si una fila tiene errores no se guarda ninguna, para que
  * el archivo corregido se pueda volver a subir sin duplicar nada.
  * Si la clave ya existe se actualiza ese artículo; las celdas vacías conservan
- * el valor actual. Los departamentos que no existen se crean.
+ * el valor actual. Los departamentos y proveedores que no existen se crean.
+ * La columna `existencia` solo se usa en artículos nuevos (la existencia de uno que ya existe solo cambia con
+ * movimientos de inventario) y una existencia negativa se carga como cero.
  */
 class ImportarArticulos
 {
+    private int $negativas = 0;
+
+    private int $existenciaOmitida = 0;
+
+    private bool $puedeExistencia = true;
+
     public function __construct(private readonly GuardarArticulo $guardar) {}
 
     /**
      * @param  list<array<string, mixed>>  $filas  filas con encabezados normalizados (clave, descripcion, …)
-     * @return array{creados: int, actualizados: int, errores: list<array{fila: int, clave: string, mensajes: list<string>}>, sin_permiso_precios: bool}
+     * @return array{creados: int, actualizados: int, errores: list<array{fila: int, clave: string, mensajes: list<string>}>, sin_permiso_precios: bool, avisos: list<string>}
      */
     public function __invoke(array $filas, User $usuario, bool $puedePrecios): array
     {
@@ -34,6 +44,9 @@ class ImportarArticulos
         $creados = 0;
         $actualizados = 0;
         $vistas = [];
+        $this->negativas = 0;
+        $this->existenciaOmitida = 0;
+        $this->puedeExistencia = $usuario->can('inventario.ajustar'); // meter existencia es un movimiento de inventario
 
         DB::beginTransaction();
 
@@ -82,15 +95,25 @@ class ImportarArticulos
         if ($errores !== []) {
             DB::rollBack();
 
-            return ['creados' => 0, 'actualizados' => 0, 'errores' => $errores, 'sin_permiso_precios' => false];
+            return ['creados' => 0, 'actualizados' => 0, 'errores' => $errores, 'sin_permiso_precios' => false, 'avisos' => []];
         }
 
         DB::commit();
 
-        return ['creados' => $creados, 'actualizados' => $actualizados, 'errores' => [], 'sin_permiso_precios' => ! $puedePrecios];
+        $avisos = [];
+
+        if ($this->negativas > 0) {
+            $avisos[] = $this->negativas.' '.($this->negativas === 1 ? 'artículo traía' : 'artículos traían').' existencia negativa: se cargó'.($this->negativas === 1 ? '' : 'ron').' sin existencia.';
+        }
+
+        if ($this->existenciaOmitida > 0) {
+            $avisos[] = 'La existencia de '.$this->existenciaOmitida.' '.($this->existenciaOmitida === 1 ? 'artículo' : 'artículos').' no se cargó (si ya existían, o si no tienes permiso para capturar existencia): se ajusta desde Inventario.';
+        }
+
+        return ['creados' => $creados, 'actualizados' => $actualizados, 'errores' => [], 'sin_permiso_precios' => ! $puedePrecios, 'avisos' => $avisos];
     }
 
-    /** @return array{departamentos: array<string, Departamento>, unidades: array<string, UnidadMedida>, impuestos: array<string, Impuesto>} */
+    /** @return array{departamentos: array<string, Departamento>, unidades: array<string, UnidadMedida>, impuestos: array<string, Impuesto>, proveedores: array<string, Proveedor>} */
     private function cargarCatalogos(): array
     {
         $unidades = [];
@@ -103,6 +126,7 @@ class ImportarArticulos
             'departamentos' => Departamento::query()->get()->keyBy(fn ($d) => $this->clave($d->nombre))->all(),
             'unidades' => $unidades,
             'impuestos' => Impuesto::query()->get()->keyBy(fn ($i) => $this->clave($i->nombre))->all(),
+            'proveedores' => Proveedor::withTrashed()->get()->keyBy(fn ($p) => $this->clave($p->nombre))->all(),
         ];
     }
 
@@ -137,6 +161,13 @@ class ImportarArticulos
             throw new \InvalidArgumentException('Falta el departamento.');
         }
 
+        // Proveedor principal: se crea si no existe. Sin dato, el artículo conserva el que tiene.
+        if (($nombre = $texto('proveedor')) !== '') {
+            $proveedor = $catalogos['proveedores'][$this->clave($nombre)] ??= Proveedor::query()->create(['nombre' => $nombre, 'activo' => true]);
+            $proveedor->trashed() && $proveedor->restore();
+            $datos['proveedor_id'] = $proveedor->id;
+        }
+
         // Unidad: por nombre o abreviatura; debe existir.
         if (($nombre = $texto('unidad')) !== '') {
             $unidad = $catalogos['unidades'][$this->clave($nombre)] ?? null;
@@ -167,6 +198,19 @@ class ImportarArticulos
                 $impuesto = $catalogos['impuestos'][$this->clave($nombre)] ?? null;
                 $impuesto ?: throw new \InvalidArgumentException('El impuesto «'.trim($nombre).'» no existe. Revisa la hoja «Catálogos».');
                 $datos['impuestos'][] = $impuesto->id;
+            }
+        }
+
+        // Existencia con la que se da de alta el artículo (queda en su historial como «Existencia inicial»).
+        if ($texto('existencia') !== '') {
+            $cantidad = $this->numero($texto('existencia'), 'existencia');
+
+            if ($existente || ! $this->puedeExistencia) {
+                $this->existenciaOmitida++;
+            } elseif (BigDecimal::of($cantidad)->isNegative()) {
+                $this->negativas++;
+            } else {
+                $datos['existencia_inicial'] = $cantidad;
             }
         }
 

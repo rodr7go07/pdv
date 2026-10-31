@@ -113,6 +113,9 @@ new #[Layout('layouts.app')] class extends Component
                     {{ $resultado['creados'] }} {{ $resultado['creados'] === 1 ? 'artículo nuevo' : 'artículos nuevos' }} ·
                     {{ $resultado['actualizados'] }} {{ $resultado['actualizados'] === 1 ? 'actualizado' : 'actualizados' }}.
                 </p>
+                @foreach ($resultado['avisos'] ?? [] as $aviso)
+                    <p class="mt-2 text-sm font-medium">Aviso: {{ $aviso }}</p>
+                @endforeach
                 @if ($resultado['sin_permiso_precios'])
                     <p class="mt-2 text-sm font-medium">Aviso: no tienes permiso para cambiar costos y precios, así que esas columnas se ignoraron.</p>
                 @endif

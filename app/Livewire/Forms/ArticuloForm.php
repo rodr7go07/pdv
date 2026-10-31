@@ -22,6 +22,9 @@ class ArticuloForm extends Form
 
     public string $precio_1 = '';
 
+    /** Proveedor principal (vacío = ninguno). */
+    public string $proveedor_id = '';
+
     public string $precio_2 = '';
 
     public string $precio_3 = '';
@@ -59,6 +62,7 @@ class ArticuloForm extends Form
             'descripcion' => $articulo->descripcion,
             'departamento_id' => (string) $articulo->departamento_id,
             'unidad_medida_id' => (string) $articulo->unidad_medida_id,
+            'proveedor_id' => (string) ($articulo->proveedor_id ?? ''),
             'costo' => $this->recortar((string) $articulo->costo, 4),
             'precio_1' => (string) $articulo->precio_1,
             'precio_2' => (string) ($articulo->precio_2 ?? ''),
@@ -87,6 +91,7 @@ class ArticuloForm extends Form
             'descripcion' => $this->descripcion,
             'departamento_id' => $this->departamento_id,
             'unidad_medida_id' => $this->unidad_medida_id,
+            'proveedor_id' => $this->proveedor_id,
             'costo' => $this->costo,
             'precio_1' => $this->precio_1,
             'precio_2' => $this->precio_2,

@@ -8,10 +8,12 @@ use App\Enums\Rol;
 use App\Models\Articulo;
 use App\Models\Caja;
 use App\Models\Departamento;
+use App\Models\Proveedor;
 use App\Models\Turno;
 use App\Models\UnidadMedida;
 use App\Models\User;
 use App\Services\SugerenciaCompra;
+use Carbon\CarbonImmutable;
 use Database\Seeders\CatalogosBaseSeeder;
 use Database\Seeders\RolesYPermisosSeeder;
 use Livewire\Volt\Volt;
@@ -326,4 +328,63 @@ it('una exportación editada caducada o ausente vuelve a calcular la sugerencia'
     $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?editada=1')->assertOk()->assertDownload();
     $this->actingAs($this->encargado)->withSession(['sugerencia_editada' => ['en' => now()->subHour()->timestamp, 'dias' => 30, 'filas' => []]])
         ->get('/compras/sugerencia/exportar?editada=1')->assertOk()->assertDownload();
+});
+
+// ─── Por proveedor y por semana ──────────────────────────────────────────────
+
+it('filtra la sugerencia por proveedor principal o por artículos sin proveedor', function () {
+    $norte = Proveedor::factory()->create(['nombre' => 'Norte']);
+    $delNorte = Articulo::factory()->create(['existencia_minima' => '10', 'proveedor_id' => $norte->id]);
+    $sueltos = Articulo::factory()->create(['existencia_minima' => '10']);
+    $otro = Articulo::factory()->create(['existencia_minima' => '10', 'proveedor_id' => Proveedor::factory()->create()->id]);
+    foreach ([$delNorte, $sueltos, $otro] as $a) {
+        ($this->existencia)($a, '1');
+    }
+
+    $ids = fn (?SugerenciaCompra $s) => $s->filas()->pluck('id')->all();
+
+    expect($ids(new SugerenciaCompra))->toEqualCanonicalizing([$delNorte->id, $sueltos->id, $otro->id])
+        ->and($ids(new SugerenciaCompra(30, 15, null, $norte->id)))->toBe([$delNorte->id])
+        ->and($ids(new SugerenciaCompra(30, 15, null, SugerenciaCompra::SIN_PROVEEDOR)))->toBe([$sueltos->id])
+        ->and((new SugerenciaCompra(30, 15, null, $norte->id))->filas()->first()['proveedor'])->toBe('Norte');
+});
+
+it('al elegir un proveedor con días de visita propone cubrir hasta su siguiente visita', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-11-03 10:00')); // martes
+    $p = Proveedor::factory()->create(['dias_visita' => [1, 4]]);
+    Articulo::factory()->create(['proveedor_id' => $p->id]);
+    $sinDias = Proveedor::factory()->create();
+    Articulo::factory()->create(['proveedor_id' => $sinDias->id]);
+
+    $pantalla = Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')->set('proveedor', (string) $p->id);
+    expect($pantalla->get('cobertura'))->toBe('6')->and($pantalla->get('diasHastaVisita'))->toBe(6);
+    $pantalla->assertSee('Hasta su siguiente visita (6 días)')->assertSee('Lun, Jue');
+
+    $pantalla->call('usarCobertura', 7);
+    expect($pantalla->get('cobertura'))->toBe('7');
+
+    // Sin días de visita no cambia la cobertura y explica cómo ponerlos.
+    $pantalla->set('proveedor', (string) $sinDias->id)->assertSee('no tiene días de visita');
+    expect($pantalla->get('cobertura'))->toBe('7');
+});
+
+it('crear la compra desde la sugerencia de un proveedor trae el proveedor elegido', function () {
+    $p = Proveedor::factory()->create();
+    $a = Articulo::factory()->create(['existencia_minima' => '10', 'proveedor_id' => $p->id]);
+    ($this->existencia)($a, '4');
+
+    Volt::actingAs($this->encargado)->test('pages.compras.sugerencia')->set('proveedor', (string) $p->id)->call('crearCompra');
+
+    Volt::actingAs($this->encargado)->test('pages.compras.crear')
+        ->assertSet('proveedor_id', (string) $p->id)->assertSet('lineas.0.articulo_id', $a->id);
+});
+
+it('la exportación por proveedor trae solo sus artículos y la columna de proveedor', function () {
+    $p = Proveedor::factory()->create(['nombre' => 'Norte']);
+    $a = Articulo::factory()->create(['existencia_minima' => '5', 'proveedor_id' => $p->id]);
+    ($this->existencia)($a, '0');
+
+    $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?proveedor='.$p->id)->assertOk()->assertDownload();
+    $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?proveedor=sin')->assertOk();
+    $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?proveedor[]=1')->assertOk();
 });

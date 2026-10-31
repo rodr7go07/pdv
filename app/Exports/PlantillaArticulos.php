@@ -19,8 +19,11 @@ class PlantillaArticulos implements Export, WithMultipleSheets
 {
     public const ENCABEZADOS = [
         'clave', 'descripcion', 'departamento', 'unidad', 'costo', 'precio_1', 'precio_2', 'precio_3',
-        'impuestos', 'inventariable', 'granel', 'existencia_minima', 'existencia_maxima', 'claves_alternas', 'activo',
+        'impuestos', 'inventariable', 'granel', 'existencia', 'existencia_minima', 'existencia_maxima', 'proveedor', 'claves_alternas', 'activo',
     ];
+
+    /** Columnas que el sistema entiende además de las de la plantilla (las de otros sistemas de punto de venta). */
+    public const ENCABEZADOS_AJENOS = 'clave1 a clave6, precio1, precio2, precio3, inv_min, inv_max, (s/n) inventariable, (s/n) granel, (s/n) imp IVA 16%, (s/n) imp IEPS 8%';
 
     public function sheets(): array
     {
@@ -40,8 +43,8 @@ class PlantillaArticulos implements Export, WithMultipleSheets
                 public function array(): array
                 {
                     return [
-                        ['7501055300075', 'REFRESCO COLA 600 ML', 'Bebidas', 'pza', 10.50, 18.00, 17.00, '', 'IVA 16%', 'SI', 'NO', 6, 48, '75010553', 'SI'],
-                        ['FRUTA-001', 'MANZANA ROJA', 'Frutas y verduras', 'kg', 22, 35, '', '', 'IVA 0%', 'SI', 'SI', 5, 40, '', 'SI'],
+                        ['7501055300075', 'REFRESCO COLA 600 ML', 'Bebidas', 'pza', 10.50, 18.00, 17.00, '', 'IVA 16%', 'SI', 'NO', 24, 6, 48, 'Distribuidora Norte', '75010553', 'SI'],
+                        ['FRUTA-001', 'MANZANA ROJA', 'Frutas y verduras', 'kg', 22, 35, '', '', 'IVA 0%', 'SI', 'SI', 12.5, 5, 40, '', '', 'SI'],
                     ];
                 }
 
@@ -75,11 +78,14 @@ class PlantillaArticulos implements Export, WithMultipleSheets
                         ['impuestos', 'Nombres de la hoja «Catálogos» separados por coma, por ejemplo: IVA 16%, IEPS 8%. Vacío = sin impuestos (en artículos nuevos).'],
                         ['inventariable', 'SI o NO. Vacío = SI.'],
                         ['granel', 'SI o NO. Un artículo a granel necesita una unidad que permita decimales (kg, l, m). Vacío = NO.'],
+                        ['existencia', 'Opcional. Lo que ya hay en la tienda: solo se usa en artículos NUEVOS (queda en su historial como «Existencia inicial»). En un artículo que ya existe se ignora: su existencia se cambia desde Inventario. Una cantidad negativa se carga como 0.'],
                         ['existencia_minima / maxima', 'Opcionales. Sirven para avisar cuando el inventario baja.'],
+                        ['proveedor', 'Opcional. Nombre del proveedor principal; si no existe, se crea. Sirve para armar la sugerencia de compra por proveedor. Vacío = no cambia el que ya tiene.'],
                         ['claves_alternas', 'Opcional. Otros códigos del mismo artículo separados por coma.'],
                         ['activo', 'SI o NO. Vacío = SI.'],
                         [''],
                         ['Al actualizar un artículo existente, las celdas vacías NO borran el dato actual.'],
+                        ['También se aceptan los encabezados de otros sistemas: '.PlantillaArticulos::ENCABEZADOS_AJENOS.'. clave2 a clave6 se guardan como claves alternas.'],
                         ['Si una fila tiene un error no se guarda ninguna: corrige el archivo y vuélvelo a subir.'],
                     ];
                 }

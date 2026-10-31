@@ -30,24 +30,32 @@ final class SugerenciaCompra
     /** @var ?Collection<int, BigDecimal> */
     private ?Collection $vendidoCache = null;
 
-    public function __construct(int $diasVenta = 30, int $diasCobertura = 15, public readonly ?int $departamentoId = null)
+    /** Valor de `$proveedor` para los artículos que no tienen proveedor principal. */
+    public const SIN_PROVEEDOR = 'sin';
+
+    /**
+     * @param  int|string|null  $proveedor  id de un proveedor, `SIN_PROVEEDOR` o null (todos)
+     */
+    public function __construct(int $diasVenta = 30, int $diasCobertura = 15, public readonly ?int $departamentoId = null, public readonly int|string|null $proveedor = null)
     {
         $this->diasVenta = in_array($diasVenta, self::DIAS_VENTA, true) ? $diasVenta : 30;
         $this->diasCobertura = max(1, min(self::COBERTURA_MAXIMA, $diasCobertura));
     }
 
     /**
-     * @return Collection<int, array{id: int, clave: string, descripcion: string, unidad: string, decimales: bool, existencia: string, minimo: ?string, vendido: string, promedio: string, dias_restantes: ?string, sugerido: string, costo: string, importe: string, estado: string}>
+     * @return Collection<int, array{id: int, clave: string, descripcion: string, unidad: string, proveedor: ?string, decimales: bool, existencia: string, minimo: ?string, vendido: string, promedio: string, dias_restantes: ?string, sugerido: string, costo: string, importe: string, estado: string}>
      */
     public function filas(): Collection
     {
         $vendido = $this->vendido();
 
         $articulos = Articulo::query()
-            ->with('unidad:id,abreviatura,permite_decimales')
+            ->with(['unidad:id,abreviatura,permite_decimales', 'proveedor:id,nombre'])
             ->activos()
             ->where('inventariable', true)
             ->when($this->departamentoId, fn ($q, $id) => $q->where('departamento_id', $id))
+            ->when($this->proveedor === self::SIN_PROVEEDOR, fn ($q) => $q->whereNull('proveedor_id'))
+            ->when(is_int($this->proveedor), fn ($q) => $q->where('proveedor_id', $this->proveedor))
             ->where(fn ($q) => $q->whereIn('id', $vendido->keys()->all())->orWhere(fn ($w) => $w->bajoMinimo()))
             ->get();
 
@@ -65,7 +73,7 @@ final class SugerenciaCompra
      */
     public function filaManual(Articulo $a, string $cantidad = '1'): array
     {
-        $a->loadMissing('unidad:id,abreviatura,permite_decimales');
+        $a->loadMissing('unidad:id,abreviatura,permite_decimales', 'proveedor:id,nombre');
         $fila = $this->fila($a, $this->vendido()->get($a->id, BigDecimal::zero()), forzar: true);
         $fila['estado'] = 'manual';
 
@@ -153,6 +161,7 @@ final class SugerenciaCompra
             'clave' => $a->clave,
             'descripcion' => $a->descripcion,
             'unidad' => $a->unidad->abreviatura,
+            'proveedor' => $a->proveedor?->nombre,
             'decimales' => $a->granel || $a->unidad->permite_decimales,
             'existencia' => (string) $existencia->toScale(3),
             'minimo' => $minimo?->toScale(3)->__toString(),

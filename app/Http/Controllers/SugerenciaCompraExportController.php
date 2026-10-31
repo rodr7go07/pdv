@@ -27,17 +27,19 @@ class SugerenciaCompraExportController extends Controller
                 ? (int) $request->query($clave) : $predeterminado;
 
             $departamento = $numero('departamento', 0);
-            $sugerencia = new SugerenciaCompra($numero('dias', 30), $numero('cobertura', 15), $departamento > 0 ? $departamento : null);
+            $proveedor = is_string($request->query('proveedor')) ? $request->query('proveedor') : '';
+            $proveedor = ctype_digit($proveedor) && strlen($proveedor) <= 9 ? (int) $proveedor : ($proveedor === SugerenciaCompra::SIN_PROVEEDOR ? $proveedor : null);
+            $sugerencia = new SugerenciaCompra($numero('dias', 30), $numero('cobertura', 15), $departamento > 0 ? $departamento : null, $proveedor);
             $diasVenta = $sugerencia->diasVenta;
             $origen = $sugerencia->filas();
         }
 
         $filas = $origen->map(fn (array $f) => [
-            $f['clave'], $f['descripcion'], $f['unidad'], (float) $f['existencia'], $f['minimo'] === null ? null : (float) $f['minimo'],
+            $f['clave'], $f['descripcion'], $f['unidad'], $f['proveedor'] ?? '', (float) $f['existencia'], $f['minimo'] === null ? null : (float) $f['minimo'],
             (float) $f['vendido'], $f['dias_restantes'] === null ? null : (float) $f['dias_restantes'], (float) $f['sugerido'], (float) $f['costo'], (float) $f['importe'],
         ])->all();
 
-        $encabezados = ['Clave', 'Artículo', 'Unidad', 'Existencia', 'Mínimo', 'Vendido ('.$diasVenta.' días)', 'Días que alcanza', 'Comprar', 'Costo unitario', 'Costo estimado'];
+        $encabezados = ['Clave', 'Artículo', 'Unidad', 'Proveedor', 'Existencia', 'Mínimo', 'Vendido ('.$diasVenta.' días)', 'Días que alcanza', 'Comprar', 'Costo unitario', 'Costo estimado'];
 
         return Excel::download(
             new ReporteExport('Sugerencia de compra', $encabezados, $filas, [0]),

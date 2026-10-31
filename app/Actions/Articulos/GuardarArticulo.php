@@ -71,7 +71,7 @@ class GuardarArticulo
                 $anteriores = $existia ? $articulo->only(self::CAMPOS_PRECIO) : array_fill_keys(self::CAMPOS_PRECIO, null);
 
                 $atributos = collect($datos)->only([
-                    'clave', 'descripcion', 'departamento_id', 'unidad_medida_id',
+                    'clave', 'descripcion', 'departamento_id', 'unidad_medida_id', 'proveedor_id',
                     'inventariable', 'granel', 'existencia_minima', 'existencia_maxima', 'activo',
                 ])->all();
 
@@ -145,6 +145,11 @@ class GuardarArticulo
             $datos[$campo] = $vacioANulo($datos[$campo] ?? null);
         }
 
+        // El proveedor solo cambia si el dato viene (una importación sin esa columna no lo borra).
+        if (array_key_exists('proveedor_id', $datos)) {
+            $datos['proveedor_id'] = $vacioANulo($datos['proveedor_id']);
+        }
+
         $datos['costo'] = $vacioANulo($datos['costo'] ?? null) ?? '0';
         $datos['precio_1'] = $vacioANulo($datos['precio_1'] ?? null) ?? '0';
 
@@ -184,6 +189,7 @@ class GuardarArticulo
             'descripcion' => ['required', 'string', 'max:150'],
             'departamento_id' => ['required', Rule::exists('departamentos', 'id')->whereNull('deleted_at')],
             'unidad_medida_id' => ['required', Rule::exists('unidades_medida', 'id')->whereNull('deleted_at')],
+            'proveedor_id' => ['nullable', Rule::exists('proveedores', 'id')->whereNull('deleted_at')],
             'costo' => ['required', 'numeric', 'min:0', 'max:99999999'],
             'precio_1' => ['required', 'numeric', 'min:0', 'max:9999999999'],
             'precio_2' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
@@ -210,6 +216,7 @@ class GuardarArticulo
             'descripcion' => 'descripción',
             'departamento_id' => 'departamento',
             'unidad_medida_id' => 'unidad de medida',
+            'proveedor_id' => 'proveedor',
             'precio_1' => 'precio 1',
             'precio_2' => 'precio 2',
             'precio_3' => 'precio 3',

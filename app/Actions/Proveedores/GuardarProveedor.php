@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 class GuardarProveedor
 {
     /**
-     * @param  array{nombre?: ?string, contacto?: ?string, telefono?: ?string, correo?: ?string, rfc?: ?string, notas?: ?string, activo?: bool}  $datos
+     * @param  array{nombre?: ?string, contacto?: ?string, telefono?: ?string, correo?: ?string, rfc?: ?string, notas?: ?string, dias_visita?: ?array, activo?: bool}  $datos
      *
      * @throws ValidationException
      */
@@ -27,11 +27,18 @@ class GuardarProveedor
             'correo' => ['nullable', 'email', 'max:120'],
             'rfc' => ['nullable', 'string', 'regex:/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/i'],
             'notas' => ['nullable', 'string', 'max:2000'],
+            'dias_visita' => ['nullable', 'array', 'max:7'],
+            'dias_visita.*' => ['integer', 'between:1,7'],
             'activo' => ['boolean'],
         ], [
             'nombre.unique' => 'Ya existe un proveedor con ese nombre.',
             'rfc.regex' => 'El RFC no tiene un formato válido.',
-        ], ['rfc' => 'RFC', 'correo' => 'correo'])->validate();
+            'dias_visita.*.between' => 'Los días de visita son de lunes a domingo.',
+            'dias_visita.*.integer' => 'Los días de visita son de lunes a domingo.',
+        ], ['rfc' => 'RFC', 'correo' => 'correo', 'dias_visita' => 'días de visita'])->validate();
+
+        // Lunes = 1 … domingo = 7, sin repetir y en orden; sin días queda vacío.
+        $dias = collect($validado['dias_visita'] ?? [])->map(fn ($d) => (int) $d)->unique()->sort()->values()->all();
 
         $proveedor ??= new Proveedor;
         $proveedor->fill([
@@ -41,6 +48,7 @@ class GuardarProveedor
             'correo' => self::textoONulo($validado['correo'] ?? null),
             'rfc' => ($rfc = self::textoONulo($validado['rfc'] ?? null)) ? mb_strtoupper($rfc) : null,
             'notas' => self::textoONulo($validado['notas'] ?? null),
+            'dias_visita' => $dias === [] ? null : $dias,
             'activo' => (bool) ($validado['activo'] ?? true),
         ])->save();
 

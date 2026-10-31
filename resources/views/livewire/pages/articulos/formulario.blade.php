@@ -6,6 +6,7 @@ use App\Livewire\Forms\ArticuloForm;
 use App\Models\Articulo;
 use App\Models\Departamento;
 use App\Models\Impuesto;
+use App\Models\Proveedor;
 use App\Models\UnidadMedida;
 use App\Services\CalculadoraPrecios;
 use Illuminate\Validation\ValidationException;
@@ -52,6 +53,15 @@ new #[Layout('layouts.app')] class extends Component
     public function departamentos()
     {
         return Departamento::query()->activos()->orderBy('nombre')->get();
+    }
+
+    #[\Livewire\Attributes\Computed]
+    public function proveedores()
+    {
+        // Si el proveedor del artículo ya se desactivó sigue en la lista, para no quitárselo sin querer al guardar.
+        return Proveedor::query()
+            ->where(fn ($q) => $q->where('activo', true)->orWhere('id', (int) $this->form->proveedor_id))
+            ->orderBy('nombre')->get(['id', 'nombre']);
     }
 
     #[\Livewire\Attributes\Computed]
@@ -307,6 +317,18 @@ new #[Layout('layouts.app')] class extends Component
                                 </x-select>
                                 <x-input-error :messages="$errors->get('form.unidad_medida_id')" class="mt-1.5" />
                             </div>
+                        </div>
+
+                        <div>
+                            <x-input-label for="proveedor_id" value="Proveedor principal (opcional)" />
+                            <x-select wire:model="form.proveedor_id" id="proveedor_id">
+                                <option value="">Ninguno</option>
+                                @foreach ($this->proveedores as $p)
+                                    <option value="{{ $p->id }}">{{ $p->nombre }}</option>
+                                @endforeach
+                            </x-select>
+                            <p class="mt-1.5 text-xs text-anil-600">Sirve para armar la sugerencia de compra por proveedor.</p>
+                            <x-input-error :messages="$errors->get('form.proveedor_id')" class="mt-1.5" />
                         </div>
                     </div>
                 </x-card>

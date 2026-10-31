@@ -7,6 +7,7 @@ use App\Models\Articulo;
 use App\Models\Departamento;
 use App\Models\HistorialPrecio;
 use App\Models\Impuesto;
+use App\Models\Proveedor;
 use App\Models\UnidadMedida;
 use App\Models\User;
 use Database\Seeders\RolesYPermisosSeeder;
@@ -246,4 +247,21 @@ it('sin permiso de inventario no se puede capturar existencia inicial', function
     $cajero = User::factory()->conRol(Rol::Cajero)->create();
 
     expect(fn () => ($this->guardar)(null, datosArticulo(['existencia_inicial' => '5']), $cajero))->toThrow(HttpException::class);
+});
+
+it('guarda el proveedor principal, lo valida y no lo cambia si el dato no viene', function () {
+    $proveedor = Proveedor::factory()->create();
+    $guardar = app(GuardarArticulo::class);
+    $base = ['clave' => 'PROV-1', 'descripcion' => 'CON PROVEEDOR', 'departamento_id' => Departamento::factory()->create()->id, 'unidad_medida_id' => UnidadMedida::factory()->create()->id, 'costo' => '1', 'precio_1' => '2'];
+
+    $a = $guardar(null, $base + ['proveedor_id' => (string) $proveedor->id]);
+    expect($a->fresh()->proveedor_id)->toBe($proveedor->id);
+
+    $a = $guardar($a, array_diff_key($base, ['proveedor_id' => 1]) + ['descripcion' => 'RENOMBRADO']); // sin la clave proveedor_id
+    expect($a->fresh()->proveedor_id)->toBe($proveedor->id);
+
+    $a = $guardar($a, $base + ['proveedor_id' => '']);
+    expect($a->fresh()->proveedor_id)->toBeNull();
+
+    expect(fn () => $guardar($a, $base + ['proveedor_id' => '99999']))->toThrow(ValidationException::class);
 });

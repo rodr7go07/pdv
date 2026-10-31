@@ -23,6 +23,9 @@ new #[Layout('layouts.app')] class extends Component
 
     public string $notas = '';
 
+    /** @var list<string> días de la semana en que pasa (1 = lunes … 7 = domingo) */
+    public array $dias_visita = [];
+
     public bool $activo = true;
 
     public string $buscar = '';
@@ -43,7 +46,7 @@ new #[Layout('layouts.app')] class extends Component
     public function nuevo(): void
     {
         $this->authorize('proveedores.administrar');
-        $this->reset('editandoId', 'nombre', 'contacto', 'telefono', 'correo', 'rfc', 'notas');
+        $this->reset('editandoId', 'nombre', 'contacto', 'telefono', 'correo', 'rfc', 'notas', 'dias_visita');
         $this->activo = true;
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'proveedor');
@@ -56,6 +59,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->fill([
             'editandoId' => $p->id, 'nombre' => $p->nombre, 'contacto' => $p->contacto ?? '', 'telefono' => $p->telefono ?? '',
             'correo' => $p->correo ?? '', 'rfc' => $p->rfc ?? '', 'notas' => $p->notas ?? '', 'activo' => $p->activo,
+            'dias_visita' => array_map('strval', $p->dias_visita ?? []),
         ]);
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'proveedor');
@@ -68,7 +72,7 @@ new #[Layout('layouts.app')] class extends Component
         try {
             $guardar(
                 $this->editandoId ? Proveedor::query()->findOrFail($this->editandoId) : null,
-                $this->only('nombre', 'contacto', 'telefono', 'correo', 'rfc', 'notas', 'activo'),
+                $this->only('nombre', 'contacto', 'telefono', 'correo', 'rfc', 'notas', 'dias_visita', 'activo'),
                 auth()->user(),
             );
         } catch (ValidationException $e) {
@@ -114,6 +118,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <p class="truncate text-xs text-anil-600">
                                     {{ collect([$p->contacto, $p->telefono, $p->correo])->filter()->implode(' · ') ?: 'Sin datos de contacto' }}
                                     · {{ $p->compras_count }} {{ $p->compras_count === 1 ? 'compra' : 'compras' }}
+                                    @if ($p->visitaTexto())· Visita: {{ $p->visitaTexto() }}@endif
                                 </p>
                             </div>
                             <x-badge :tono="$p->activo ? 'ok' : 'gris'">{{ $p->activo ? 'Activo' : 'Inactivo' }}</x-badge>
@@ -158,9 +163,22 @@ new #[Layout('layouts.app')] class extends Component
                     <x-input-error :messages="$errors->get('rfc')" class="mt-1.5" />
                 </div>
             </div>
+            <fieldset>
+                <legend class="rotulo mb-1.5 block">Días en que pasa</legend>
+                <div class="flex flex-wrap gap-2">
+                    @foreach (\App\Models\Proveedor::DIAS as $n => $nombreDia)
+                        <label class="cursor-pointer">
+                            <input type="checkbox" wire:model="dias_visita" value="{{ $n }}" class="peer sr-only">
+                            <span class="grid min-h-11 min-w-12 place-items-center rounded-lg border border-anil-200 bg-white px-3 text-sm font-semibold text-anil-800 peer-checked:border-rosa-500 peer-checked:bg-rosa-50 peer-checked:text-rosa-700 peer-focus-visible:ring-4 peer-focus-visible:ring-rosa-500/20">{{ $nombreDia }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                <p class="mt-1.5 text-xs text-anil-600">Con estos días, la sugerencia de compra cubre hasta la siguiente visita. Déjalo vacío si no tiene días fijos.</p>
+                <x-input-error :messages="$errors->get('dias_visita')" class="mt-1.5" />
+            </fieldset>
             <div>
                 <x-input-label for="pv_notas" value="Notas" />
-                <x-text-input wire:model="notas" id="pv_notas" type="text" maxlength="2000" placeholder="Días de visita, condiciones de pago…" autocomplete="off" />
+                <x-text-input wire:model="notas" id="pv_notas" type="text" maxlength="2000" placeholder="Condiciones de pago, pedido mínimo…" autocomplete="off" />
             </div>
             <x-checkbox wire:model="activo" label="Activo" />
             <div class="flex justify-end gap-3">

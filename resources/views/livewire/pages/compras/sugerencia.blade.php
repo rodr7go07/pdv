@@ -2,6 +2,7 @@
 
 use App\Models\Articulo;
 use App\Models\Departamento;
+use App\Models\Proveedor;
 use App\Services\SugerenciaCompra;
 use Brick\Math\BigDecimal;
 use Livewire\Attributes\Computed;
@@ -21,6 +22,10 @@ new #[Layout('layouts.app')] class extends Component
     #[Url(except: '')]
     public string $departamento = '';
 
+    /** '' = todos | 'sin' = artículos sin proveedor principal | id de un proveedor */
+    #[Url(except: '')]
+    public string $proveedor = '';
+
     /** Lo que la persona escribe en cada renglón: [articulo_id => cantidad a comprar]. */
     public array $cantidades = [];
 
@@ -38,9 +43,45 @@ new #[Layout('layouts.app')] class extends Component
     /** Al cambiar el cálculo cambian los renglones: lo editado a mano ya no aplica. */
     public function updated(string $propiedad): void
     {
-        if (in_array($propiedad, ['dias', 'cobertura', 'departamento'], true)) {
+        if (in_array($propiedad, ['dias', 'cobertura', 'departamento', 'proveedor'], true)) {
             $this->restablecer();
         }
+    }
+
+    /** Un proveedor con días de visita propone cubrir hasta su siguiente visita (se puede cambiar después). */
+    public function updatedProveedor(): void
+    {
+        if ($dias = $this->diasHastaVisita) {
+            $this->cobertura = (string) $dias;
+        }
+    }
+
+    public function usarCobertura(int $dias): void
+    {
+        $this->cobertura = (string) max(1, min(SugerenciaCompra::COBERTURA_MAXIMA, $dias));
+        $this->restablecer();
+    }
+
+    #[Computed]
+    public function proveedores()
+    {
+        return Proveedor::query()->activos()->whereHas('articulos')->orderBy('nombre')->get(['id', 'nombre', 'dias_visita']);
+    }
+
+    /** El proveedor elegido, o null si se ve todo o lo que no tiene proveedor. */
+    #[Computed]
+    public function proveedorElegido(): ?Proveedor
+    {
+        return ctype_digit($this->proveedor) ? Proveedor::query()->find((int) $this->proveedor) : null;
+    }
+
+    /** Días hasta la visita siguiente a la próxima del proveedor elegido (null si no tiene días de visita). */
+    #[Computed]
+    public function diasHastaVisita(): ?int
+    {
+        $dias = $this->proveedorElegido?->diasHastaSiguienteVisita();
+
+        return $dias === null ? null : min($dias, SugerenciaCompra::COBERTURA_MAXIMA);
     }
 
     #[Computed]
@@ -56,6 +97,7 @@ new #[Layout('layouts.app')] class extends Component
             (int) $this->dias,
             ctype_digit(trim($this->cobertura)) ? (int) $this->cobertura : 15,
             $this->departamento !== '' ? (int) $this->departamento : null,
+            ctype_digit($this->proveedor) ? (int) $this->proveedor : ($this->proveedor === SugerenciaCompra::SIN_PROVEEDOR ? SugerenciaCompra::SIN_PROVEEDOR : null),
         );
     }
 
@@ -77,7 +119,7 @@ new #[Layout('layouts.app')] class extends Component
 
         $extras = collect($this->agregados)
             ->reject(fn (int $id) => $this->calculadas->has($id))
-            ->map(fn (int $id) => Articulo::query()->with('unidad:id,abreviatura,permite_decimales')->activos()->where('inventariable', true)->find($id))
+            ->map(fn (int $id) => Articulo::query()->with(['unidad:id,abreviatura,permite_decimales', 'proveedor:id,nombre'])->activos()->where('inventariable', true)->find($id))
             ->filter()
             ->map(fn (Articulo $a) => $this->sugerencia->filaManual($a));
 
@@ -204,7 +246,11 @@ new #[Layout('layouts.app')] class extends Component
         }
 
         // Con la hora: si no se llega a la compra, la sugerencia caduca y no precarga cantidades viejas otro día.
-        session()->put('compra_sugerida', ['en' => now()->timestamp, 'partidas' => $this->filas->pluck('sugerido', 'id')->all()]);
+        session()->put('compra_sugerida', [
+            'en' => now()->timestamp,
+            'partidas' => $this->filas->pluck('sugerido', 'id')->all(),
+            'proveedor_id' => $this->proveedorElegido?->id,
+        ]);
         $this->redirectRoute('compras.crear', navigate: true);
     }
 }; ?>
@@ -242,7 +288,7 @@ new #[Layout('layouts.app')] class extends Component
         @endcan
     </p>
 
-    <div class="mb-5 grid gap-3 sm:grid-cols-3">
+    <div class="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div>
             <label for="sg_dias" class="mb-1 block text-xs font-semibold text-anil-700">Vendido en los últimos</label>
             <x-select wire:model.live="dias" id="sg_dias">
@@ -256,6 +302,16 @@ new #[Layout('layouts.app')] class extends Component
             <input wire:model.live.debounce.500ms="cobertura" id="sg_cobertura" type="number" min="1" max="{{ \App\Services\SugerenciaCompra::COBERTURA_MAXIMA }}" step="1" inputmode="numeric" class="{{ $campo }}">
         </div>
         <div>
+            <label for="sg_prov" class="mb-1 block text-xs font-semibold text-anil-700">Proveedor</label>
+            <x-select wire:model.live="proveedor" id="sg_prov">
+                <option value="">Todos</option>
+                <option value="sin">Sin proveedor asignado</option>
+                @foreach ($this->proveedores as $p)
+                    <option value="{{ $p->id }}">{{ $p->nombre }}</option>
+                @endforeach
+            </x-select>
+        </div>
+        <div>
             <label for="sg_depto" class="mb-1 block text-xs font-semibold text-anil-700">Departamento</label>
             <x-select wire:model.live="departamento" id="sg_depto">
                 <option value="">Todos</option>
@@ -264,6 +320,19 @@ new #[Layout('layouts.app')] class extends Component
                 @endforeach
             </x-select>
         </div>
+    </div>
+
+    <div class="-mt-2 mb-5 flex flex-wrap items-center gap-2 text-sm text-anil-700">
+        <span class="font-semibold">Cubrir:</span>
+        <button type="button" wire:click="usarCobertura(7)" @class(['min-h-9 rounded-lg border px-3 font-semibold', 'border-rosa-500 bg-rosa-50 text-rosa-700' => $s->diasCobertura === 7, 'border-anil-200 bg-white text-anil-800 hover:bg-anil-50' => $s->diasCobertura !== 7])>Una semana (7 días)</button>
+        @if ($this->diasHastaVisita)
+            <button type="button" wire:click="usarCobertura({{ $this->diasHastaVisita }})" @class(['min-h-9 rounded-lg border px-3 font-semibold', 'border-rosa-500 bg-rosa-50 text-rosa-700' => $s->diasCobertura === $this->diasHastaVisita, 'border-anil-200 bg-white text-anil-800 hover:bg-anil-50' => $s->diasCobertura !== $this->diasHastaVisita])>
+                Hasta su siguiente visita ({{ $this->diasHastaVisita }} {{ $this->diasHastaVisita === 1 ? 'día' : 'días' }})
+            </button>
+            <span class="text-xs text-anil-600">Pasa: {{ $this->proveedorElegido->visitaTexto() }}</span>
+        @elseif ($this->proveedorElegido)
+            <span class="text-xs text-anil-600">Este proveedor no tiene días de visita: se pueden poner en <strong>Compras → Proveedores</strong>.</span>
+        @endif
     </div>
 
     @can('compras.registrar')
@@ -308,6 +377,7 @@ new #[Layout('layouts.app')] class extends Component
                                 <span class="font-mono">{{ $f['clave'] }}</span>
                                 <x-badge :tono="$tono">{{ $etiqueta }}</x-badge>
                                 @if ($f['minimo'] !== null)<span>Mínimo {{ $num($f['minimo']) }}</span>@endif
+                                @if ($proveedor === '')<span>{{ $f['proveedor'] ?? 'Sin proveedor' }}</span>@endif
                             </p>
                         </div>
                         <div class="md:order-5 md:text-right">

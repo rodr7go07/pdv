@@ -11,7 +11,9 @@ use App\Models\Departamento;
 use App\Models\Turno;
 use App\Models\Impuesto;
 use App\Models\UnidadMedida;
+use App\Models\Venta;
 use App\Models\VentaEnEspera;
+use App\Services\ColaImpresion;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -80,6 +82,8 @@ new #[Layout('layouts.pos')] class extends Component
             'urlPorIds' => route('pos.por-ids'),
             'urlTicket' => route('ventas.ticket', ['venta' => '__ID__']),
             'urlTicketTexto' => route('ventas.ticket-texto', ['venta' => '__ID__']),
+            'urlImpresiones' => route('impresiones.pendientes'),
+            'urlImpresion' => url('venta/impresiones/__ID__/__ACCION__'),
             'puedeDescuento' => auth()->user()->can('ventas.descuento'),
             'descuentoEfectivoPct' => (float) Configuracion::actual()->descuento_efectivo_pct,
             'puedeCliente' => auth()->user()->can('clientes.ver'),
@@ -186,6 +190,23 @@ new #[Layout('layouts.pos')] class extends Component
         }
 
         return $cliente;
+    }
+
+    /** Pide que el ticket de una venta se imprima en la caja (lo atiende la pantalla de la PC de esa caja). */
+    public function pedirImpresion(int $ventaId): array
+    {
+        $this->authorize('ventas.cobrar');
+
+        try {
+            $venta = Venta::query()->findOrFail($ventaId);
+            $pedido = app(ColaImpresion::class)->solicitar($venta, auth()->user());
+        } catch (ValidationException|HttpException $e) {
+            return ['ok' => false, 'mensaje' => $this->mensaje($e)];
+        }
+
+        return ['ok' => true, 'mensaje' => $pedido->caja?->impresion_pedidos === Caja::PEDIDOS_AVISO
+            ? 'Pedido enviado: la caja avisará para imprimir el ticket.'
+            : 'Pedido enviado: el ticket se imprimirá en la caja en unos segundos.'];
     }
 
     // ─── Ventas en espera ───────────────────────────────────────────────────────
@@ -376,6 +397,18 @@ new #[Layout('layouts.pos')] class extends Component
                 </button>
             </div>
         </header>
+
+        {{-- Tickets que pidieron imprimir en esta caja (modo «avisar»): el cajero toca Imprimir --}}
+        <div x-show="cola.modo === 'aviso' && cola.pendientes.length" x-cloak role="status" aria-live="polite"
+             class="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 bg-etiqueta px-3 py-2 text-sm font-semibold text-anil-950 sm:px-4">
+            <x-phosphor-printer-bold class="size-5 shrink-0" />
+            <span class="min-w-0 flex-1">
+                Llegó un ticket para imprimir: <span class="font-mono" x-text="cola.pendientes[0]?.folio"></span>
+                <span x-show="cola.pendientes.length > 1" x-text="'(y ' + (cola.pendientes.length - 1) + ' más)'"></span>
+            </span>
+            <button type="button" x-on:click="imprimirPedido(cola.pendientes[0])" :disabled="cola.imprimiendo" class="min-h-10 rounded-lg bg-anil-900 px-4 text-white disabled:opacity-60">Imprimir</button>
+            <button type="button" x-on:click="descartarPedido(cola.pendientes[0])" class="min-h-10 rounded-lg px-3 underline">Descartar</button>
+        </div>
 
         <div class="flex min-h-0 flex-1 flex-col apaisado:flex-row lg:flex-row">
             {{-- Captura y carrito --}}
@@ -887,6 +920,7 @@ new #[Layout('layouts.pos')] class extends Component
                 <div class="mt-5 grid gap-2">
                     <x-primary-button type="button" x-on:click="nuevaVenta()" class="w-full">Nueva venta <span class="font-mono text-xs opacity-80">Enter</span></x-primary-button>
                     <x-secondary-button x-on:click="imprimirTicket(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir ticket</x-secondary-button>
+                    <x-secondary-button x-show="!imprimeAqui" x-cloak x-on:click="pedirImpresionEnCaja(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir en la caja</x-secondary-button>
                     <x-secondary-button x-on:click="compartirTicket(exito.id, exito.folio)" class="w-full"><x-phosphor-share-network-bold class="size-4" /> Compartir ticket</x-secondary-button>
                     <p x-show="aviso" x-text="aviso" x-cloak :class="avisoTipo === 'error' ? 'text-red-700' : 'text-emerald-700'" class="text-sm font-semibold" role="status"></p>
                 </div>
@@ -916,6 +950,17 @@ new #[Layout('layouts.pos')] class extends Component
                         <div class="flex items-center justify-between gap-4 py-2"><dt class="shrink-0 rounded bg-anil-100 px-2 py-1 font-mono text-xs font-bold text-anil-900">{{ $tecla }}</dt><dd class="text-right text-anil-800">{{ $texto }}</dd></div>
                     @endforeach
                 </dl>
+
+                <div class="mt-4 flex items-start gap-3 rounded-xl border border-anil-200 p-3">
+                    <button type="button" role="switch" :aria-checked="imprimeAqui" x-on:click="alternarImprimeAqui()" aria-label="Esta pantalla imprime los tickets pedidos desde otros equipos"
+                            :class="imprimeAqui ? 'bg-emerald-600' : 'bg-anil-300'" class="relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition">
+                        <span :class="imprimeAqui ? 'translate-x-5' : 'translate-x-0.5'" class="absolute left-0 top-0.5 size-6 rounded-full bg-white shadow transition"></span>
+                    </button>
+                    <div class="min-w-0 text-sm">
+                        <p class="font-semibold text-anil-900">Imprimir los tickets que pidan desde otros equipos</p>
+                        <p class="mt-0.5 text-xs text-anil-600">Actívalo solo en la PC que tiene la impresora de tickets. Los pedidos del teléfono llegan aquí y salen en la impresora.</p>
+                    </div>
+                </div>
             </div>
         </div>
         <x-escaner-camara />

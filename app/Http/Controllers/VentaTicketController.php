@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Configuracion;
 use App\Models\Venta;
+use App\Services\TicketVista;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -20,16 +20,6 @@ class VentaTicketController extends Controller
             403,
         );
 
-        $venta->load(['partidas', 'pagos', 'caja', 'cajero:id,name', 'devoluciones']);
-
-        $impuestos = $venta->desgloseImpuestos();
-
-        return view('ventas.ticket', [
-            'venta' => $venta,
-            'tienda' => Configuracion::actual(),
-            'ancho' => in_array($venta->caja->ancho_papel, [58, 80], true) ? $venta->caja->ancho_papel : 80,
-            'impuestos' => $impuestos,
-            'imprimir' => $request->boolean('imprimir'),
-        ]);
+        return view('ventas.ticket', TicketVista::datos($venta, $request->boolean('imprimir')));
     }
 }

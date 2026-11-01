@@ -55,6 +55,11 @@ class Venta extends Model
         return $this->belongsTo(User::class, 'cancelada_por');
     }
 
+    public function impresiones(): HasMany
+    {
+        return $this->hasMany(Impresion::class)->latest('id');
+    }
+
     public function autorizadaPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'autorizada_por');

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Table('cajas')]
-#[Fillable(['nombre', 'serie', 'ancho_papel', 'imprimir_automatico', 'activa'])]
+#[Fillable(['nombre', 'serie', 'ancho_papel', 'imprimir_automatico', 'impresion_pedidos', 'activa'])]
 class Caja extends Model
 {
     use HasFactory, SoftDeletes;
@@ -24,6 +24,11 @@ class Caja extends Model
             'activa' => 'boolean',
         ];
     }
+
+    /** Tickets pedidos desde otro equipo (el teléfono): se imprimen solos o la caja avisa y el cajero toca Imprimir. */
+    public const PEDIDOS_SOLA = 'sola';
+
+    public const PEDIDOS_AVISO = 'aviso';
 
     public function ventas(): HasMany
     {

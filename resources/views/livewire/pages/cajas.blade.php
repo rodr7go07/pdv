@@ -18,6 +18,8 @@ new #[Layout('layouts.app')] class extends Component
 
     public bool $imprimir_automatico = false;
 
+    public string $impresion_pedidos = 'sola';
+
     public bool $activa = true;
 
     public function mount(): void
@@ -38,6 +40,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->authorize('cajas.administrar');
         $this->reset('editandoId', 'nombre', 'serie', 'imprimir_automatico');
         $this->ancho_papel = '80';
+        $this->impresion_pedidos = Caja::PEDIDOS_SOLA;
         $this->activa = true;
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'caja');
@@ -49,7 +52,7 @@ new #[Layout('layouts.app')] class extends Component
         $c = Caja::query()->findOrFail($id);
         $this->fill([
             'editandoId' => $c->id, 'nombre' => $c->nombre, 'serie' => $c->serie, 'ancho_papel' => (string) $c->ancho_papel,
-            'imprimir_automatico' => $c->imprimir_automatico, 'activa' => $c->activa,
+            'imprimir_automatico' => $c->imprimir_automatico, 'impresion_pedidos' => $c->impresion_pedidos, 'activa' => $c->activa,
         ]);
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'caja');
@@ -66,12 +69,13 @@ new #[Layout('layouts.app')] class extends Component
             'serie' => ['required', 'string', 'max:10', 'regex:/^[A-Z0-9]+$/', Rule::unique('cajas', 'serie')->ignore($this->editandoId)],
             'ancho_papel' => ['required', Rule::in(['58', '80'])],
             'imprimir_automatico' => ['boolean'],
+            'impresion_pedidos' => ['required', Rule::in([Caja::PEDIDOS_SOLA, Caja::PEDIDOS_AVISO])],
             'activa' => ['boolean'],
         ], [
             'nombre.unique' => 'Ya existe una caja con ese nombre.',
             'serie.unique' => 'Esa serie ya la usa otra caja.',
             'serie.regex' => 'La serie solo puede tener letras y números, sin espacios.',
-        ], ['ancho_papel' => 'ancho del papel']);
+        ], ['ancho_papel' => 'ancho del papel', 'impresion_pedidos' => 'tickets pedidos desde otro equipo']);
 
         // La serie de una caja con ventas no se cambia: rompería la numeración de sus tickets.
         if ($this->editandoId) {
@@ -92,7 +96,7 @@ new #[Layout('layouts.app')] class extends Component
 
         Caja::query()->updateOrCreate(['id' => $this->editandoId], [
             'nombre' => trim($d['nombre']), 'serie' => $d['serie'], 'ancho_papel' => (int) $d['ancho_papel'],
-            'imprimir_automatico' => $d['imprimir_automatico'], 'activa' => $d['activa'],
+            'imprimir_automatico' => $d['imprimir_automatico'], 'impresion_pedidos' => $d['impresion_pedidos'], 'activa' => $d['activa'],
         ]);
 
         unset($this->lista);
@@ -149,6 +153,15 @@ new #[Layout('layouts.app')] class extends Component
                 <x-input-error :messages="$errors->get('ancho_papel')" class="mt-1.5" />
             </div>
             <x-checkbox wire:model="imprimir_automatico" label="Imprimir el ticket al cobrar" ayuda="Abre la impresión sin preguntar. Funciona mejor si el navegador tiene la impresora de tickets como predeterminada." />
+            <div>
+                <x-input-label for="caja_pedidos" value="Tickets pedidos desde otro equipo (el teléfono)" />
+                <x-select wire:model="impresion_pedidos" id="caja_pedidos">
+                    <option value="sola">Imprimir solos, apenas lleguen</option>
+                    <option value="aviso">Avisar en la pantalla de Venta y que el cajero toque Imprimir</option>
+                </x-select>
+                <p class="mt-1.5 text-xs text-anil-600">Los atiende la pantalla de Venta de esta caja en la PC que tiene la impresora (se activa en «Atajos» de esa pantalla; en la PC ya viene activado).</p>
+                <x-input-error :messages="$errors->get('impresion_pedidos')" class="mt-1.5" />
+            </div>
             <div>
                 <x-checkbox wire:model="activa" label="Caja activa" />
                 <x-input-error :messages="$errors->get('activa')" class="mt-1.5" />

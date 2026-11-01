@@ -3,8 +3,10 @@
 use App\Actions\Usuarios\VerificarAutorizacion;
 use App\Actions\Ventas\CancelarVenta;
 use App\Actions\Ventas\RegistrarDevolucion;
+use App\Models\Impresion;
 use App\Models\Turno;
 use App\Models\Venta;
+use App\Services\ColaImpresion;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -45,7 +47,33 @@ new #[Layout('layouts.app')] class extends Component
     {
         unset($this->puedeCancelarDirecto, $this->puedePedirAutorizacion, $this->turnoAbierto);
 
-        $this->venta = Venta::query()->with(['partidas.articulo', 'pagos', 'caja', 'cajero:id,name', 'canceladaPor:id,name', 'autorizadaPor:id,name', 'devoluciones.usuario:id,name'])->findOrFail($this->venta->id);
+        $this->venta = Venta::query()->with(['partidas.articulo', 'pagos', 'caja', 'cajero:id,name', 'canceladaPor:id,name', 'autorizadaPor:id,name', 'devoluciones.usuario:id,name', 'impresiones.solicitadaPor:id,name'])->findOrFail($this->venta->id);
+    }
+
+    /** Pide que el ticket salga en la impresora de la caja que hizo la venta. */
+    public function pedirImpresion(ColaImpresion $cola): void
+    {
+        $this->resetValidation();
+
+        try {
+            $pedido = $cola->solicitar($this->venta, auth()->user());
+        } catch (ValidationException $e) {
+            $this->addError('impresion', (string) collect($e->errors())->flatten()->first());
+
+            return;
+        }
+
+        $this->recargar();
+        $this->exito = $pedido->caja?->impresion_pedidos === \App\Models\Caja::PEDIDOS_AVISO
+            ? 'Pedido enviado: la caja «'.$this->venta->caja->nombre.'» avisará para imprimir el ticket.'
+            : 'Pedido enviado a la caja «'.$this->venta->caja->nombre.'»: el ticket se imprimirá en unos segundos si su pantalla de Venta está abierta.';
+    }
+
+    public function cancelarImpresion(int $id, ColaImpresion $cola): void
+    {
+        $pedido = Impresion::query()->where('venta_id', $this->venta->id)->findOrFail($id);
+        $cola->cancelar($pedido);
+        $this->recargar();
     }
 
     /** Quien tiene el permiso cancela directo; un cajero necesita que un supervisor lo autorice. */
@@ -241,13 +269,38 @@ new #[Layout('layouts.app')] class extends Component
                     <div><dt class="rotulo">Caja</dt><dd>{{ $venta->caja->nombre }}</dd></div>
                     <div><dt class="rotulo">Atendió</dt><dd>{{ $venta->cajero?->name ?? '—' }}</dd></div>
                 </dl>
-                <div x-data="{ mensaje: '', error: false }" class="mt-4">
+                <div x-data="{ mensaje: '', error: false }" class="mt-4 space-y-3">
                     <button type="button"
                             x-on:click="mensaje = ''; window.compartirTicket(@js(route('ventas.ticket-texto', $venta)), @js($venta->folio)).then((r) => { error = false; mensaje = r === 'copiado' ? 'Ticket copiado: pégalo en WhatsApp u otra app.' : ''; }).catch((e) => { error = true; mensaje = e.message; })"
                             class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
                         <x-phosphor-share-network-bold class="size-4" /> Compartir ticket
                     </button>
                     <p x-show="mensaje" x-text="mensaje" x-cloak :class="error ? 'text-red-700' : 'text-emerald-700'" class="mt-2 text-sm font-semibold" role="status"></p>
+                </div>
+            </x-card>
+
+            @php $vigente = $venta->impresiones->contains(fn ($i) => $i->estado->estaVigente()); @endphp
+            <x-card titulo="Imprimir en la caja" descripcion="Manda el ticket a la impresora de {{ $venta->caja->nombre }}, por ejemplo desde el teléfono.">
+                <div @if ($vigente) wire:poll.5s @endif>
+                <button type="button" wire:click="pedirImpresion" wire:loading.attr="disabled" @disabled($vigente)
+                        class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50 disabled:opacity-50">
+                    <x-phosphor-printer-bold class="size-4" /> {{ $venta->impresiones->isEmpty() ? 'Imprimir en la caja' : 'Volver a imprimir en la caja' }}
+                </button>
+                <x-input-error :messages="$errors->get('impresion')" class="mt-2" />
+
+                @if ($venta->impresiones->isNotEmpty())
+                    <ul class="mt-4 space-y-2 text-sm">
+                        @foreach ($venta->impresiones->take(5) as $i)
+                            <li class="flex flex-wrap items-center gap-x-2 gap-y-1" wire:key="imp-{{ $i->id }}">
+                                <x-badge :tono="$i->estado->tono()">{{ $i->estado->etiqueta() }}</x-badge>
+                                <span class="text-xs text-anil-600">{{ $i->created_at->format('d/m H:i') }}{{ $i->solicitadaPor ? ' · '.$i->solicitadaPor->name : '' }}</span>
+                                @if ($i->estado->estaVigente())
+                                    <button type="button" wire:click="cancelarImpresion({{ $i->id }})" class="text-xs font-semibold text-peligro underline">Cancelar</button>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
                 </div>
             </x-card>
 

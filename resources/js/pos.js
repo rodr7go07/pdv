@@ -67,6 +67,12 @@ export function registrarPos(Alpine) {
         codigoSinAlta: '', // código leído con la cámara que no existe y se ofrece dar de alta
         _idCamara: 0, // identifica cada apertura de la cámara (ver escaner.js)
 
+        // Tickets que otro equipo (el teléfono) pidió imprimir en esta caja. modo: 'sola' los imprime apenas llegan; 'aviso' avisa.
+        cola: { modo: 'sola', pendientes: [], imprimiendo: false },
+        imprimeAqui: false, // esta pantalla atiende los tickets pedidos (la de la PC con la impresora; el teléfono no)
+        _colaT: null,
+        _colaRevisando: false,
+
         // ─── Ciclo de vida ──────────────────────────────────────────────────────────
         init() {
             const previo = guardado.leer(this.claveGuardado());
@@ -94,11 +100,118 @@ export function registrarPos(Alpine) {
                 }, 80);
             });
             this.enfocar();
+            this.vigilarImpresiones();
         },
 
         /** Alpine lo llama al salir de la pantalla (wire:navigate): la cámara no debe quedar encendida. */
         destroy() {
             this.cerrarCamara();
+            clearInterval(this._colaT);
+        },
+
+        // ─── Tickets pedidos desde otro equipo ──────────────────────────────────────
+        /** Pregunta cada pocos segundos si hay tickets pendientes de esta caja (solo con turno abierto). */
+        vigilarImpresiones() {
+            // Por omisión imprimen las pantallas anchas (la PC de la caja); el teléfono y la tableta no. Se puede cambiar en «Atajos».
+            const guardada = guardado.leer('pdv-imprime-pedidos');
+            this.imprimeAqui = guardada === null ? window.matchMedia('(min-width: 1024px)').matches : guardada === true;
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) this.revisarImpresiones(); });
+            this.activarVigilancia();
+        },
+
+        activarVigilancia() {
+            clearInterval(this._colaT);
+            this.cola.pendientes = [];
+            if (!this.imprimeAqui || !this.cfg.cajaId || !this.cfg.urlImpresiones) return;
+            this.revisarImpresiones();
+            this._colaT = setInterval(() => this.revisarImpresiones(), 5000);
+        },
+
+        alternarImprimeAqui() {
+            this.imprimeAqui = !this.imprimeAqui;
+            guardado.escribir('pdv-imprime-pedidos', this.imprimeAqui);
+            this.activarVigilancia();
+        },
+
+        /** Desde una pantalla que no imprime (el teléfono): pide que el ticket salga en la caja. */
+        async pedirImpresionEnCaja(id) {
+            try {
+                const r = await this.$wire.pedirImpresion(id);
+                this.avisar(r.mensaje, r.ok ? 'ok' : 'error', 6000);
+            } catch {
+                this.avisar('No se pudo pedir la impresión. Revisa tu internet.', 'error', 6000);
+            }
+        },
+
+        async revisarImpresiones() {
+            if (!this.imprimeAqui || this._colaRevisando || this.cola.imprimiendo) return;
+            this._colaRevisando = true;
+
+            try {
+                const r = await fetch(this.cfg.urlImpresiones, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+                if (!r.ok) return;
+                const { modo, pendientes } = await r.json();
+                this.cola.modo = modo;
+                this.cola.pendientes = pendientes;
+                if (modo === 'sola' && pendientes.length) await this.imprimirPedido(pendientes[0]);
+            } catch { /* sin conexión: se vuelve a intentar en el siguiente ciclo */ } finally {
+                this._colaRevisando = false;
+            }
+        },
+
+        async enviarImpresion(accion, id, cuerpo = null) {
+            return fetch(this.cfg.urlImpresion.replace('__ID__', id).replace('__ACCION__', accion), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(cuerpo ?? {}),
+            });
+        },
+
+        /** Reserva el pedido, imprime su ticket en un marco oculto (con Chrome en modo kiosco sale sin cuadro) y avisa al servidor. */
+        async imprimirPedido(pedido) {
+            if (this.cola.imprimiendo) return;
+            this.cola.imprimiendo = true;
+            let ok = false;
+
+            try {
+                const r = await this.enviarImpresion('reservar', pedido.id);
+                if (r.status === 409) { this.cola.pendientes = this.cola.pendientes.filter((p) => p.id !== pedido.id); return; }
+                if (!r.ok) throw new Error('reservar');
+
+                const { url } = await r.json();
+                ok = await this.imprimirEnMarco(url);
+                await this.enviarImpresion('confirmar', pedido.id, { impreso: ok });
+                this.avisar(ok ? `Se imprimió el ticket ${pedido.folio}.` : `No se pudo imprimir el ticket ${pedido.folio}.`, ok ? 'ok' : 'error', 5000);
+            } catch {
+                if (!ok) this.avisar(`No se pudo imprimir el ticket ${pedido.folio}.`, 'error', 5000);
+            } finally {
+                this.cola.pendientes = this.cola.pendientes.filter((p) => p.id !== pedido.id);
+                this.cola.imprimiendo = false;
+            }
+        },
+
+        async descartarPedido(pedido) {
+            this.cola.pendientes = this.cola.pendientes.filter((p) => p.id !== pedido.id);
+            try { await this.enviarImpresion('descartar', pedido.id); } catch { /* caduca solo */ }
+        },
+
+        /** Carga el ticket en un marco oculto (él mismo manda imprimir) y espera a que termine de cargar. */
+        imprimirEnMarco(url) {
+            return new Promise((resolver) => {
+                const marco = document.createElement('iframe');
+                marco.style.cssText = 'position:fixed;width:0;height:0;border:0;visibility:hidden';
+                const limite = setTimeout(() => resolver(false), 20000);
+                // El ticket manda imprimir ~250 ms después de cargar: se da un respiro antes de darlo por impreso.
+                marco.addEventListener('load', () => { clearTimeout(limite); setTimeout(() => resolver(true), 1500); });
+                marco.addEventListener('error', () => { clearTimeout(limite); resolver(false); });
+                marco.src = url;
+                document.body.appendChild(marco);
+                setTimeout(() => marco.remove(), 60000);
+            });
         },
 
         claveGuardado() {

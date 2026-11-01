@@ -5,6 +5,7 @@ use App\Http\Controllers\CerrarSesionController;
 use App\Http\Controllers\CorteController;
 use App\Http\Controllers\EscaneoController;
 use App\Http\Controllers\EstadoCuentaController;
+use App\Http\Controllers\ImpresionesCajaController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReporteExportController;
 use App\Http\Controllers\SugerenciaCompraExportController;
@@ -41,6 +42,15 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Volt::route('venta', 'pages.pos')->middleware('can:ventas.cobrar')->name('pos');
     Route::get('venta/buscar', [PosController::class, 'buscar'])->middleware('can:ventas.cobrar')->name('pos.buscar');
     Route::get('venta/por-ids', [PosController::class, 'porIds'])->middleware('can:ventas.cobrar')->name('pos.por-ids');
+
+    // Pedidos de impresión en caja (los atiende la pantalla de Venta de la caja con turno abierto)
+    Route::middleware('can:ventas.cobrar')->prefix('venta/impresiones')->name('impresiones.')->group(function () {
+        Route::get('/', [ImpresionesCajaController::class, 'pendientes'])->name('pendientes');
+        Route::post('{impresion}/reservar', [ImpresionesCajaController::class, 'reservar'])->name('reservar');
+        Route::post('{impresion}/confirmar', [ImpresionesCajaController::class, 'confirmar'])->name('confirmar');
+        Route::post('{impresion}/descartar', [ImpresionesCajaController::class, 'descartar'])->name('descartar');
+        Route::get('{impresion}/ticket', [ImpresionesCajaController::class, 'ticket'])->middleware('signed')->name('ticket');
+    });
 
     Route::prefix('ventas')->name('ventas.')->middleware('permission:ventas.cobrar|ventas.ver_todas')->group(function () {
         Volt::route('/', 'pages.ventas.index')->name('index');

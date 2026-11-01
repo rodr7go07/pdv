@@ -6,3 +6,6 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('queue:prune-failed --hours=720')->dailyAt('03:10');
 Schedule::command('queue:prune-batches --hours=720')->dailyAt('03:15');
 Schedule::command('escaneos:depurar --dias=180')->dailyAt('03:20');
+
+// Pedidos de impresión en caja que nadie atendió (además, la pantalla de Venta los limpia al consultar).
+Schedule::command('impresiones:caducar')->everyMinute()->withoutOverlapping();

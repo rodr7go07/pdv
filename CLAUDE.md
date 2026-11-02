@@ -73,6 +73,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - **Playwright:** `addInitScript` solo admite un argumento; para simular la cámara sobrescribir `getUserMedia` con un canvas (un archivo de video falso no funciona).
 - **Configuración en caché:** `Configuracion::actual()` guarda sus columnas en caché (`configuracion.tienda`); una migración que agregue columnas a `configuracion` debe hacer `Cache::forget('configuracion.tienda')`.
 - **Tests con fechas:** `Model::update()` ignora `updated_at` si no es fillable; para fijarlo en una prueba usa `Model::whereKey($id)->update([...])`. Las URLs dentro de `@js(...)` salen con las barras escapadas: en pruebas busca un fragmento sin `/`.
+- **Reportes descargables:** cada Excel (`ReporteExport`) lleva a un costado de la tabla un glosario «Columna / Qué significa» con los textos de `App\Exports\DescripcionesReporte`. Al agregar o renombrar una columna de un reporte, actualiza su descripción ahí (las pruebas de exportación comprueban que cada columna esté explicada).
 - **Pint** puede reformatear archivos que no tocaste (llaves de constructores vacíos): revisar el `git diff` antes de confirmar.
 - Antes de dar por buena una pantalla, revisarla a 360 px de ancho sin scroll horizontal (grids con `grid-cols-[minmax(0,1fr)]` en móvil).
 

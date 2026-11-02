@@ -17,6 +17,7 @@ use Carbon\CarbonImmutable;
 use Database\Seeders\CatalogosBaseSeeder;
 use Database\Seeders\RolesYPermisosSeeder;
 use Livewire\Volt\Volt;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
@@ -387,4 +388,27 @@ it('la exportación por proveedor trae solo sus artículos y la columna de prove
     $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?proveedor='.$p->id)->assertOk()->assertDownload();
     $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?proveedor=sin')->assertOk();
     $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?proveedor[]=1')->assertOk();
+});
+
+it('el Excel de la sugerencia explica cada columna a un costado de la tabla', function () {
+    $a = Articulo::factory()->create(['existencia_minima' => '5']);
+    ($this->existencia)($a, '0');
+
+    $r = $this->actingAs($this->encargado)->get('/compras/sugerencia/exportar?dias=30&cobertura=15')->assertOk();
+    $filas = IOFactory::load($r->baseResponse->getFile()->getPathname())->getActiveSheet()->toArray(null, true, false, false);
+
+    $tabla = 11;   // Clave … Costo estimado
+    expect($filas[0][$tabla])->toBeNull()->and($filas[0][$tabla + 1])->toBe('Columna')->and($filas[0][$tabla + 2])->toBe('Qué significa');
+
+    $glosario = [];
+    foreach (array_slice($filas, 1) as $fila) {
+        if (($fila[$tabla + 1] ?? null) !== null) {
+            $glosario[$fila[$tabla + 1]] = $fila[$tabla + 2];
+        }
+    }
+
+    foreach (array_slice($filas[0], 0, $tabla) as $encabezado) {
+        expect($glosario)->toHaveKey($encabezado);
+    }
+    expect($glosario['Vendido (30 días)'])->toContain('sin lo devuelto');
 });

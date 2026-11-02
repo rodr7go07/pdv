@@ -89,6 +89,48 @@ it('filtra por cajero', function () {
         ->assertDontSee('$100.00')->assertSee('$0.00');
 });
 
+/** Lee la primera hoja del Excel que devolvió la descarga: [fila => [columna => valor]]. */
+function leerExcel($respuesta): array
+{
+    $ruta = $respuesta->baseResponse->getFile()->getPathname();
+
+    return IOFactory::load($ruta)->getActiveSheet()->toArray(null, true, false, false);
+}
+
+it('cada reporte descargable trae a un costado de la tabla qué significa cada columna', function (string $seccion, string $etiqueta) {
+    $hoy = now()->toDateString();
+    $filas = leerExcel($this->actingAs($this->admin)->get("/reportes/exportar/{$seccion}?desde={$hoy}&hasta={$hoy}"));
+
+    $encabezados = array_values(array_filter($filas[0], fn ($c) => $c !== null && $c !== ''));
+    $columnasTabla = $seccion === 'resumen' ? 2 : count($encabezados) - 2;   // lo demás es el glosario
+    $glosario = [$filas[0][$columnasTabla + 1] ?? null, $filas[0][$columnasTabla + 2] ?? null];
+
+    // Una columna vacía separa la tabla del glosario, y el glosario tiene sus encabezados.
+    expect($filas[0][$columnasTabla])->toBeNull()->and($glosario)->toBe([$etiqueta, 'Qué significa']);
+
+    $descripciones = [];
+    foreach (array_slice($filas, 1) as $fila) {
+        if (($fila[$columnasTabla + 1] ?? null) !== null) {
+            $descripciones[$fila[$columnasTabla + 1]] = $fila[$columnasTabla + 2];
+        }
+    }
+
+    // Cada columna de la tabla (o cada concepto del resumen) está explicada, con un texto breve.
+    $nombres = $seccion === 'resumen' ? array_filter(array_column(array_slice($filas, 1), 0)) : array_slice($filas[0], 0, $columnasTabla);
+    foreach ($nombres as $nombre) {
+        expect($descripciones)->toHaveKey($nombre);
+        expect(mb_strlen($descripciones[$nombre]))->toBeGreaterThan(10)->toBeLessThan(140);
+    }
+})->with([
+    'resumen' => ['resumen', 'Concepto'],
+    'periodo' => ['periodo', 'Columna'],
+    'departamento' => ['departamento', 'Columna'],
+    'articulo' => ['articulo', 'Columna'],
+    'cajero' => ['cajero', 'Columna'],
+    'pago' => ['pago', 'Columna'],
+    'inventario' => ['inventario', 'Columna'],
+]);
+
 it('exporta cada reporte a Excel con el nombre del reporte en el archivo', function (string $seccion, string $nombre) {
     $respuesta = $this->actingAs($this->admin)->get("/reportes/exportar/{$seccion}?desde=".now()->toDateString().'&hasta='.now()->toDateString());
 

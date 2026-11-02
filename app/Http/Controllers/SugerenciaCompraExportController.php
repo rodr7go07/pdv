@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\DescripcionesReporte;
 use App\Exports\ReporteExport;
 use App\Services\SugerenciaCompra;
 use Illuminate\Http\Request;
@@ -42,7 +43,7 @@ class SugerenciaCompraExportController extends Controller
         $encabezados = ['Clave', 'Artículo', 'Unidad', 'Proveedor', 'Existencia', 'Mínimo', 'Vendido ('.$diasVenta.' días)', 'Días que alcanza', 'Comprar', 'Costo unitario', 'Costo estimado'];
 
         return Excel::download(
-            new ReporteExport('Sugerencia de compra', $encabezados, $filas, [0]),
+            new ReporteExport('Sugerencia de compra', $encabezados, $filas, [0], DescripcionesReporte::sugerenciaCompra($diasVenta)),
             'sugerencia-de-compra-'.now()->toDateString().'.xlsx',
         );
     }

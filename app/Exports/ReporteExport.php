@@ -6,28 +6,33 @@ use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\DefaultValueBinder;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /** Exportación genérica de un reporte: encabezados y filas ya calculadas. */
-class ReporteExport extends DefaultValueBinder implements Export, FromArray, ShouldAutoSize, WithCustomValueBinder, WithHeadings, WithStyles, WithTitle
+class ReporteExport extends DefaultValueBinder implements Export, FromArray, ShouldAutoSize, WithCustomValueBinder, WithEvents, WithHeadings, WithStyles, WithTitle
 {
     /**
      * @param  list<string>  $encabezados
      * @param  list<list<scalar|null>>  $filas
      * @param  list<int>  $columnasTexto  columnas (desde 0) que siempre se guardan como texto, como la clave de un artículo
+     * @param  array<string, string>  $descripciones  qué significa cada columna (por su encabezado); se muestran a un costado de la tabla
      */
     public function __construct(
         private readonly string $titulo,
         private readonly array $encabezados,
         private readonly array $filas,
         private readonly array $columnasTexto = [],
+        private readonly array $descripciones = [],
+        private readonly string $etiquetaDescripcion = 'Columna',
     ) {}
 
     public function title(): string
@@ -66,6 +71,46 @@ class ReporteExport extends DefaultValueBinder implements Export, FromArray, Sho
         }
 
         return parent::bindValue($cell, $value);
+    }
+
+    /** Ancho de la columna con el significado de cada columna. */
+    private const ANCHO_SIGNIFICADO = 95;
+
+    public function registerEvents(): array
+    {
+        return [AfterSheet::class => fn (AfterSheet $evento) => $this->escribirDescripciones($evento->sheet->getDelegate())];
+    }
+
+    /**
+     * A un costado de la tabla (con una columna vacía de por medio): cada columna y lo que significa, en el orden de la tabla.
+     */
+    private function escribirDescripciones(Worksheet $hoja): void
+    {
+        $filas = collect($this->descripciones)->filter(fn (string $texto, string $columna) => in_array($columna, $this->encabezados, true) || $this->etiquetaDescripcion !== 'Columna')->all();
+
+        if ($filas === []) {
+            return;
+        }
+
+        $nombre = Coordinate::stringFromColumnIndex(count($this->encabezados) + 2);
+        $texto = Coordinate::stringFromColumnIndex(count($this->encabezados) + 3);
+
+        $hoja->setCellValueExplicit($nombre.'1', $this->etiquetaDescripcion, DataType::TYPE_STRING);
+        $hoja->setCellValueExplicit($texto.'1', 'Qué significa', DataType::TYPE_STRING);
+        $hoja->getStyle($nombre.'1:'.$texto.'1')->applyFromArray(['font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']], 'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '4B53A0']]]);
+
+        $fila = 2;
+        foreach ($filas as $columna => $significado) {
+            $hoja->setCellValueExplicit($nombre.$fila, $columna, DataType::TYPE_STRING);
+            $hoja->setCellValueExplicit($texto.$fila, $significado, DataType::TYPE_STRING);
+            $fila++;
+        }
+
+        $hoja->getColumnDimension($nombre)->setAutoSize(true);
+        $hoja->getColumnDimension($texto)->setAutoSize(false)->setWidth(self::ANCHO_SIGNIFICADO);
+        $hoja->getStyle($nombre.'2:'.$texto.($fila - 1))->getAlignment()->setVertical('top')->setWrapText(false); // sin ajuste de línea: no estira las filas de la tabla; el texto largo se sigue hacia la derecha
+        $hoja->getStyle($nombre.'2:'.$nombre.($fila - 1))->getFont()->setBold(true);
+        $hoja->getStyle($nombre.'2:'.$texto.($fila - 1))->getFill()->setFillType('solid')->getStartColor()->setRGB('F1F3FD');
     }
 
     public function styles(Worksheet $hoja): array

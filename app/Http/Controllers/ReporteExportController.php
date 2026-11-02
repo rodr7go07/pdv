@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\DescripcionesReporte;
 use App\Exports\ReporteExport;
 use App\Services\ReporteVentas;
 use Carbon\CarbonImmutable;
@@ -41,7 +42,10 @@ class ReporteExportController extends Controller
         $nombre = 'reporte-'.Str::slug($titulo).'-'.$reporte->desde->toDateString().'-a-'.$reporte->hasta->toDateString().'.xlsx';
 
         // La clave del artículo (columna A) siempre va como texto.
-        return Excel::download(new ReporteExport($titulo, $encabezados, $filas, $seccion === 'articulo' ? [0] : []), $nombre);
+        return Excel::download(
+            new ReporteExport($titulo, $encabezados, $filas, $seccion === 'articulo' ? [0] : [], DescripcionesReporte::para($seccion), $seccion === 'resumen' ? 'Concepto' : 'Columna'),
+            $nombre,
+        );
     }
 
     /** @return array{0: string, 1: list<string>, 2: list<list<scalar|null>>} */

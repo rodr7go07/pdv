@@ -213,3 +213,20 @@ it('las claves de artículo siempre van como texto y un texto con = + - @ no dej
 
     Storage::disk('local')->delete($archivo);
 });
+
+it('cada reporte de la pantalla trae una tabla pequeña con qué significa cada columna', function (string $seccion, array $columnas) {
+    $pantalla = Volt::actingAs($this->admin)->test('pages.reportes.index')->set('seccion', $seccion)
+        ->assertSee('Qué significa cada columna');
+
+    foreach ($columnas as $columna) {
+        $pantalla->assertSee($columna);
+    }
+})->with([
+    'resumen' => ['resumen', ['Ticket promedio', 'Utilidad bruta', 'Descuentos dados']],
+    'periodo' => ['periodo', ['Día, semana o mes en que se agrupan', 'Utilidad entre la venta sin impuestos']],
+    'departamento' => ['departamento', ['Departamento que tiene hoy el artículo']],
+    'articulo' => ['articulo', ['Piezas, kilos o litros vendidos']],
+    'cajero' => ['cajero', ['Quién atendió las ventas']],
+    'pago' => ['pago', ['no incluye el cambio entregado']],
+    'inventario' => ['inventario', ['Existencia por costo']],
+]);

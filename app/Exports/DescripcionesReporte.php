@@ -61,6 +61,48 @@ final class DescripcionesReporte
         };
     }
 
+    /**
+     * Lo mismo para la pantalla de Reportes: con los nombres de columna tal como se ven ahí.
+     *
+     * @return array<string, string>
+     */
+    public static function pantalla(string $seccion): array
+    {
+        $v = self::VENTAS;
+        $cifras = ['Neto' => 'Lo vendido menos lo devuelto: lo que realmente quedó de la venta.', 'Costo' => $v['Costo'], 'Utilidad' => $v['Utilidad'], 'Margen' => $v['Margen %']];
+
+        return match ($seccion) {
+            'resumen' => [
+                'Ventas' => $v['Ventas'],
+                'Venta neta' => 'Lo vendido menos las devoluciones: lo que realmente quedó de la venta.',
+                'Ticket promedio' => 'Lo que gasta en promedio cada cliente: lo vendido entre el número de ventas.',
+                'Utilidad bruta' => $v['Utilidad'],
+                'Margen' => $v['Margen %'],
+                'Costo de lo vendido' => $v['Costo'],
+                'Descuentos dados' => 'Total descontado a los clientes en esas ventas.',
+                'Impuestos cobrados' => 'Impuestos (IVA, IEPS) incluidos en lo vendido.',
+                'Devoluciones' => $v['Devuelto'],
+            ],
+            'periodo' => ['Periodo' => 'Día, semana o mes en que se agrupan las ventas.', 'Ventas' => $v['Ventas']] + $cifras,
+            'departamento' => ['Departamento' => 'Departamento que tiene hoy el artículo.'] + $cifras,
+            'articulo' => ['Artículo' => 'Nombre y clave del artículo.', 'Piezas' => 'Piezas, kilos o litros vendidos.'] + $cifras,
+            'cajero' => ['Cajero' => 'Quién atendió las ventas.', 'Ventas' => $v['Ventas']] + $cifras,
+            'pago' => [
+                'Forma de pago' => 'Efectivo, tarjeta, transferencia o crédito (cada tarjeta de arriba).',
+                'Monto' => 'Dinero cobrado con esta forma. En efectivo no incluye el cambio entregado.',
+                'Ventas' => 'En cuántas ventas se usó (una venta mixta cuenta en cada forma).',
+                '%' => 'Qué parte del total cobrado se pagó así.',
+            ],
+            'inventario' => [
+                'Departamento' => 'Departamento del artículo.',
+                'Artículos' => 'Cuántos artículos distintos tienen existencia.',
+                'A costo' => 'Existencia por costo: cuánto te costó la mercancía que tienes.',
+                'A precio de venta' => 'Existencia por precio 1: cuánto cobrarías si la vendes toda.',
+            ],
+            default => [],
+        };
+    }
+
     /** @return array<string, string> */
     public static function sugerenciaCompra(int $diasVenta): array
     {

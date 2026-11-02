@@ -111,6 +111,8 @@ class ReporteExport extends DefaultValueBinder implements Export, FromArray, Sho
         $hoja->getStyle($nombre.'2:'.$texto.($fila - 1))->getAlignment()->setVertical('top')->setWrapText(false); // sin ajuste de línea: no estira las filas de la tabla; el texto largo se sigue hacia la derecha
         $hoja->getStyle($nombre.'2:'.$nombre.($fila - 1))->getFont()->setBold(true);
         $hoja->getStyle($nombre.'2:'.$texto.($fila - 1))->getFill()->setFillType('solid')->getStartColor()->setRGB('F1F3FD');
+        // Una tabla de verdad: con bordes finos alrededor de cada celda.
+        $hoja->getStyle($nombre.'1:'.$texto.($fila - 1))->getBorders()->getAllBorders()->setBorderStyle('thin')->getColor()->setRGB('C9CEF0');
     }
 
     public function styles(Worksheet $hoja): array

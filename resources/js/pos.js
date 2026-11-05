@@ -62,13 +62,14 @@ export function registrarPos(Alpine) {
         cobro: { pagos: [], procesando: false, error: '', totalServidor: null },
         exito: null,
         camara: { iniciando: false, error: '', hayLinterna: false, linterna: false },
+        ultimoCodigo: '', // último código que leyó la cámara (se muestra aunque no se encuentre el artículo, para saber que sí leyó)
         ultimoLeido: null, // último artículo agregado, para confirmarlo en la ventana de la cámara (que deja la venta fuera de vista)
         _lector: null,
         codigoSinAlta: '', // código leído con la cámara que no existe y se ofrece dar de alta
         _idCamara: 0, // identifica cada apertura de la cámara (ver escaner.js)
 
         // Tickets que otro equipo (el teléfono) pidió imprimir en esta caja. modo: 'sola' los imprime apenas llegan; 'aviso' avisa.
-        cola: { modo: 'sola', pendientes: [], imprimiendo: false },
+        colaImpresion: { modo: 'sola', pendientes: [], imprimiendo: false },
         imprimeAqui: false, // esta pantalla atiende los tickets pedidos (la de la PC con la impresora; el teléfono no)
         _colaT: null,
         _colaRevisando: false,
@@ -121,7 +122,7 @@ export function registrarPos(Alpine) {
 
         activarVigilancia() {
             clearInterval(this._colaT);
-            this.cola.pendientes = [];
+            this.colaImpresion.pendientes = [];
             if (!this.imprimeAqui || !this.cfg.cajaId || !this.cfg.urlImpresiones) return;
             this.revisarImpresiones();
             this._colaT = setInterval(() => this.revisarImpresiones(), 5000);
@@ -144,15 +145,15 @@ export function registrarPos(Alpine) {
         },
 
         async revisarImpresiones() {
-            if (!this.imprimeAqui || this._colaRevisando || this.cola.imprimiendo) return;
+            if (!this.imprimeAqui || this._colaRevisando || this.colaImpresion.imprimiendo) return;
             this._colaRevisando = true;
 
             try {
                 const r = await fetch(this.cfg.urlImpresiones, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
                 if (!r.ok) return;
                 const { modo, pendientes } = await r.json();
-                this.cola.modo = modo;
-                this.cola.pendientes = pendientes;
+                this.colaImpresion.modo = modo;
+                this.colaImpresion.pendientes = pendientes;
                 if (modo === 'sola' && pendientes.length) await this.imprimirPedido(pendientes[0]);
             } catch { /* sin conexión: se vuelve a intentar en el siguiente ciclo */ } finally {
                 this._colaRevisando = false;
@@ -173,13 +174,13 @@ export function registrarPos(Alpine) {
 
         /** Reserva el pedido, imprime su ticket en un marco oculto (con Chrome en modo kiosco sale sin cuadro) y avisa al servidor. */
         async imprimirPedido(pedido) {
-            if (this.cola.imprimiendo) return;
-            this.cola.imprimiendo = true;
+            if (this.colaImpresion.imprimiendo) return;
+            this.colaImpresion.imprimiendo = true;
             let ok = false;
 
             try {
                 const r = await this.enviarImpresion('reservar', pedido.id);
-                if (r.status === 409) { this.cola.pendientes = this.cola.pendientes.filter((p) => p.id !== pedido.id); return; }
+                if (r.status === 409) { this.colaImpresion.pendientes = this.colaImpresion.pendientes.filter((p) => p.id !== pedido.id); return; }
                 if (!r.ok) throw new Error('reservar');
 
                 const { url } = await r.json();
@@ -189,13 +190,13 @@ export function registrarPos(Alpine) {
             } catch {
                 if (!ok) this.avisar(`No se pudo imprimir el ticket ${pedido.folio}.`, 'error', 5000);
             } finally {
-                this.cola.pendientes = this.cola.pendientes.filter((p) => p.id !== pedido.id);
-                this.cola.imprimiendo = false;
+                this.colaImpresion.pendientes = this.colaImpresion.pendientes.filter((p) => p.id !== pedido.id);
+                this.colaImpresion.imprimiendo = false;
             }
         },
 
         async descartarPedido(pedido) {
-            this.cola.pendientes = this.cola.pendientes.filter((p) => p.id !== pedido.id);
+            this.colaImpresion.pendientes = this.colaImpresion.pendientes.filter((p) => p.id !== pedido.id);
             try { await this.enviarImpresion('descartar', pedido.id); } catch { /* caduca solo */ }
         },
 
@@ -299,6 +300,7 @@ export function registrarPos(Alpine) {
             }
             this.camara = { iniciando: true, error: '', hayLinterna: false, linterna: false };
             this.ultimoLeido = null;
+            this.ultimoCodigo = '';
             this.modal = 'camara';
             const id = ++this._idCamara;
             this.$nextTick(() => this.arrancarCamara(id));
@@ -335,6 +337,8 @@ export function registrarPos(Alpine) {
         codigoDeCamara(codigo) {
             if (this.modal !== 'camara') return; // llegó tarde: la ventana ya se cerró
             navigator.vibrate?.(60);
+            this.ultimoCodigo = codigo;
+            this.ultimoLeido = null;
             this.entrada = codigo;
             this.enviarEntrada('camara');
         },
@@ -378,10 +382,23 @@ export function registrarPos(Alpine) {
         /** `escaneo`: 'lector' o 'camara' cuando el código viene del campo de captura (queda en la bitácora de escaneos). */
         async consultar(texto, escaneo = null) {
             const marca = escaneo ? `&escaneo=1&medio=${escaneo}` : '';
-            const r = await fetch(`${this.cfg.urlBuscar}?q=${encodeURIComponent(texto)}${marca}`, {
-                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                credentials: 'same-origin',
-            });
+            // Con tiempo límite: una conexión que se cuelga no debe dejar la cola de lecturas detenida para siempre.
+            const control = new AbortController();
+            const limite = setTimeout(() => control.abort(), 12000);
+            let r;
+
+            try {
+                r = await fetch(`${this.cfg.urlBuscar}?q=${encodeURIComponent(texto)}${marca}`, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                    signal: control.signal,
+                });
+            } catch (e) {
+                throw new Error(e.name === 'AbortError' ? 'El servidor tardó demasiado en responder. Revisa tu internet.' : 'No se pudo conectar con el servidor. Revisa tu internet.');
+            } finally {
+                clearTimeout(limite);
+            }
+
             if (!r.ok) throw new Error(r.status === 401 || r.status === 419 ? 'Tu sesión expiró. Vuelve a iniciar sesión.' : 'No se pudo consultar el artículo.');
             return r.json();
         },

@@ -142,7 +142,7 @@ it('reservar devuelve la dirección firmada del ticket y una segunda pantalla re
     $p = $this->cola->solicitar($this->venta, $this->encargado);
 
     $r = $this->actingAs($this->cajero)->postJson("/venta/impresiones/{$p->id}/reservar")->assertOk();
-    expect($r->json('ok'))->toBeTrue()->and($r->json('folio'))->toBe($this->venta->folio)->and($r->json('url'))->toContain('signature=');
+    expect($r->json('ok'))->toBeTrue()->and($r->json('folio'))->toBe($this->venta->folio)->and($r->json('url'))->toContain('signature=')->toStartWith('/venta/impresiones/');
 
     $this->actingAs($this->cajero)->postJson("/venta/impresiones/{$p->id}/reservar")->assertStatus(409);
     $this->actingAs($this->otro)->postJson("/venta/impresiones/{$p->id}/reservar")->assertForbidden();
@@ -154,7 +154,7 @@ it('el ticket del pedido solo se abre con la dirección firmada, aun siendo vent
     $p = $this->cola->solicitar($this->venta, $this->encargado);
     $this->cola->reservar($p);
 
-    $firmada = URL::temporarySignedRoute('impresiones.ticket', now()->addMinutes(3), ['impresion' => $p->id]);
+    $firmada = URL::temporarySignedRoute('impresiones.ticket', now()->addMinutes(3), ['impresion' => $p->id], absolute: false);
 
     $this->actingAs($this->cajero)->get($firmada)->assertOk()->assertSee($this->venta->folio)->assertSee('window.print()', false);
     $this->actingAs($this->cajero)->get("/venta/impresiones/{$p->id}/ticket")->assertForbidden();   // sin firma
@@ -220,4 +220,12 @@ it('la caja se configura para imprimir los pedidos solos o avisar', function () 
     expect($this->caja->fresh()->impresion_pedidos)->toBe('aviso');
 
     Volt::actingAs($admin)->test('pages.cajas')->call('editar', $this->caja->id)->set('impresion_pedidos', 'otra')->call('guardar')->assertHasErrors('impresion_pedidos');
+});
+
+it('las direcciones que usa la pantalla de Venta son relativas, para que funcionen detrás de un túnel o proxy', function () {
+    $c = Volt::actingAs($this->cajero)->test('pages.pos')->instance()->configuracionJs();
+
+    foreach (['urlBuscar', 'urlPorIds', 'urlTicket', 'urlTicketTexto', 'urlImpresiones', 'urlImpresion'] as $clave) {
+        expect($c[$clave])->toStartWith('/')->not->toContain('http');
+    }
 });

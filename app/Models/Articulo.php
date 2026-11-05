@@ -136,7 +136,28 @@ class Articulo extends Model
         }
 
         return self::query()->where('clave', $clave)->first()
-            ?? self::query()->whereHas('clavesAlternas', fn (Builder $q) => $q->where('clave', $clave))->first();
+            ?? self::query()->whereHas('clavesAlternas', fn (Builder $q) => $q->where('clave', $clave))->first()
+            ?? self::porVarianteUpc($clave);
+    }
+
+    /**
+     * Un UPC-A (12 dígitos) es lo mismo que un EAN-13 con un 0 al frente, y según el lector (la cámara del teléfono,
+     * por ejemplo) el código llega de una forma o de la otra. Si no hay coincidencia exacta se prueba la otra forma.
+     */
+    private static function porVarianteUpc(string $clave): ?self
+    {
+        if (! preg_match('/^\d{12,13}$/', $clave)) {
+            return null;
+        }
+
+        $otra = strlen($clave) === 13 ? ($clave[0] === '0' ? substr($clave, 1) : null) : '0'.$clave;
+
+        if ($otra === null) {
+            return null;
+        }
+
+        return self::query()->where('clave', $otra)->first()
+            ?? self::query()->whereHas('clavesAlternas', fn (Builder $q) => $q->where('clave', $otra))->first();
     }
 
     /** Suma de las tasas de los impuestos del artículo (porcentaje). */

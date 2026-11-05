@@ -78,12 +78,13 @@ new #[Layout('layouts.pos')] class extends Component
         return [
             'cajaId' => $this->cajaId,
             'lista' => 1,
-            'urlBuscar' => route('pos.buscar'),
-            'urlPorIds' => route('pos.por-ids'),
-            'urlTicket' => route('ventas.ticket', ['venta' => '__ID__']),
-            'urlTicketTexto' => route('ventas.ticket-texto', ['venta' => '__ID__']),
-            'urlImpresiones' => route('impresiones.pendientes'),
-            'urlImpresion' => url('venta/impresiones/__ID__/__ACCION__'),
+            // Direcciones relativas (sin dominio): detrás de un túnel o proxy el dominio y el https pueden no coincidir y el navegador bloquearía las consultas.
+            'urlBuscar' => route('pos.buscar', absolute: false),
+            'urlPorIds' => route('pos.por-ids', absolute: false),
+            'urlTicket' => route('ventas.ticket', ['venta' => '__ID__'], absolute: false),
+            'urlTicketTexto' => route('ventas.ticket-texto', ['venta' => '__ID__'], absolute: false),
+            'urlImpresiones' => route('impresiones.pendientes', absolute: false),
+            'urlImpresion' => '/venta/impresiones/__ID__/__ACCION__',
             'puedeDescuento' => auth()->user()->can('ventas.descuento'),
             'descuentoEfectivoPct' => (float) Configuracion::actual()->descuento_efectivo_pct,
             'puedeCliente' => auth()->user()->can('clientes.ver'),
@@ -399,15 +400,15 @@ new #[Layout('layouts.pos')] class extends Component
         </header>
 
         {{-- Tickets que pidieron imprimir en esta caja (modo «avisar»): el cajero toca Imprimir --}}
-        <div x-show="cola.modo === 'aviso' && cola.pendientes.length" x-cloak role="status" aria-live="polite"
+        <div x-show="colaImpresion.modo === 'aviso' && colaImpresion.pendientes.length" x-cloak role="status" aria-live="polite"
              class="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 bg-etiqueta px-3 py-2 text-sm font-semibold text-anil-950 sm:px-4">
             <x-phosphor-printer-bold class="size-5 shrink-0" />
             <span class="min-w-0 flex-1">
-                Llegó un ticket para imprimir: <span class="font-mono" x-text="cola.pendientes[0]?.folio"></span>
-                <span x-show="cola.pendientes.length > 1" x-text="'(y ' + (cola.pendientes.length - 1) + ' más)'"></span>
+                Llegó un ticket para imprimir: <span class="font-mono" x-text="colaImpresion.pendientes[0]?.folio"></span>
+                <span x-show="colaImpresion.pendientes.length > 1" x-text="'(y ' + (colaImpresion.pendientes.length - 1) + ' más)'"></span>
             </span>
-            <button type="button" x-on:click="imprimirPedido(cola.pendientes[0])" :disabled="cola.imprimiendo" class="min-h-10 rounded-lg bg-anil-900 px-4 text-white disabled:opacity-60">Imprimir</button>
-            <button type="button" x-on:click="descartarPedido(cola.pendientes[0])" class="min-h-10 rounded-lg px-3 underline">Descartar</button>
+            <button type="button" x-on:click="imprimirPedido(colaImpresion.pendientes[0])" :disabled="colaImpresion.imprimiendo" class="min-h-10 rounded-lg bg-anil-900 px-4 text-white disabled:opacity-60">Imprimir</button>
+            <button type="button" x-on:click="descartarPedido(colaImpresion.pendientes[0])" class="min-h-10 rounded-lg px-3 underline">Descartar</button>
         </div>
 
         <div class="flex min-h-0 flex-1 flex-col apaisado:flex-row lg:flex-row">
@@ -636,6 +637,7 @@ new #[Layout('layouts.pos')] class extends Component
                     </button>
                 </div>
                 <div class="min-h-16 px-4 py-3 text-sm" aria-live="polite">
+                    <p x-show="ultimoCodigo" x-cloak class="mb-1 text-xs text-anil-300">Código leído: <span class="font-mono font-bold text-white" x-text="ultimoCodigo"></span></p>
                     <p x-show="aviso" x-text="aviso" x-cloak
                        :class="{ 'text-red-300 font-semibold': avisoTipo === 'error', 'text-emerald-300 font-semibold': avisoTipo === 'ok', 'text-anil-200': avisoTipo === 'info' }"></p>
                     <p x-show="!aviso && ultimoLeido" x-cloak class="flex items-start gap-2 font-semibold text-emerald-300">

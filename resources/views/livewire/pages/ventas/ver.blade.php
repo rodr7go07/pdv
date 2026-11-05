@@ -271,7 +271,7 @@ new #[Layout('layouts.app')] class extends Component
                 </dl>
                 <div x-data="{ mensaje: '', error: false }" class="mt-4 space-y-3">
                     <button type="button"
-                            x-on:click="mensaje = ''; window.compartirTicket(@js(route('ventas.ticket-texto', $venta)), @js($venta->folio)).then((r) => { error = false; mensaje = r === 'copiado' ? 'Ticket copiado: pégalo en WhatsApp u otra app.' : ''; }).catch((e) => { error = true; mensaje = e.message; })"
+                            x-on:click="mensaje = ''; window.compartirTicket(@js(route('ventas.ticket-texto', $venta, absolute: false)), @js($venta->folio)).then((r) => { error = false; mensaje = r === 'copiado' ? 'Ticket copiado: pégalo en WhatsApp u otra app.' : ''; }).catch((e) => { error = true; mensaje = e.message; })"
                             class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
                         <x-phosphor-share-network-bold class="size-4" /> Compartir ticket
                     </button>

@@ -112,6 +112,8 @@ Pantalla completa pensada para escáner y teclado. El cursor siempre está en el
 
 ### Escanear con la cámara en la venta
 - **Formatos:** EAN-13, EAN-8, UPC-A, UPC-E, Code 128 y QR. Son los que se autocomprueban; Code 39, ITF y Codabar no se leen con la cámara (se escriben o se leen con lector).
+- **Código leído:** la ventana muestra siempre el último código que leyó, aunque no se encuentre el artículo.
+- **UPC-A y EAN-13:** si la cámara manda un código de 13 dígitos con un cero al frente y el artículo está guardado con 12 (o al revés), se encuentra igual: son el mismo código de barras.
 - **Confirmación:** para evitar lecturas a medias al mover rápido la cámara, un código se acepta tras leerse **2 veces** dentro de 1.2 s (**3** si tiene 8 caracteres o menos). Hay que mantener el código a la vista un instante.
 - **Confirmación en pantalla:** tras cada lectura, la ventana de la cámara muestra *Agregado: nombre · piezas en la venta*, para saber qué se agregó sin cerrarla.
 - **Código que no existe** (o que solo coincide con el inicio de otra clave): no abre el alta ni la búsqueda; muestra «No se reconoció…» y el botón *Dar de alta «código»* durante 12 s. Con el lector o el teclado, en cambio, el alta se ofrece de inmediato.

@@ -225,7 +225,12 @@ class GuardarArticulo
             'existencia_inicial' => 'existencia inicial',
         ]);
 
-        $validador->after(function ($v) use ($datos) {
+        $validador->after(function ($v) use ($datos, $id) {
+            // El mismo UPC-A escrito con o sin el cero al frente (12 o 13 dígitos) es el mismo código de barras.
+            if (! $v->errors()->has('clave') && ($otro = Articulo::porClave($datos['clave'])) && $otro->id !== $id) {
+                $v->errors()->add('clave', "Ese código ya existe: es el de «{$otro->descripcion}» ({$otro->clave}).");
+            }
+
             if (! $v->errors()->has('impuestos.*') && count($datos['impuestos']) > 1) {
                 $ivas = Impuesto::query()->whereIn('id', $datos['impuestos'])->where('tipo', TipoImpuesto::Iva->value)->count();
 

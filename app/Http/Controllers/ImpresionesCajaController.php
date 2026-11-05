@@ -47,7 +47,7 @@ class ImpresionesCajaController extends Controller
         return response()->json([
             'ok' => true,
             'folio' => $impresion->venta->folio,
-            'url' => URL::temporarySignedRoute('impresiones.ticket', now()->addMinutes(3), ['impresion' => $impresion->id]),
+            'url' => URL::temporarySignedRoute('impresiones.ticket', now()->addMinutes(3), ['impresion' => $impresion->id], absolute: false),
         ]);
     }
 

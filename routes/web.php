@@ -49,7 +49,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::post('{impresion}/reservar', [ImpresionesCajaController::class, 'reservar'])->name('reservar');
         Route::post('{impresion}/confirmar', [ImpresionesCajaController::class, 'confirmar'])->name('confirmar');
         Route::post('{impresion}/descartar', [ImpresionesCajaController::class, 'descartar'])->name('descartar');
-        Route::get('{impresion}/ticket', [ImpresionesCajaController::class, 'ticket'])->middleware('signed')->name('ticket');
+        Route::get('{impresion}/ticket', [ImpresionesCajaController::class, 'ticket'])->middleware('signed:relative')->name('ticket');
     });
 
     Route::prefix('ventas')->name('ventas.')->middleware('permission:ventas.cobrar|ventas.ver_todas')->group(function () {

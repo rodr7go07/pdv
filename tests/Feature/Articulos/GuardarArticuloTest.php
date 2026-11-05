@@ -265,3 +265,29 @@ it('guarda el proveedor principal, lo valida y no lo cambia si el dato no viene'
 
     expect(fn () => $guardar($a, $base + ['proveedor_id' => '99999']))->toThrow(ValidationException::class);
 });
+
+it('encuentra un artículo aunque el lector mande su UPC-A como EAN-13 con un cero al frente, y al revés', function () {
+    $upc = Articulo::factory()->create(['clave' => '756702133248']);          // UPC-A guardado con 12 dígitos
+    $ean = Articulo::factory()->create(['clave' => '0070847035916']);         // guardado como EAN-13 con cero
+    $alterna = Articulo::factory()->create(['clave' => 'INTERNA-1']);
+    $alterna->clavesAlternas()->create(['clave' => '123456789012']);
+
+    expect(Articulo::porClave('0756702133248')?->id)->toBe($upc->id)
+        ->and(Articulo::porClave('756702133248')?->id)->toBe($upc->id)
+        ->and(Articulo::porClave('070847035916')?->id)->toBe($ean->id)
+        ->and(Articulo::porClave('0123456789012')?->id)->toBe($alterna->id)
+        ->and(Articulo::porClave('7501055363057'))->toBeNull()          // 13 dígitos sin cero al frente: no hay variante
+        ->and(Articulo::porClave('0000000000000'))->toBeNull()
+        ->and(Articulo::porClave('abc'))->toBeNull();
+});
+
+it('no deja dar de alta el mismo código de barras escrito con o sin el cero al frente', function () {
+    $existente = Articulo::factory()->create(['clave' => '756702133248', 'descripcion' => 'TOSTADAS CASERAS']);
+    $guardar = app(GuardarArticulo::class);
+    $base = ['descripcion' => 'OTRO', 'departamento_id' => Departamento::factory()->create()->id, 'unidad_medida_id' => UnidadMedida::factory()->create()->id, 'costo' => '1', 'precio_1' => '2'];
+
+    expect(fn () => $guardar(null, $base + ['clave' => '0756702133248']))->toThrow(ValidationException::class, 'TOSTADAS CASERAS');
+
+    // El propio artículo se puede guardar con su clave sin que choque consigo mismo.
+    expect($guardar($existente, array_merge($base, ['clave' => '756702133248', 'descripcion' => 'TOSTADAS CASERAS 2']))->descripcion)->toBe('TOSTADAS CASERAS 2');
+});

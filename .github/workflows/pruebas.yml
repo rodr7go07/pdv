@@ -1,0 +1,76 @@
+name: Pruebas
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite:
+    name: Suite de Pest y Pint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, sqlite3, gd, zip, intl
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: npm ci && npm run build
+      - run: vendor/bin/pint --test
+      - run: php artisan test
+
+  humo:
+    name: Prueba de humo de la caja (navegador real)
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: local
+      APP_DEBUG: 'false'
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ${{ github.workspace }}/humo.sqlite
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, sqlite3, gd, zip, intl
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: npm ci && npm run build
+      - name: Base de datos de prueba con turno abierto
+        run: |
+          touch humo.sqlite
+          php artisan migrate --force
+          php artisan db:seed --class=HumoSeeder --force
+      - name: Navegador para Playwright
+        run: |
+          mkdir -p "$RUNNER_TEMP/playwright" && cd "$RUNNER_TEMP/playwright"
+          npm init -y >/dev/null && npm i playwright@1 --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Levantar el servidor y correr la prueba de humo
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8000 > servidor.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/login >/dev/null && break; sleep 1; done
+          node tests/humo/venta.cjs http://127.0.0.1:8000 encargado password 7501055363057
+      - name: Registro del servidor si falló
+        if: failure()
+        run: tail -n 80 servidor.log storage/logs/*.log 2>/dev/null || true

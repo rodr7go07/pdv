@@ -48,6 +48,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–73).
 - La guía de uso vive en `resources/views/guia.blade.php` (lenguaje sencillo) y `docs/GUIA_DETALLADA.md`. Todo cambio de flujo o de atajos debe actualizar ambas (hay pruebas en `GuiaTest`).
 - Pendientes por confirmar con el dueño de la tienda: método de costeo, precios con impuestos incluidos y si necesita abrir el cajón de dinero. Además, el catálogo cargado casi no marca IVA: confirmar qué artículos llevan impuesto.
+- **Visita a la tienda pendiente:** probar lector y la térmica Moon 58W de la tablet (caja Android; SicarX ya la tiene vinculada). Opciones, orden de prueba y datos a traer están en `docs/impresion.md` («Visita a la tienda»). El botón de impresión de un toque con RawBT **no se construye** hasta que el usuario confirme que RawBT imprime desde Chrome.
 - Pendientes técnicos conocidos: probar con MySQL real, impresora de tickets (incluida la cola de impresión pedida desde el teléfono) y lector físico; ejecutar la Fase 8 en el servidor; el historial de git conserva un `punto_venta` (SQLite) subido por error con hashes de contraseñas de desarrollo (reescribir historial solo si el usuario lo pide).
 
 ## Módulos y decisiones recientes (ver `PLAN.md` para el detalle)

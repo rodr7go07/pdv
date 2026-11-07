@@ -65,3 +65,29 @@ Esta decisión se confirma con el dueño según el modelo de impresora y si usa 
 - **Artículos → Etiquetas**: elige artículos, copias y formato; imprime con el cuadro del navegador.
 - El código de barras es EAN-13 cuando la clave tiene 13 dígitos válidos; si no, Code 128.
 - Para rollos de etiquetas térmicas de 50×30 mm, selecciona ese tamaño de papel en el controlador de la impresora.
+
+## Visita a la tienda: qué probar y qué opciones hay
+
+Equipo de la tienda: la **tablet Android es la caja**, con la térmica **Moon 58W** (58 mm) ya vinculada en la app nativa SicarX (USB y/o Bluetooth), una báscula (STM32 Virtual COM) y un lector «Checko2B». SicarX habla con la impresora directamente; Chrome no, solo lista las impresoras registradas en los servicios de impresión de Android. Por eso el cuadro de impresión de Chrome sale sin la térmica.
+
+### Lector de códigos (Bluetooth, en PC o tablet)
+1. Debe estar en modo **teclado HID** (no SPP) y mandar **Enter** al final de cada lectura (sufijo CR/LF); sin lotes ni memoria.
+2. Distribución del teclado igual a la del equipo (si sale un símbolo en lugar de un número, es la distribución).
+3. Probarlo primero en el Bloc de notas o en un campo de texto: debe escribir el código y saltar de línea.
+4. En **Venta** captura sin tener el cursor en el campo; en las demás pantallas el cursor debe estar en el campo.
+5. Alternativa: la cámara (necesita https). Muestra «Código leído»; UPC-A y EAN-13 con un 0 al frente se consideran el mismo código.
+
+### Impresión desde la tablet (Android) con la Moon 58W
+1. **RawBT (primero probar esto, no requiere código):** instalar RawBT, vincular la impresora (Bluetooth emparejado antes en Android, o USB con adaptador OTG), papel 58 mm, imprimir la página de prueba, activar el servicio de impresión de RawBT en Ajustes → Impresión. Luego, en el sistema, «Imprimir ticket» → elegir RawBT. Cerrar SicarX durante la prueba: solo una app puede tener la conexión. Costo: aparece el cuadro de impresión cada vez.
+2. **Botón «Imprimir» de un toque con RawBT (por construir):** solo si la opción 1 funciona. Usaría el esquema de direcciones de RawBT con el texto ESC/POS de `TicketTexto`, con un interruptor por dispositivo en «Atajos». Corte de papel opcional; el cajón solo si el modelo lo soporta.
+3. **Web Bluetooth / WebUSB directo desde Chrome:** posible, pero arriesgado (depende de que la Moon 58W soporte BLE o WebUSB). Solo si RawBT no sirve.
+4. **Imprimir en la caja (ya construido, decisión 73):** desde el teléfono se pide la impresión y la pantalla de Venta de la PC de esa caja la atiende sola o avisa. Requiere una PC con la impresora.
+5. **PC con Chrome `--kiosk-printing`** y la térmica como predeterminada de Windows: imprime sin cuadro (ya documentado arriba; falta probar con la impresora real).
+6. **Compartir ticket** por WhatsApp u otra app (ya construido).
+7. QZ Tray solo hace falta si se quiere abrir el **cajón de dinero** desde una PC (no integrado).
+
+### Datos que hay que traer de la tienda
+- ¿La térmica está por USB o por Bluetooth (o ambos)?
+- ¿RawBT imprime la página de prueba? ¿Y un ticket del sistema? ¿Cómo se ve a 58 mm (en el cuadro de Android, tamaño de papel)?
+- ¿El lector escribe el código y manda Enter en el Bloc de notas? ¿Funciona en Venta sin tocar el campo?
+- ¿Se necesita abrir el cajón de dinero?

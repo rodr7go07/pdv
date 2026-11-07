@@ -13,6 +13,13 @@ it('muestra la pantalla de acceso', function () {
         ->assertSee('Usuario o correo');
 });
 
+it('la contraseña lleva un ojito para verla u ocultarla', function () {
+    $this->get('/login')
+        ->assertOk()
+        ->assertSee('Mostrar contraseña', false)
+        ->assertSee('type="password"', false);
+});
+
 it('permite entrar con el nombre de usuario', function () {
     $user = User::factory()->create(['usuario' => 'maria', 'email' => null]);
 

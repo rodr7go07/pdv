@@ -34,7 +34,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - Toda pantalla debe ser usable en teléfono (360px de ancho) y en PC.
 - Entregar archivos completos al hacer cambios importantes, no fragmentos sueltos.
 - Soluciones definitivas y limpias; evitar parches temporales.
-- **Una sola fuente, no copiar:** formas de pago y sus etiquetas → `App\Enums\FormaPago`; cantidades sin ceros sobrantes → `App\Support\Numero::cantidad()` (no `rtrim`); fechas de filtros → `App\Support\Fecha`; tarjetas de indicador → `<x-kpi>`; mensajes de éxito/error/aviso → `<x-alerta>`; enlace «Volver» → `<x-enlace-volver>`; aviso sin internet → `<x-sin-conexion>`. Si hace falta otra variante, agregar una opción al componente.
+- **Una sola fuente, no copiar:** formas de pago y sus etiquetas → `App\Enums\FormaPago`; cantidades sin ceros sobrantes → `App\Support\Numero::cantidad()` (no `rtrim`); fechas de filtros → `App\Support\Fecha`; tarjetas de indicador → `<x-kpi>`; mensajes de éxito/error/aviso → `<x-alerta>`; enlace «Volver» → `<x-enlace-volver>`; aviso sin internet → `<x-sin-conexion>`; contraseña con ojito → `<x-campo-clave>` (hoy solo en el login). Si hace falta otra variante, agregar una opción al componente.
 - Alta y edición de catálogos con reglas propias van en Actions (`GuardarArticulo`, `GuardarCliente`, `GuardarProveedor`, `GuardarUsuario`, `GuardarRol`…); la pantalla solo llama a la Action y pinta `$e->errors()` con `setErrorBag`.
 
 ## Pruebas

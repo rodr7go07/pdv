@@ -31,8 +31,7 @@ new #[Layout('layouts.guest')] class extends Component
 
     <div>
         <x-input-label for="password" value="Contraseña" />
-        <x-text-input wire:model="form.password" id="password" type="password" required
-                      autocomplete="current-password" />
+        <x-campo-clave wire:model="form.password" id="password" required autocomplete="current-password" />
         <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
     </div>
 

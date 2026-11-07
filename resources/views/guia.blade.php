@@ -13,7 +13,7 @@
             'bloques' => [
                 ['pasos' => [
                     'Abre la dirección de tu tienda en el navegador (Chrome, Edge o Safari).',
-                    'Escribe tu **usuario** (o tu correo) y tu **contraseña**. Toca **Entrar**.',
+                    'Escribe tu **usuario** (o tu correo) y tu **contraseña**. Si no estás seguro de cómo la escribiste, toca el **ojito** a la derecha del campo para verla (tócalo otra vez para ocultarla). Toca **Entrar**.',
                     'Para salir, toca la flechita de salida (arriba a la derecha en el teléfono, abajo del menú en la computadora).',
                 ]],
                 ['p' => '**Cómo moverte.** En la computadora, el menú está a la izquierda. En el teléfono, está abajo: toca **Más** para ver todo lo demás. Solo ves lo que tu trabajo necesita.'],

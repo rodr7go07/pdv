@@ -83,6 +83,7 @@ new #[Layout('layouts.pos')] class extends Component
             'urlPorIds' => route('pos.por-ids', absolute: false),
             'urlTicket' => route('ventas.ticket', ['venta' => '__ID__'], absolute: false),
             'urlTicketTexto' => route('ventas.ticket-texto', ['venta' => '__ID__'], absolute: false),
+            'urlTicketPdf' => route('ventas.ticket-pdf', ['venta' => '__ID__'], absolute: false),
             'urlImpresiones' => route('impresiones.pendientes', absolute: false),
             'urlImpresion' => '/venta/impresiones/__ID__/__ACCION__',
             'puedeDescuento' => auth()->user()->can('ventas.descuento'),
@@ -924,6 +925,7 @@ new #[Layout('layouts.pos')] class extends Component
                     <x-secondary-button x-on:click="imprimirTicket(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir ticket</x-secondary-button>
                     <x-secondary-button x-show="!imprimeAqui" x-cloak x-on:click="pedirImpresionEnCaja(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir en la caja</x-secondary-button>
                     <x-secondary-button x-on:click="compartirTicket(exito.id, exito.folio)" class="w-full"><x-phosphor-share-network-bold class="size-4" /> Compartir ticket</x-secondary-button>
+                    <x-secondary-button x-on:click="compartirPdfDelTicket(exito.id, exito.folio)" class="w-full"><x-phosphor-file-pdf-bold class="size-4" /> Compartir PDF</x-secondary-button>
                     <p x-show="aviso" x-text="aviso" x-cloak :class="avisoTipo === 'error' ? 'text-red-700' : 'text-emerald-700'" class="text-sm font-semibold" role="status"></p>
                 </div>
             </div>

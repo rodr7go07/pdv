@@ -15,10 +15,7 @@ class VentaTicketController extends Controller
         $usuario = $request->user();
 
         // Ver cualquier ticket requiere permiso; el cajero solo reimprime los suyos.
-        abort_unless(
-            $usuario->can('ventas.ver_todas') || ($usuario->can('ventas.cobrar') && $venta->user_id === $usuario->id),
-            403,
-        );
+        abort_unless($venta->ticketVisiblePor($usuario), 403);
 
         return view('ventas.ticket', TicketVista::datos($venta, $request->boolean('imprimir')));
     }

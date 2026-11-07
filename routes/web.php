@@ -10,6 +10,7 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReporteExportController;
 use App\Http\Controllers\SugerenciaCompraExportController;
 use App\Http\Controllers\VentaTicketController;
+use App\Http\Controllers\VentaTicketPdfController;
 use App\Http\Controllers\VentaTicketTextoController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -57,6 +58,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Volt::route('{venta}', 'pages.ventas.ver')->name('ver');
         Route::get('{venta}/ticket', VentaTicketController::class)->name('ticket');
         Route::get('{venta}/ticket-texto', VentaTicketTextoController::class)->name('ticket-texto');
+        Route::get('{venta}/ticket-pdf', VentaTicketPdfController::class)->name('ticket-pdf');
     });
 
     Volt::route('usuarios', 'pages.usuarios')->middleware('can:usuarios.administrar')->name('usuarios');

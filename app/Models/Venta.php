@@ -107,4 +107,10 @@ class Venta extends Model
     {
         return $this->estado === 'cancelada';
     }
+
+    /** Quién puede ver, reimprimir o compartir el ticket: quien ve todas las ventas, o el cajero de la venta. */
+    public function ticketVisiblePor(User $usuario): bool
+    {
+        return $usuario->can('ventas.ver_todas') || ($usuario->can('ventas.cobrar') && $this->user_id === $usuario->id);
+    }
 }

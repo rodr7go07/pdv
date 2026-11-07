@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.3",
         "codeat3/blade-phosphor-icons": "^2.4",
+        "dompdf/dompdf": "^3.1",
         "laravel-lang/common": "^6.8",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",

@@ -275,6 +275,11 @@ new #[Layout('layouts.app')] class extends Component
                             class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
                         <x-phosphor-share-network-bold class="size-4" /> Compartir ticket
                     </button>
+                    <button type="button"
+                            x-on:click="mensaje = ''; window.compartirTicketPdf(@js(route('ventas.ticket-pdf', $venta, absolute: false)), @js($venta->folio)).then((r) => { error = false; mensaje = r === 'descargado' ? 'PDF del ticket descargado.' : ''; }).catch((e) => { error = true; mensaje = e.message; })"
+                            class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
+                        <x-phosphor-file-pdf-bold class="size-4" /> Compartir PDF
+                    </button>
                     <p x-show="mensaje" x-text="mensaje" x-cloak :class="error ? 'text-red-700' : 'text-emerald-700'" class="mt-2 text-sm font-semibold" role="status"></p>
                 </div>
             </x-card>

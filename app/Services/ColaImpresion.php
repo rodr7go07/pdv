@@ -36,11 +36,7 @@ class ColaImpresion
      */
     public function solicitar(Venta $venta, User $quien): Impresion
     {
-        abort_unless(
-            $quien->can('ventas.ver_todas') || ($quien->can('ventas.cobrar') && $venta->user_id === $quien->id),
-            403,
-            'No puedes imprimir el ticket de esta venta.',
-        );
+        abort_unless($venta->ticketVisiblePor($quien), 403, 'No puedes imprimir el ticket de esta venta.');
 
         $caja = Caja::query()->find($venta->caja_id);
 

@@ -6,7 +6,7 @@
  */
 
 import { camaraDisponible, iniciarLector } from './camara';
-import { compartirTicket } from './compartir';
+import { compartirTicket, compartirTicketPdf } from './compartir';
 
 const moneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
@@ -951,6 +951,16 @@ export function registrarPos(Alpine) {
             try {
                 const r = await compartirTicket(this.cfg.urlTicketTexto.replace('__ID__', id), folio);
                 if (r === 'copiado') this.avisar('Ticket copiado: pégalo en WhatsApp u otra app.', 'ok', 5000);
+            } catch (e) {
+                this.avisar(e.message, 'error', 6000);
+            }
+        },
+
+        /** Manda el ticket como archivo PDF (en el teléfono abre el menú de compartir; en la computadora lo descarga). */
+        async compartirPdfDelTicket(id, folio) {
+            try {
+                const r = await compartirTicketPdf(this.cfg.urlTicketPdf.replace('__ID__', id), folio);
+                if (r === 'descargado') this.avisar('PDF del ticket descargado.', 'ok', 5000);
             } catch (e) {
                 this.avisar(e.message, 'error', 6000);
             }

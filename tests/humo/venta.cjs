@@ -90,7 +90,14 @@ const comprobar = (nombre, ok, detalle = '') => {
     await p.waitForTimeout(2000);
     comprobar('confirmar el cobro registra la venta', await p.locator('text=/Nueva venta/').first().isVisible());
 
-    // 6) Nada tronó en la consola.
+    // 6) Compartir el ticket en PDF desde la ventana de venta cobrada (en la computadora lo descarga).
+    const [descarga] = await Promise.all([
+        p.waitForEvent('download', { timeout: 15000 }).catch(() => null),
+        p.getByRole('button', { name: /Compartir PDF/ }).click(),
+    ]);
+    comprobar('Compartir PDF descarga el ticket como PDF', !!descarga && /^ticket-.*\.pdf$/.test(descarga.suggestedFilename()), descarga ? descarga.suggestedFilename() : 'sin descarga');
+
+    // 7) Nada tronó en la consola.
     comprobar('sin errores de JavaScript en la página', errores.length === 0, errores.join(' | '));
 
     await navegador.close();

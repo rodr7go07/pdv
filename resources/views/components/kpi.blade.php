@@ -9,7 +9,7 @@
         'normal' => ['border-anil-100 bg-white', '', 'text-anil-600'],
         'aviso' => ['border-etiqueta bg-etiqueta/20', '!text-amber-900', 'text-anil-600'],
         'peligro' => ['border-red-200 bg-red-50', '!text-red-800', 'text-anil-600'],
-        'oscuro' => ['border-anil-900 bg-anil-900 text-white', '!text-anil-300', 'text-anil-300'],
+        'oscuro' => ['zona-fija border-fuerte bg-fuerte text-white', '!text-anil-300', 'text-anil-300'],
     ][$tono];
     $cifra = ['medio' => 'text-2xl sm:text-3xl', 'chico' => 'text-2xl', 'grande' => 'text-3xl'][$tamano];
 @endphp

@@ -5,6 +5,7 @@ import { registrarEscaner } from './escaner';
 import { registrarFoto } from './foto';
 import { registrarPwa } from './pwa';
 import { registrarConexion } from './conexion';
+import { registrarTema } from './tema';
 import './compartir';
 
 document.addEventListener('alpine:init', () => {
@@ -14,6 +15,7 @@ document.addEventListener('alpine:init', () => {
     registrarFoto(window.Alpine);
     registrarPwa(window.Alpine);
     registrarConexion(window.Alpine);
+    registrarTema(window.Alpine);
 });
 
 if ('serviceWorker' in navigator) {

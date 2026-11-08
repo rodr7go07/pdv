@@ -12,6 +12,6 @@
             <li class="flex items-start gap-3"><span class="grid size-7 shrink-0 place-items-center rounded-full bg-rosa-500 text-sm font-extrabold text-white">2</span><span>Toca el botón <strong>Compartir</strong> <x-phosphor-export-bold class="inline size-4 align-text-bottom" /> de la barra de Safari.</span></li>
             <li class="flex items-start gap-3"><span class="grid size-7 shrink-0 place-items-center rounded-full bg-rosa-500 text-sm font-extrabold text-white">3</span><span>Elige <strong>Agregar a pantalla de inicio</strong> y toca <strong>Agregar</strong>.</span></li>
         </ol>
-        <button type="button" x-on:click="$store.pwa.ayuda = false" class="mt-5 min-h-11 w-full rounded-lg bg-anil-900 font-semibold text-white">Entendido</button>
+        <button type="button" x-on:click="$store.pwa.ayuda = false" class="mt-5 min-h-11 w-full rounded-lg bg-fuerte font-semibold text-white">Entendido</button>
     </div>
 </div>

@@ -5,12 +5,13 @@
         @include('layouts.partials.head', ['titulo' => 'Acceso'])
     </head>
     <body class="antialiased">
-        <div class="grid min-h-dvh place-items-center bg-anil-900 px-4 py-10 [background-image:radial-gradient(circle,var(--color-anil-800)_1px,transparent_1px)] [background-size:22px_22px]">
+        @include('layouts.partials.tema-inicial')
+        <div class="zona-fija grid min-h-dvh place-items-center bg-anil-900 px-4 py-10 [background-image:radial-gradient(circle,var(--color-anil-800)_1px,transparent_1px)] [background-size:22px_22px]">
             <div class="w-full max-w-sm">
                 {{-- Ranura de la impresora: el ticket sale de aquí --}}
                 <div class="relative z-10 -mb-2 h-4 rounded-full bg-anil-950 shadow-[inset_0_2px_4px_rgb(0_0_0/0.6),0_1px_0_var(--color-anil-700)]"></div>
 
-                <div class="ticket animate-[imprimir_700ms_cubic-bezier(.2,.7,.2,1)_both] px-6 pt-9 sm:px-8">
+                <div class="ticket zona-tema animate-[imprimir_700ms_cubic-bezier(.2,.7,.2,1)_both] px-6 pt-9 sm:px-8">
                     <div class="flex flex-col items-center text-center">
                         @if ($tienda->logoUrl())
                             <img src="{{ $tienda->logoUrl() }}" alt="" class="size-14 object-contain">

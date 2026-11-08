@@ -23,6 +23,7 @@
                     ['Cajero', 'Quien cobra. Abre su caja, vende y cierra su caja.'],
                 ]],
                 ['p' => 'El dueño puede crear más roles (por ejemplo «Almacenista») y cambiar lo que puede hacer cada uno en **Roles**.'],
+                ['p' => '**Modo oscuro.** Si trabajas con poca luz o te cansa la vista, toca **Modo oscuro** (en la computadora, abajo en el menú de la izquierda; en el teléfono y en la caja, el sol o la luna arriba a la derecha). Para volver, toca **Modo claro**. Se acuerda de tu elección en cada aparato: la tablet de la caja y tu computadora pueden tener la suya. La primera vez usa el tema que tenga tu aparato. Los tickets siempre se imprimen y se mandan en blanco.'],
                 ['p' => '**Instálalo como una app.** Así abre con su propio ícono, sin la barra del navegador, como cualquier otra aplicación del teléfono o de la computadora.'],
                 ['lista' => [
                     '**En Android o en la computadora:** toca el botón **Instalar** (arriba en el teléfono; en la computadora, abajo del menú) y confirma. Cuando ya está instalada, el botón desaparece.',
@@ -379,7 +380,7 @@
                 @foreach ($secciones as $s)
                     <section id="{{ $s['id'] }}" data-seccion data-texto="{{ $texto($s) }}"                             class="scroll-mt-6 rounded-2xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)] sm:p-7">
                         <header class="mb-4 flex items-start gap-4">
-                            <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-anil-900 text-rosa-400">{{ svg('phosphor-'.$s['icono'].'-fill', 'size-6') }}</span>
+                            <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-fuerte text-rosa-400">{{ svg('phosphor-'.$s['icono'].'-fill', 'size-6') }}</span>
                             <div class="min-w-0">
                                 <h2 class="text-xl font-extrabold leading-tight text-anil-900 sm:text-2xl">{{ $s['titulo'] }}</h2>
                                 <p class="mt-1"><x-badge tono="rosa">Para: {{ $s['para'] }}</x-badge></p>

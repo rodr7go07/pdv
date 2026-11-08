@@ -149,7 +149,7 @@ new #[Layout('layouts.app')] class extends Component
                  :texto="$buscar !== '' || $departamento !== '' ? 'Prueba con otra palabra o quita los filtros.' : 'Aún no has dado de alta ningún artículo.'">
             @can('articulos.crear')
                 @if ($buscar === '' && $departamento === '')
-                    <a href="{{ route('articulos.crear') }}" wire:navigate class="rounded-lg bg-anil-900 px-4 py-2.5 text-sm font-semibold text-white">Crear el primero</a>
+                    <a href="{{ route('articulos.crear') }}" wire:navigate class="rounded-lg bg-fuerte px-4 py-2.5 text-sm font-semibold text-white">Crear el primero</a>
                 @endif
             @endcan
         </x-empty>

@@ -20,7 +20,7 @@
             <p class="mt-1 font-display text-2xl font-extrabold">{{ $m($resumen['fondo_inicial']) }}</p>
         </div>
         @if ($mostrarEsperado)
-            <div class="rounded-xl border border-anil-200 bg-anil-900 p-4 text-white">
+            <div class="zona-fija rounded-xl border border-anil-200 bg-fuerte p-4 text-white">
                 <p class="rotulo !text-anil-300">Efectivo esperado</p>
                 <p class="mt-1 font-display text-2xl font-extrabold">{{ $m($resumen['efectivo_esperado']) }}</p>
             </div>

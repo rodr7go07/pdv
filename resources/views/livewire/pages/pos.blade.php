@@ -383,7 +383,7 @@ new #[Layout('layouts.pos')] class extends Component
         </div>
     @else
         {{-- Barra superior --}}
-        <header class="flex h-14 shrink-0 items-center gap-2 bg-anil-900 px-2 text-white sm:gap-3 sm:px-4">
+        <header class="zona-fija flex h-14 shrink-0 items-center gap-2 bg-anil-900 px-2 text-white sm:gap-3 sm:px-4">
             <a href="{{ route('dashboard') }}" wire:navigate class="grid size-11 shrink-0 place-items-center rounded-lg text-anil-200 hover:bg-anil-800" aria-label="Salir de la caja" title="Salir de la caja">
                 <x-phosphor-arrow-left-bold class="size-5" />
             </a>
@@ -394,6 +394,7 @@ new #[Layout('layouts.pos')] class extends Component
             </div>
             <div class="ml-auto flex items-center gap-1">
                 <span class="mr-2 hidden text-sm text-anil-200 md:block">{{ auth()->user()->name }}</span>
+                <x-tema-interruptor variante="icono" />
                 <button type="button" x-on:click="modal = 'atajos'" class="grid size-11 place-items-center rounded-lg text-anil-200 hover:bg-anil-800" aria-label="Atajos de teclado" title="Atajos de teclado">
                     <x-phosphor-keyboard-bold class="size-5" />
                 </button>
@@ -408,7 +409,7 @@ new #[Layout('layouts.pos')] class extends Component
                 Llegó un ticket para imprimir: <span class="font-mono" x-text="colaImpresion.pendientes[0]?.folio"></span>
                 <span x-show="colaImpresion.pendientes.length > 1" x-text="'(y ' + (colaImpresion.pendientes.length - 1) + ' más)'"></span>
             </span>
-            <button type="button" x-on:click="imprimirPedido(colaImpresion.pendientes[0])" :disabled="colaImpresion.imprimiendo" class="min-h-10 rounded-lg bg-anil-900 px-4 text-white disabled:opacity-60">Imprimir</button>
+            <button type="button" x-on:click="imprimirPedido(colaImpresion.pendientes[0])" :disabled="colaImpresion.imprimiendo" class="min-h-10 rounded-lg bg-fuerte px-4 text-white disabled:opacity-60">Imprimir</button>
             <button type="button" x-on:click="descartarPedido(colaImpresion.pendientes[0])" class="min-h-10 rounded-lg px-3 underline">Descartar</button>
         </div>
 
@@ -426,7 +427,7 @@ new #[Layout('layouts.pos')] class extends Component
                                placeholder="Escanea o escribe el código  ·  5* para varias piezas"
                                class="block w-full min-w-0 rounded-xl border-2 border-anil-200 bg-white py-3.5 pl-12 pr-4 font-mono text-lg text-tinta placeholder:font-sans placeholder:text-base placeholder:text-anil-300 focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
                         <button type="button" x-on:click="abrirCamara()" aria-label="Escanear con la cámara" title="Escanear con la cámara"
-                                class="grid w-14 shrink-0 place-items-center rounded-xl bg-anil-900 text-white shadow-[0_3px_0_0_var(--color-anil-950)] active:translate-y-[3px] active:shadow-none lg:hidden">
+                                class="grid w-14 shrink-0 place-items-center rounded-xl bg-fuerte text-white shadow-[0_3px_0_0_var(--color-anil-950)] active:translate-y-[3px] active:shadow-none lg:hidden">
                             <x-phosphor-camera-bold class="size-6" />
                         </button>
                         {{-- Coincidencias mientras se escribe: tocar una la agrega; ↑ ↓ y Enter también; el Enter normal sigue funcionando --}}
@@ -621,7 +622,7 @@ new #[Layout('layouts.pos')] class extends Component
             </div>
 
             {{-- Cámara: escanear códigos con el teléfono --}}
-            <div x-show="modal === 'camara'" x-cloak role="document" aria-label="Escanear con la cámara" class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-anil-950 text-white shadow-2xl sm:max-w-md sm:rounded-2xl">
+            <div x-show="modal === 'camara'" x-cloak role="document" aria-label="Escanear con la cámara" class="zona-fija relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-anil-950 text-white shadow-2xl sm:max-w-md sm:rounded-2xl">
                 <header class="flex items-center justify-between px-4 py-3">
                     <h2 class="text-lg font-extrabold">Escanear con la cámara</h2>
                     <button type="button" x-on:click="modal = null; enfocar()" class="grid size-10 place-items-center rounded-lg text-anil-200 hover:bg-anil-800" aria-label="Cerrar la cámara"><x-phosphor-x-bold class="size-5" /></button>
@@ -766,7 +767,7 @@ new #[Layout('layouts.pos')] class extends Component
                                 <span class="block truncate font-semibold" x-text="e.nombre || 'Sin nombre'"></span>
                                 <span class="text-xs text-anil-600" x-text="e.piezas + ' artículos · ' + e.hora + ' · ' + (e.usuario || '')"></span>
                             </button>
-                            <button type="button" x-on:click="recuperarEspera(e.id)" class="rounded-lg bg-anil-900 px-3 py-2 text-sm font-semibold text-white">Recuperar</button>
+                            <button type="button" x-on:click="recuperarEspera(e.id)" class="rounded-lg bg-fuerte px-3 py-2 text-sm font-semibold text-white">Recuperar</button>
                             <button type="button" x-on:click="descartarEspera(e.id)" class="grid size-10 place-items-center rounded-lg text-anil-500 hover:bg-red-50 hover:text-red-700" aria-label="Descartar"><x-phosphor-trash-bold class="size-4" /></button>
                         </li>
                     </template>

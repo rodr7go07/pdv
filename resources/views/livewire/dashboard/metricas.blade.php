@@ -107,7 +107,7 @@ new class extends Component
             <a href="{{ route('reportes') }}" wire:navigate class="text-sm font-semibold text-rosa-600 underline">Ver reportes</a>
         </div>
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div class="col-span-2 rounded-xl bg-anil-900 p-5 text-white lg:col-span-1">
+            <div class="zona-fija col-span-2 rounded-xl bg-fuerte p-5 text-white lg:col-span-1">
                 <p class="rotulo !text-anil-300">Vendido hoy</p>
                 <p class="mt-1 font-display text-4xl font-extrabold tracking-tight [font-stretch:112%]">{{ $m($h['neto']) }}</p>
                 <p class="mt-1 text-xs text-anil-300">

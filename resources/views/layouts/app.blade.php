@@ -13,9 +13,10 @@
         @livewireStyles
     </head>
     <body class="bg-papel antialiased">
+        @include('layouts.partials.tema-inicial')
 
         {{-- Barra lateral (PC y tablet horizontal) --}}
-        <aside class="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-anil-900 text-anil-100 lg:flex">
+        <aside class="zona-fija fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-anil-900 text-anil-100 lg:flex">
             <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 px-6 pb-5 pt-7">
                 @if ($tienda->logoUrl())
                     <img src="{{ $tienda->logoUrl() }}" alt="" class="size-10 rounded-lg bg-white object-contain p-1">
@@ -60,6 +61,7 @@
             </nav>
 
             <div class="border-t border-anil-800 p-4">
+                <x-tema-interruptor />
                 <button type="button" x-data x-show="$store.pwa.puedeInstalar" x-cloak x-on:click="$store.pwa.instalar()"
                         class="mb-3 flex min-h-11 w-full items-center gap-3 rounded-lg border border-anil-700 px-3 text-sm font-semibold text-anil-100 transition hover:bg-anil-800 hover:text-white">
                     {{ svg('phosphor-download-simple-bold', 'size-5 shrink-0 text-rosa-400') }} Instalar app
@@ -84,7 +86,7 @@
         </aside>
 
         {{-- Barra superior (teléfono y tablet vertical) --}}
-        <header class="sticky top-0 z-30 flex h-14 items-center justify-between bg-anil-900 px-4 pt-[env(safe-area-inset-top)] lg:hidden">
+        <header class="zona-fija sticky top-0 z-30 flex h-14 items-center justify-between bg-anil-900 px-4 pt-[env(safe-area-inset-top)] lg:hidden">
             <a href="{{ route('dashboard') }}" wire:navigate class="flex min-h-11 min-w-0 items-center gap-2.5">
                 @if ($tienda->logoUrl())
                     <img src="{{ $tienda->logoUrl() }}" alt="" class="size-8 rounded-md bg-white object-contain p-0.5">
@@ -94,6 +96,7 @@
                 <span class="truncate font-display text-base font-extrabold text-white [font-stretch:115%]">{{ $tienda->nombre_tienda }}</span>
             </a>
             <div class="flex items-center gap-1">
+            <x-tema-interruptor variante="icono" class="active:bg-anil-800" />
             <button type="button" x-data x-show="$store.pwa.puedeInstalar" x-cloak x-on:click="$store.pwa.instalar()" aria-label="Instalar app" title="Instalar app"
                     class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold text-anil-100 active:bg-anil-800">
                 {{ svg('phosphor-download-simple-bold', 'size-5 text-rosa-400') }} Instalar
@@ -128,7 +131,7 @@
 
         {{-- Barra inferior (teléfono y tablet vertical) --}}
         <div x-data="{ mas: false }" class="lg:hidden" x-on:keydown.escape.window="mas = false">
-            <nav class="zona-segura-abajo fixed inset-x-0 bottom-0 z-40 border-t border-anil-800 bg-anil-900" aria-label="Principal">
+            <nav class="zona-fija zona-segura-abajo fixed inset-x-0 bottom-0 z-40 border-t border-anil-800 bg-anil-900" aria-label="Principal">
                 <ul class="grid" style="grid-template-columns: repeat({{ $barra['visibles']->count() + ($barra['mas'] ? 1 : 0) }}, minmax(0, 1fr))">
                     @foreach ($barra['visibles'] as $item)
                         @php $activo = $activoEn($item); @endphp

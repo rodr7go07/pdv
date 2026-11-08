@@ -97,7 +97,20 @@ const comprobar = (nombre, ok, detalle = '') => {
     ]);
     comprobar('Compartir PDF descarga el ticket como PDF', !!descarga && /^ticket-.*\.pdf$/.test(descarga.suggestedFilename()), descarga ? descarga.suggestedFilename() : 'sin descarga');
 
-    // 7) Nada tronó en la consola.
+    // 7) Modo oscuro: el interruptor de la cabecera lo activa, sobrevive a recargar y se puede quitar.
+    await p.keyboard.press('Enter'); // cierra «Venta registrada» (Nueva venta)
+    await p.waitForTimeout(500);
+    const oscuro = () => p.evaluate(() => document.documentElement.classList.contains('dark'));
+    await p.getByRole('button', { name: /Cambiar a modo oscuro/ }).click();
+    comprobar('el interruptor activa el modo oscuro', await oscuro());
+    await p.reload();
+    await p.waitForTimeout(1200);
+    comprobar('el modo oscuro sigue activo al recargar', await oscuro());
+    comprobar('la caja sigue usable en modo oscuro', await p.locator('input[aria-label="Código del artículo"]').isVisible());
+    await p.getByRole('button', { name: /Cambiar a modo claro/ }).click();
+    comprobar('el interruptor vuelve al modo claro', !(await oscuro()));
+
+    // 8) Nada tronó en la consola.
     comprobar('sin errores de JavaScript en la página', errores.length === 0, errores.join(' | '));
 
     await navegador.close();

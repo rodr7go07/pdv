@@ -7,7 +7,7 @@
      class="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Escanear con la cámara">
     <div class="absolute inset-0 bg-anil-950/70" x-on:click="cerrar()"></div>
 
-    <div class="relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-anil-950 text-white shadow-2xl sm:max-w-md sm:rounded-2xl">
+    <div class="zona-fija relative flex max-h-[96dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-anil-950 text-white shadow-2xl sm:max-w-md sm:rounded-2xl">
         <header class="flex shrink-0 items-center justify-between px-4 py-3">
             <h2 class="text-lg font-extrabold">Escanear con la cámara</h2>
             <button type="button" x-on:click="cerrar()" class="grid size-10 place-items-center rounded-lg text-anil-200 hover:bg-anil-800" aria-label="Cerrar la cámara"><x-phosphor-x-bold class="size-5" /></button>

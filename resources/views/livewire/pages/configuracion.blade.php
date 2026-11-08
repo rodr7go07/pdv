@@ -193,7 +193,7 @@ new #[Layout('layouts.app')] class extends Component
         <aside class="mx-auto w-full max-w-sm xl:sticky xl:top-8 xl:mx-0" aria-label="Vista previa del ticket">
             <p class="rotulo mb-3">Vista previa del ticket</p>
 
-            <div class="ticket px-6 pt-7 font-mono text-[0.8125rem] leading-snug text-tinta">
+            <div class="ticket zona-clara px-6 pt-7 font-mono text-[0.8125rem] leading-snug text-tinta">
                 <div class="flex flex-col items-center text-center">
                     @if ($this->logoVista())
                         <img src="{{ $this->logoVista() }}" alt="" class="mb-2 size-14 object-contain grayscale">

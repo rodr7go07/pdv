@@ -38,7 +38,7 @@
             @foreach ($modulos as $modulo)
                 <a href="{{ route($modulo['ruta']) }}" wire:navigate
                    class="group flex items-start gap-4 rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)] transition hover:-translate-y-0.5 hover:border-anil-300 hover:shadow-[0_4px_0_0_var(--color-anil-200)]">
-                    <span class="grid size-11 shrink-0 place-items-center rounded-lg bg-anil-900 text-rosa-400">
+                    <span class="grid size-11 shrink-0 place-items-center rounded-lg bg-fuerte text-rosa-400">
                         {{ svg('phosphor-'.$modulo['icono'].'-fill', 'size-6') }}
                     </span>
                     <span class="min-w-0">

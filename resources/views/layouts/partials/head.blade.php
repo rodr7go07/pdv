@@ -15,4 +15,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="{{ \App\Models\Configuracion::actual()->nombre_tienda }}">
 
+@include('layouts.partials.tema-inicial')
+
 @vite(['resources/css/app.css', 'resources/js/app.js'])

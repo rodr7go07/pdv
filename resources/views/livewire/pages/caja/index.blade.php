@@ -238,7 +238,7 @@ new #[Layout('layouts.app')] class extends Component
                 <button type="button" wire:click="corteX" class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
                     <x-phosphor-file-text-bold class="size-5" /> Corte parcial (X)
                 </button>
-                <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'cerrar-turno' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-anil-900 px-4 text-sm font-semibold text-white hover:bg-anil-800">
+                <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'cerrar-turno' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-fuerte px-4 text-sm font-semibold text-white hover:bg-anil-800">
                     <x-phosphor-lock-key-bold class="size-5" /> Cerrar turno
                 </button>
             @endcan

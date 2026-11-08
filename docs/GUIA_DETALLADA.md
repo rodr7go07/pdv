@@ -228,6 +228,8 @@ En teléfono y tableta hay un botón de **cámara** junto a estos campos. Lee **
 
 ## 9. Usar el sistema en el teléfono
 
+**Modo oscuro:** interruptor *Modo oscuro / Modo claro* en la barra lateral (PC), arriba a la derecha (teléfono) y en la cabecera de la caja. La preferencia se guarda **por equipo** en el navegador (`localStorage`, clave `tema`); la primera vez sigue el tema del sistema operativo. Se aplica antes de pintar (sin parpadeo) y sobrevive a `wire:navigate`. Los tickets (pantalla, impresos y PDF) y los documentos para imprimir (corte, estado de cuenta) siguen en blanco.
+
 Todas las pantallas funcionan en teléfono y en computadora. Para **instalarlo como aplicación** usa el botón **Instalar app** (en el teléfono, arriba junto a *Cerrar sesión*; en la computadora, en la barra lateral; también en la pantalla de acceso). En Chrome y Edge dispara la instalación; en iPhone/iPad muestra los pasos de Safari (*Compartir → Agregar a pantalla de inicio*), porque Safari no permite instalar desde un botón. Con la app ya instalada el botón no aparece. También sirve el menú del navegador (*Instalar app* o *Agregar a pantalla de inicio*). Requiere **HTTPS**. El ícono instalado trae accesos directos a *Venta* y *Mi caja* (mantener presionado en Android). Requiere internet para operar: sin conexión solo muestra un aviso. La **cámara** (escaneo en la pantalla de venta) exige abrir el sistema por **HTTPS**; en HTTP el navegador no da acceso a ella.
 
 ---

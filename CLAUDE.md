@@ -46,10 +46,11 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - Verificación visual: Playwright viene instalado (`require('playwright')`); levantar `php artisan serve` con una base SQLite temporal (`DB_CONNECTION=sqlite DB_DATABASE=<ruta> SESSION_DRIVER=file CACHE_STORE=file`) y revisar a 1280, 390 y 800×360 px. No usar `pkill -f`/`pgrep -f` (matan el propio shell): guardar el PID en un archivo.
 
 ## Estado del proyecto
-- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–75).
+- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–76).
 - La guía de uso vive en `resources/views/guia.blade.php` (lenguaje sencillo) y `docs/GUIA_DETALLADA.md`. Todo cambio de flujo o de atajos debe actualizar ambas (hay pruebas en `GuiaTest`).
 - Pendientes por confirmar con el dueño de la tienda: método de costeo, precios con impuestos incluidos y si necesita abrir el cajón de dinero. Además, el catálogo cargado casi no marca IVA: confirmar qué artículos llevan impuesto.
 - **Visita a la tienda pendiente:** probar lector y la térmica Moon 58W de la tablet (caja Android; SicarX ya la tiene vinculada). Opciones, orden de prueba y datos a traer están en `docs/impresion.md` («Visita a la tienda»). El botón de impresión de un toque con RawBT **no se construye** hasta que el usuario confirme que RawBT imprime desde Chrome.
+- **Pendientes de negocio antes de producción** (detalle en «Pendientes por decidir» de `PLAN.md`): plan B si se cae el internet de la caja (hoy solo avisa), piloto en paralelo con el sistema anterior comparando cortes, y si los clientes piden factura (CFDI, Fase 9).
 - Pendientes técnicos conocidos: probar con MySQL real, impresora de tickets (incluida la cola de impresión pedida desde el teléfono) y lector físico; ejecutar la Fase 8 en el servidor; el historial de git conserva un `punto_venta` (SQLite) subido por error con hashes de contraseñas de desarrollo (reescribir historial solo si el usuario lo pide).
 
 ## Módulos y decisiones recientes (ver `PLAN.md` para el detalle)
@@ -84,6 +85,11 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - **Modo oscuro (decisión 75):** los colores salen de la escala (`anil-*`, `papel`, `tinta`) y de los tokens `bg-superficie`/`bg-fuerte`; en `.dark` se vuelven a definir en `app.css`. Pantallas nuevas: no uses hexadecimales ni `bg-anil-900` (para un botón o tarjeta oscura usa `bg-fuerte`; si es una zona oscura fija con texto claro, ponle la clase `zona-fija`: `TemaOscuroTest` lo vigila). `bg-white` se vuelve la superficie de las tarjetas solo (excepto `<img>`). Un papel que debe verse blanco siempre lleva `zona-clara`. Hay que revisar la pantalla nueva también en oscuro (localStorage `tema` = `oscuro`), a 1280 y 390 px. El script del tema va en `layouts/partials/tema-inicial.blade.php`, incluido en el head y en el body de cada layout (wire:navigate solo vuelve a correr los scripts del body).
 - **Pint** puede reformatear archivos que no tocaste (llaves de constructores vacíos): revisar el `git diff` antes de confirmar.
 - Antes de dar por buena una pantalla, revisarla a 360 px de ancho sin scroll horizontal (grids con `grid-cols-[minmax(0,1fr)]` en móvil).
+
+## Continuar en una sesión local
+- La conversación de una sesión en la nube no se transfiere: el estado vive en la rama, `CLAUDE.md` y `PLAN.md`. En el equipo del usuario (cmd o PowerShell, PHP 8.3 en el PATH): `git fetch origin`, `git checkout <rama>`, `git pull`, `composer install`, `npm run build`, `php artisan migrate`, `php artisan view:clear`, y `claude` en la carpeta del proyecto.
+- Lo que solo se puede probar en local (la nube no lo alcanza): MySQL real, impresora térmica, lector, tablet y la Fase 8 en el servidor.
+- En las sesiones de la nube `composer` puede quejarse de `ext-bcmath` (una dependencia de `laravel-lang` la pide y el contenedor no la trae): `composer require ... --ignore-platform-req=ext-bcmath` solo allá; en el equipo del usuario y en el flujo de GitHub sí está.
 
 ## Entorno local (Windows + Laragon)
 - Sitio: `http://punto-de-venta.test` (Apache + PHP 8.3 por FastCGI). Alternativa: `php artisan serve --host=127.0.0.1 --port=8000`.

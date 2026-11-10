@@ -92,6 +92,7 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 73. **Impresión pedida desde otro equipo:** tabla `impresiones` (venta, caja de la venta, estado, intentos) y `cajas.impresion_pedidos` (`sola` | `aviso`). `App\Services\ColaImpresion` maneja la cola (solicitar sin duplicar, reservar de a uno, confirmar, caducar a los 10 min, reintentar lo que quedó «imprimiendo» hasta 3 veces). Como el servidor no alcanza la impresora, la pantalla de Venta de la PC (`imprimeAqui`, por omisión pantallas ≥ 1024 px, editable en «Atajos» y guardado en `localStorage`) pregunta cada 5 s a `GET /venta/impresiones`, reserva el pedido, imprime el ticket en un marco oculto con una dirección firmada y confirma. Sin programas externos; el cajón de dinero sigue necesitando QZ Tray. El cron `impresiones:caducar` corre cada minuto.
 74. **Ticket en PDF para compartir:** `App\Services\TicketPdf` (librería `dompdf/dompdf`) genera el PDF del ancho del papel de la caja (58 u 80 mm) y del alto justo del contenido (se renderiza una vez para medir con el evento `end_frame` y otra con el alto exacto), con el logotipo incrustado. Comparte con el ticket impreso el cuerpo `ventas/partials/ticket-cuerpo.blade.php` (una sola fuente). Ruta `ventas/{venta}/ticket-pdf` (`?descargar=1` lo baja como archivo). La regla de quién ve el ticket vive en `Venta::ticketVisiblePor()` y la usan el ticket impreso, el texto, el PDF y la cola de impresión. En el teléfono se comparte con `navigator.share({files})`; donde no se puede compartir archivos se descarga. Botón «Compartir PDF» en la venta cobrada y en el detalle de la venta.
 75. **Modo oscuro:** clase `dark` en `<html>`, preferencia **por equipo** en `localStorage` (`tema`; la primera vez sigue `prefers-color-scheme`), interruptor en la barra lateral, la barra del teléfono y la cabecera de la caja (`<x-tema-interruptor>`, store `tema` en `resources/js/tema.js`). Los colores no se editan pantalla por pantalla: `resources/css/app.css` vuelve a definir bajo `.dark` la escala añil, papel, tinta, las alertas (rojo, verde, ámbar) y los tokens `superficie` (tarjetas, antes `bg-white`) y `fuerte` (botones y tarjetas añil oscuro, antes `bg-anil-900`). `.zona-fija` (barra lateral, cabeceras, cámara, fondo del login) recupera la escala original porque es oscura también en claro; `.zona-clara` es papel que siempre es claro (vista previa del ticket); `.zona-tema` vuelve a aplicar el modo oscuro dentro de una zona fija. La decisión se toma con un script en `<head>` y otro al inicio de `<body>` (Livewire reemplaza los atributos de `<html>` al navegar y solo vuelve a ejecutar los scripts del body). Paleta: fondo `#0e1124`, tarjetas `#171b3a`, texto `#e8eafc`, rosa del botón sin cambio. El ticket impreso y el PDF no cambian.
+76. **Flujo automático de GitHub:** `.github/workflows/pruebas.yml` corre en cada push dos trabajos: Pint más la suite de Pest, y la prueba de humo de la caja (`tests/humo/venta.cjs`) en Chromium real contra un servidor `php artisan serve` con SQLite sembrada por `HumoSeeder` (usuario `encargado`/`password`, catálogo demo y turno abierto). Atrapa lo que Pest no ejecuta (el JavaScript de la caja). No sustituye la prueba local; si cambian la clave del artículo demo, el usuario o el turno, se actualizan el flujo y el seeder.
 
 ## Pendientes por decidir
 
@@ -101,6 +102,10 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 - [ ] **Precios con impuestos incluidos:** confirmar con el dueño que los precios de venta se capturan con impuestos incluidos (decisión 15).
 - [ ] **Cajón de dinero:** confirmar si necesita que el sistema lo abra; hoy la impresión es por el navegador y abrirlo exigiría QZ Tray (decisión 35).
 - [x] **Impresión desde el teléfono:** resuelta con una cola de pedidos que atiende la pantalla de Venta de la caja (decisión 73). Pendiente probarla con la impresora térmica real.
+- [ ] **Visita a la tienda (lector y térmica Moon 58W de la tablet):** probar el lector Bluetooth y la impresión con RawBT desde Chrome; el orden de prueba, las opciones y los datos a traer están en `docs/impresion.md` («Visita a la tienda»). El botón de impresión de un toque con RawBT **no se construye** hasta que se confirme que RawBT imprime.
+- [ ] **Qué hacer si se cae el internet en la caja:** hoy la caja avisa pero no vende sin conexión. Decidir entre un plan B operativo (datos del teléfono compartidos a la tablet, respaldo en el sistema anterior) y construir ventas sin conexión (Fase 9, trabajo grande y delicado con inventario y folios). Recomendación: empezar con el plan B y decidir con el uso real.
+- [ ] **Piloto en paralelo antes de producción:** unos días vendiendo en el sistema anterior y en este a la vez, comparando cortes de caja (precios, IVA, existencias).
+- [ ] **¿Los clientes piden factura (CFDI)?** Si sí, planearlo desde ya (Fase 9, módulo grande con requisitos legales); si no, queda fuera.
 
 ---
 
@@ -209,6 +214,15 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 - [x] Bitácora de escaneos con vista y depuración automática (decisión 61)
 - [x] Lector físico que llega al campo de captura de la venta (decisión 63)
 - [x] Proxies de confianza para túneles en desarrollo (decisión 62)
+- [x] Importación de artículos desde Excel, proveedor principal, sugerencia de compra editable y por proveedor (decisión 67)
+- [x] Cancelación de ventas con autorización de un supervisor y módulo de Roles y permisos (decisiones 68 y 69)
+- [x] Coincidencias mientras se escribe en la venta (decisión 70) y descuento por pago en efectivo (decisión 71)
+- [x] Compartir ticket como texto (decisión 72) y como PDF (decisión 74)
+- [x] Imprimir en la caja desde otro equipo, con cola de pedidos (decisión 73)
+- [x] Glosario de columnas en cada reporte (pantalla y Excel)
+- [x] Flujo automático de GitHub con Pint, suite y prueba de humo de la caja (decisión 76)
+- [x] Ojito para ver la contraseña en el login (`<x-campo-clave>`)
+- [x] Modo oscuro persistente por equipo (decisión 75)
 
 ---
 
@@ -227,4 +241,4 @@ Servidor en la nube (DigitalOcean). Internet de respaldo en la tienda (router co
 
 - [ ] Facturación CFDI 4.0 vía PAC (factura individual y global)
 - [ ] Multi-sucursal
-- [ ] Operación offline real en la caja (solo si las caídas de internet siguen siendo un problema)
+- [ ] Operación offline real en la caja (solo si las caídas de internet siguen siendo un problema; ver el pendiente «Qué hacer si se cae el internet en la caja»)

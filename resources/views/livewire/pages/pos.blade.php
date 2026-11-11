@@ -18,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Renderless;
 use Livewire\Volt\Component;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -98,7 +99,11 @@ new #[Layout('layouts.pos')] class extends Component
         ];
     }
 
+    // Los métodos que llama la caja con $wire llevan #[Renderless]: la pantalla la maneja Alpine y solo usa lo que
+    // devuelven; sin él, cada llamada vuelve a pintar toda la vista y la manda completa al navegador (PosRenderlessTest).
+
     /** Totales exactos del servidor para mostrar en la pantalla de cobro. */
+    #[Renderless]
     public function previsualizar(array $lineas, array $descuento, int $lista, ?int $clienteId = null): array
     {
         try {
@@ -114,6 +119,7 @@ new #[Layout('layouts.pos')] class extends Component
         ];
     }
 
+    #[Renderless]
     public function cobrar(array $lineas, array $pagos, array $descuento, int $lista, ?int $clienteId = null): array
     {
         $caja = $this->caja;
@@ -148,6 +154,7 @@ new #[Layout('layouts.pos')] class extends Component
 
     // ─── Clientes ───────────────────────────────────────────────────────────────
     /** Búsqueda de clientes para la venta (por nombre o teléfono). */
+    #[Renderless]
     public function buscarClientes(string $texto): array
     {
         if (! auth()->user()->can('clientes.ver')) {
@@ -195,6 +202,7 @@ new #[Layout('layouts.pos')] class extends Component
     }
 
     /** Pide que el ticket de una venta se imprima en la caja (lo atiende la pantalla de la PC de esa caja). */
+    #[Renderless]
     public function pedirImpresion(int $ventaId): array
     {
         $this->authorize('ventas.cobrar');
@@ -212,6 +220,7 @@ new #[Layout('layouts.pos')] class extends Component
     }
 
     // ─── Ventas en espera ───────────────────────────────────────────────────────
+    #[Renderless]
     public function guardarEspera(array $lineas, array $descGlobal, ?string $nombre): array
     {
         $this->authorize('ventas.cobrar');
@@ -250,6 +259,7 @@ new #[Layout('layouts.pos')] class extends Component
         return ['ok' => true];
     }
 
+    #[Renderless]
     public function listarEsperas(): array
     {
         $this->authorize('ventas.cobrar');
@@ -264,6 +274,7 @@ new #[Layout('layouts.pos')] class extends Component
             ])->all();
     }
 
+    #[Renderless]
     public function recuperarEspera(int $id): array
     {
         $this->authorize('ventas.cobrar');
@@ -280,6 +291,7 @@ new #[Layout('layouts.pos')] class extends Component
         return ['ok' => true, 'lineas' => $datos['lineas'] ?? [], 'descGlobal' => $datos['descGlobal'] ?? ['tipo' => '', 'valor' => '']];
     }
 
+    #[Renderless]
     public function descartarEspera(int $id): void
     {
         $this->authorize('ventas.cobrar');
@@ -288,6 +300,7 @@ new #[Layout('layouts.pos')] class extends Component
     }
 
     // ─── Alta rápida de artículo ────────────────────────────────────────────────
+    #[Renderless]
     public function altaRapida(array $datos): array
     {
         if (! $this->puedeAlta) {

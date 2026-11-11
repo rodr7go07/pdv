@@ -10,6 +10,7 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReporteExportController;
 use App\Http\Controllers\SugerenciaCompraExportController;
 use App\Http\Controllers\VentaTicketController;
+use App\Http\Controllers\VentaTicketEscPosController;
 use App\Http\Controllers\VentaTicketPdfController;
 use App\Http\Controllers\VentaTicketTextoController;
 use Illuminate\Support\Facades\Route;
@@ -59,6 +60,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('{venta}/ticket', VentaTicketController::class)->name('ticket');
         Route::get('{venta}/ticket-texto', VentaTicketTextoController::class)->name('ticket-texto');
         Route::get('{venta}/ticket-pdf', VentaTicketPdfController::class)->name('ticket-pdf');
+        Route::get('{venta}/ticket-escpos', VentaTicketEscPosController::class)->name('ticket-escpos');
     });
 
     Volt::route('usuarios', 'pages.usuarios')->middleware('can:usuarios.administrar')->name('usuarios');
@@ -105,6 +107,8 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Volt::route('proveedores', 'pages.proveedores')->middleware('can:proveedores.administrar')->name('proveedores');
 
     Route::view('guia', 'guia')->name('guia');
+    // Prueba de impresión por Bluetooth directo desde Chrome (sin RawBT); no está en el menú.
+    Route::view('impresora-bluetooth', 'impresora-bluetooth')->name('impresora-bluetooth');
 
     Route::view('catalogos', 'catalogos')->middleware('can:catalogos.administrar')->name('catalogos');
 

@@ -7,6 +7,7 @@
 
 import { camaraDisponible, iniciarLector } from './camara';
 import { compartirTicket, compartirTicketPdf } from './compartir';
+import { impresoraBt } from './impresora-bt';
 
 const moneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
@@ -71,6 +72,10 @@ export function registrarPos(Alpine) {
         // Tickets que otro equipo (el teléfono) pidió imprimir en esta caja. modo: 'sola' los imprime apenas llegan; 'aviso' avisa.
         colaImpresion: { modo: 'sola', pendientes: [], imprimiendo: false },
         imprimeAqui: false, // esta pantalla atiende los tickets pedidos (la de la PC con la impresora; el teléfono no)
+        imprimeRawbt: false, // Android con RawBT: el ticket va directo a la térmica, sin cuadro de impresión (se elige en «Atajos»)
+        imprimeBt: false, // Bluetooth directo desde Chrome (sin apps): el ticket sale de un toque (se elige en «Atajos»)
+        impresoraBt: { conectada: false, nombre: '', conectando: false, soportada: false },
+        _dejarDeOirBt: null,
         _colaT: null,
         _colaRevisando: false,
 
@@ -108,12 +113,15 @@ export function registrarPos(Alpine) {
         destroy() {
             this.cerrarCamara();
             clearInterval(this._colaT);
+            this._dejarDeOirBt?.();
         },
 
         // ─── Tickets pedidos desde otro equipo ──────────────────────────────────────
         /** Pregunta cada pocos segundos si hay tickets pendientes de esta caja (solo con turno abierto). */
         vigilarImpresiones() {
             // Por omisión imprimen las pantallas anchas (la PC de la caja); el teléfono y la tableta no. Se puede cambiar en «Atajos».
+            this.imprimeRawbt = guardado.leer('pdv-imprime-rawbt') === true;
+            this.prepararImpresoraBt();
             const guardada = guardado.leer('pdv-imprime-pedidos');
             this.imprimeAqui = guardada === null ? window.matchMedia('(min-width: 1024px)').matches : guardada === true;
             document.addEventListener('visibilitychange', () => { if (!document.hidden) this.revisarImpresiones(); });
@@ -132,6 +140,75 @@ export function registrarPos(Alpine) {
             this.imprimeAqui = !this.imprimeAqui;
             guardado.escribir('pdv-imprime-pedidos', this.imprimeAqui);
             this.activarVigilancia();
+        },
+
+        alternarRawbt() {
+            this.imprimeRawbt = !this.imprimeRawbt;
+            guardado.escribir('pdv-imprime-rawbt', this.imprimeRawbt);
+            if (this.imprimeRawbt && this.imprimeBt) { this.imprimeBt = false; guardado.escribir('pdv-imprime-bt', false); }
+        },
+
+        // ─── Impresora Bluetooth directa (Chrome, sin apps) ─────────────────────────
+        prepararImpresoraBt() {
+            this.imprimeBt = guardado.leer('pdv-imprime-bt') === true;
+            this.impresoraBt.soportada = impresoraBt.soportada();
+            const refrescar = () => { this.impresoraBt.conectada = impresoraBt.conectada(); this.impresoraBt.nombre = impresoraBt.nombre(); };
+            this._dejarDeOirBt = impresoraBt.alCambiar(refrescar);
+            refrescar();
+            // Al volver a abrir Chrome intenta recuperar la última impresora sin preguntar (si el navegador lo permite).
+            if (this.imprimeBt && this.impresoraBt.soportada) impresoraBt.reconectar().then(refrescar);
+        },
+
+        alternarBt() {
+            this.imprimeBt = !this.imprimeBt;
+            guardado.escribir('pdv-imprime-bt', this.imprimeBt);
+            if (this.imprimeBt && this.imprimeRawbt) { this.imprimeRawbt = false; guardado.escribir('pdv-imprime-rawbt', false); }
+            if (this.imprimeBt && !this.impresoraBt.conectada) this.conectarImpresoraBt();
+        },
+
+        /** Abre la lista de Chrome para elegir la impresora (necesita un toque del usuario). */
+        async conectarImpresoraBt() {
+            if (!this.impresoraBt.soportada) {
+                this.avisar('Este navegador no puede usar Bluetooth: abre el sistema en Chrome de Android con la dirección https.', 'error', 7000);
+                return false;
+            }
+            this.impresoraBt.conectando = true;
+            try {
+                await impresoraBt.elegir();
+                this.avisar(`Impresora conectada: ${impresoraBt.nombre()}.`, 'ok');
+                return true;
+            } catch (e) {
+                // NotFoundError = cerró la lista sin elegir; no es un error que haya que explicar.
+                if (e?.name !== 'NotFoundError') this.avisar(`No se pudo conectar la impresora: ${e?.message || e}`, 'error', 7000);
+                return false;
+            } finally {
+                this.impresoraBt.conectando = false;
+            }
+        },
+
+        /** Botón de la cabecera: conecta si hace falta; si ya está conectada solo lo confirma. */
+        async tocarImpresoraBt() {
+            if (this.impresoraBt.conectada) { this.avisar(`Impresora conectada: ${this.impresoraBt.nombre}.`, 'ok'); return; }
+            if (await impresoraBt.reconectar()) { this.avisar(`Impresora conectada: ${impresoraBt.nombre()}.`, 'ok'); return; }
+            await this.conectarImpresoraBt();
+        },
+
+        async imprimirPorBt(id) {
+            // Primero la conexión (si hay que elegirla, Chrome exige que sea justo después del toque) y luego el ticket.
+            if (!impresoraBt.conectada() && !(await impresoraBt.reconectar())) {
+                if (!(await this.conectarImpresoraBt())) {
+                    this.avisar('La impresora no está conectada: toca el botón de la impresora arriba y vuelve a imprimir.', 'error', 7000);
+                    return;
+                }
+            }
+            try {
+                const r = await fetch(this.cfg.urlTicketEscPos.replace('__ID__', id), { credentials: 'same-origin', signal: AbortSignal.timeout(10000) });
+                if (!r.ok) throw new Error('No se pudo preparar el ticket.');
+                const bytes = Uint8Array.from(atob((await r.text()).trim()), (c) => c.charCodeAt(0));
+                await impresoraBt.imprimir(bytes);
+            } catch (e) {
+                this.avisar(`No se imprimió: ${e?.message || e}`, 'error', 7000);
+            }
         },
 
         /** Desde una pantalla que no imprime (el teléfono): pide que el ticket salga en la caja. */
@@ -967,11 +1044,28 @@ export function registrarPos(Alpine) {
         },
 
         imprimirTicket(id) {
+            if (this.imprimeBt) { this.imprimirPorBt(id); return; }
+            if (this.imprimeRawbt) { this.imprimirConRawbt(id); return; }
             const marco = document.createElement('iframe');
             marco.style.cssText = 'position:fixed;width:0;height:0;border:0;visibility:hidden';
             marco.src = this.cfg.urlTicket.replace('__ID__', id) + '?imprimir=1';
             document.body.appendChild(marco);
             setTimeout(() => marco.remove(), 60000);
+        },
+
+        /**
+         * Manda el ticket (comandos ESC/POS en base64) a la app RawBT de Android, que lo imprime sin cuadro.
+         * Chrome abre la app con una dirección «intent:»; si RawBT no está instalada, abre su página en Play Store.
+         */
+        async imprimirConRawbt(id) {
+            try {
+                const r = await fetch(this.cfg.urlTicketEscPos.replace('__ID__', id), { credentials: 'same-origin', signal: AbortSignal.timeout(10000) });
+                if (!r.ok) throw new Error();
+                const datos = (await r.text()).trim();
+                window.location.href = `intent:base64,${datos}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+            } catch {
+                this.avisar('No se pudo preparar el ticket para RawBT. Revisa tu internet e inténtalo de nuevo.', 'error', 6000);
+            }
         },
 
         nuevaVenta() {

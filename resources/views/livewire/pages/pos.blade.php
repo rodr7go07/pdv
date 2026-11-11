@@ -85,6 +85,7 @@ new #[Layout('layouts.pos')] class extends Component
             'urlTicket' => route('ventas.ticket', ['venta' => '__ID__'], absolute: false),
             'urlTicketTexto' => route('ventas.ticket-texto', ['venta' => '__ID__'], absolute: false),
             'urlTicketPdf' => route('ventas.ticket-pdf', ['venta' => '__ID__'], absolute: false),
+            'urlTicketEscPos' => route('ventas.ticket-escpos', ['venta' => '__ID__'], absolute: false),
             'urlImpresiones' => route('impresiones.pendientes', absolute: false),
             'urlImpresion' => '/venta/impresiones/__ID__/__ACCION__',
             'puedeDescuento' => auth()->user()->can('ventas.descuento'),
@@ -407,6 +408,14 @@ new #[Layout('layouts.pos')] class extends Component
             </div>
             <div class="ml-auto flex items-center gap-1">
                 <span class="mr-2 hidden text-sm text-anil-600 md:block">{{ auth()->user()->name }}</span>
+                {{-- Impresora Bluetooth directa: punto verde si está conectada; al tocarla conecta (solo con el interruptor de «Atajos» activo) --}}
+                <button type="button" x-show="imprimeBt" x-cloak x-on:click="tocarImpresoraBt()" x-bind:disabled="impresoraBt.conectando"
+                        class="relative grid size-11 shrink-0 place-items-center rounded-lg text-anil-600 hover:bg-anil-50"
+                        x-bind:aria-label="impresoraBt.conectada ? 'Impresora conectada: ' + impresoraBt.nombre : 'Conectar la impresora Bluetooth'"
+                        x-bind:title="impresoraBt.conectada ? 'Impresora conectada: ' + impresoraBt.nombre : 'Conectar la impresora Bluetooth'">
+                    <x-phosphor-printer-bold class="size-5" x-bind:class="impresoraBt.conectando && 'animate-pulse'" />
+                    <span class="absolute right-2 top-2 size-2.5 rounded-full ring-2 ring-white" x-bind:class="impresoraBt.conectada ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                </button>
                 <x-tema-interruptor variante="icono" />
                 <button type="button" x-on:click="modal = 'atajos'" class="grid size-11 place-items-center rounded-lg text-anil-600 hover:bg-anil-50" aria-label="Atajos de teclado" title="Atajos de teclado">
                     <x-phosphor-keyboard-bold class="size-5" />
@@ -937,7 +946,7 @@ new #[Layout('layouts.pos')] class extends Component
                 <div class="mt-5 grid gap-2">
                     <x-primary-button type="button" x-on:click="nuevaVenta()" class="w-full">Nueva venta <span class="font-mono text-xs opacity-80">Enter</span></x-primary-button>
                     <x-secondary-button x-on:click="imprimirTicket(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir ticket</x-secondary-button>
-                    <x-secondary-button x-show="!imprimeAqui" x-cloak x-on:click="pedirImpresionEnCaja(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir en la caja</x-secondary-button>
+                    <x-secondary-button x-show="!imprimeAqui && !imprimeRawbt && !imprimeBt" x-cloak x-on:click="pedirImpresionEnCaja(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir en la caja</x-secondary-button>
                     <x-secondary-button x-on:click="compartirTicket(exito.id, exito.folio)" class="w-full"><x-phosphor-share-network-bold class="size-4" /> Compartir ticket</x-secondary-button>
                     <x-secondary-button x-on:click="compartirPdfDelTicket(exito.id, exito.folio)" class="w-full"><x-phosphor-file-pdf-bold class="size-4" /> Compartir PDF</x-secondary-button>
                     <p x-show="aviso" x-text="aviso" x-cloak :class="avisoTipo === 'error' ? 'text-red-700' : 'text-emerald-700'" class="text-sm font-semibold" role="status"></p>
@@ -945,12 +954,14 @@ new #[Layout('layouts.pos')] class extends Component
             </div>
 
             {{-- Atajos --}}
-            <div x-show="modal === 'atajos'" x-cloak class="relative w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-md sm:rounded-2xl">
-                <div class="flex items-center justify-between">
+            {{-- Cabecera fija con el botón de cerrar; el contenido se desplaza (en el teléfono no cabe completo). --}}
+            <div x-show="modal === 'atajos'" x-cloak class="relative flex max-h-[92dvh] w-full flex-col rounded-t-2xl bg-white shadow-2xl sm:max-w-md sm:rounded-2xl">
+                <div class="flex shrink-0 items-center justify-between border-b border-anil-100 px-5 py-3">
                     <h2 class="text-lg font-extrabold">Atajos de teclado</h2>
                     <button type="button" x-on:click="modal = null; enfocar()" class="grid size-10 place-items-center rounded-lg text-anil-600 hover:bg-anil-50" aria-label="Cerrar"><x-phosphor-x-bold class="size-5" /></button>
                 </div>
-                <dl class="mt-3 divide-y divide-anil-50 text-sm">
+                <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5 pt-2">
+                <dl class="divide-y divide-anil-50 text-sm">
                     @foreach ([
                         ['Enter', 'Agregar el artículo escaneado o escrito'],
                         ['5*  y luego el código', 'Vender 5 piezas del artículo (o escribe 5*código)'],
@@ -978,6 +989,31 @@ new #[Layout('layouts.pos')] class extends Component
                         <p class="font-semibold text-anil-900">Imprimir los tickets que pidan desde otros equipos</p>
                         <p class="mt-0.5 text-xs text-anil-600">Actívalo solo en la PC que tiene la impresora de tickets. Los pedidos del teléfono llegan aquí y salen en la impresora.</p>
                     </div>
+                </div>
+
+                <div class="mt-3 flex items-start gap-3 rounded-xl border border-anil-200 p-3">
+                    <button type="button" role="switch" :aria-checked="imprimeRawbt" x-on:click="alternarRawbt()" aria-label="Imprimir directo con RawBT"
+                            :class="imprimeRawbt ? 'bg-emerald-600' : 'bg-anil-300'" class="relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition">
+                        <span :class="imprimeRawbt ? 'translate-x-5' : 'translate-x-0.5'" class="absolute left-0 top-0.5 size-6 rounded-full bg-white shadow transition"></span>
+                    </button>
+                    <div class="min-w-0 text-sm">
+                        <p class="font-semibold text-anil-900">Imprimir directo con RawBT (Android)</p>
+                        <p class="mt-0.5 text-xs text-anil-600">En el teléfono o la tablet con la app RawBT y la térmica vinculada: «Imprimir ticket» sale de un toque, sin el cuadro de impresión.</p>
+                    </div>
+                </div>
+
+                <div class="mt-3 flex items-start gap-3 rounded-xl border border-anil-200 p-3">
+                    <button type="button" role="switch" :aria-checked="imprimeBt" x-on:click="alternarBt()" aria-label="Imprimir por Bluetooth directo"
+                            :class="imprimeBt ? 'bg-emerald-600' : 'bg-anil-300'" class="relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition">
+                        <span :class="imprimeBt ? 'translate-x-5' : 'translate-x-0.5'" class="absolute left-0 top-0.5 size-6 rounded-full bg-white shadow transition"></span>
+                    </button>
+                    <div class="min-w-0 text-sm">
+                        <p class="font-semibold text-anil-900">Imprimir por Bluetooth directo (Chrome)</p>
+                        <p class="mt-0.5 text-xs text-anil-600">Sin apps: eliges la impresora una vez y cada ticket sale de un toque. Arriba aparece la impresora: punto verde, conectada; rojo, tócala para conectarla.</p>
+                        <p x-show="imprimeBt" x-cloak class="mt-1 text-xs font-semibold" :class="impresoraBt.conectada ? 'text-emerald-700' : 'text-red-700'"
+                           x-text="impresoraBt.conectada ? 'Conectada: ' + impresoraBt.nombre : 'Sin conectar'"></p>
+                    </div>
+                </div>
                 </div>
             </div>
         </div>

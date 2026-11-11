@@ -11,8 +11,8 @@
 @source '../views';
 
 /*
- * Identidad visual: rótulo pintado + ticket térmico.
- * Añil de fachada, rosa mexicano como único acento, papel gris azulado.
+ * Identidad visual (decisión 78): rosa mexicano sobre blanco, tinta casi negra, sin zonas oscuras de fondo ni brillos.
+ * La escala `anil-*` conserva su nombre (se usa en todo el sistema) pero ahora es un gris neutro con un toque violeta.
  */
 /* Teléfono acostado: poca altura pero ancho suficiente para poner la venta en dos columnas (como en PC). */
 @custom-variant apaisado (@media (orientation: landscape) and (max-height: 32rem) and (min-width: 40rem) and (max-width: 63.99rem));
@@ -28,40 +28,44 @@
     --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
-    --color-anil-50: #f1f3fd;
-    --color-anil-100: #e4e8fa;
-    --color-anil-200: #c9d1f4;
-    --color-anil-300: #a3b0ea;
-    --color-anil-400: #7788dc;
-    --color-anil-500: #4f63cb;
-    --color-anil-600: #3a4cb0;
-    --color-anil-700: #2d3b8f;
-    --color-anil-800: #1f2a68;
-    --color-anil-900: #141a4a;
-    --color-anil-950: #0d1132;
+    --color-anil-50: #f6f5f7;
+    --color-anil-100: #eceaee;
+    --color-anil-200: #dedbe1;
+    --color-anil-300: #c5c0c9;
+    --color-anil-400: #9f99a5;
+    --color-anil-500: #7a7380;
+    --color-anil-600: #5e5764;
+    --color-anil-700: #47414c;
+    --color-anil-800: #322d36;
+    --color-anil-900: #1d1a1f;
+    --color-anil-950: #121014;
 
-    /* Rosa mexicano mate (decisión 77): mismo tono, menos saturado, para que no se vea neón. */
-    --color-rosa-50: #fbf1f5;
-    --color-rosa-100: #f7e6ed;
-    --color-rosa-200: #ecc6d6;
-    --color-rosa-300: #dc9bb8;
-    --color-rosa-400: #d4789e;
-    --color-rosa-500: #c2386f;
-    --color-rosa-600: #a82f60;
-    --color-rosa-700: #8a264f;
+    --color-rosa-50: #fff0f7;
+    --color-rosa-100: #ffd9ec;
+    --color-rosa-200: #fbb3d6;
+    --color-rosa-300: #f77ebb;
+    --color-rosa-400: #f2429b;
+    --color-rosa-500: #e4007c;
+    --color-rosa-600: #c40069;
+    --color-rosa-700: #9c0054;
 
-    --color-papel: #f1f2f6;
-    --color-tinta: #11153a;
+    --color-papel: #f6f5f7;
+    --color-tinta: #1d1a1f;
     --color-etiqueta: #e3b34c; /* mostaza suave para avisos (antes amarillo puro) */
-    --color-ok: #0e8f63;
+    --color-ok: #2f7a3a;
     --color-peligro: #d02847;
 
-    /* Tarjetas, campos y ventanas (blanco en claro) y botones/tarjetas «fuertes» (añil oscuro en claro). Cambian en modo oscuro. */
+    /* Tarjetas, campos y ventanas (blanco en claro) y botones/tarjetas «fuertes» (casi negro en claro). Cambian en modo oscuro. */
     --color-superficie: #ffffff;
-    --color-fuerte: #141a4a;
+    --color-fuerte: #1d1a1f;
 
-    --radius-ticket: 0.875rem;
-    --shadow-ticket: 0 1px 0 rgb(17 21 58 / 0.04), 0 10px 30px -12px rgb(17 21 58 / 0.25);
+    /* Esquinas más rectas: cada tamaño de Tailwind baja un escalón (decisión 78). */
+    --radius-md: 0.25rem;
+    --radius-lg: 0.375rem;
+    --radius-xl: 0.5rem;
+    --radius-2xl: 0.625rem;
+    --radius-ticket: 0.5rem;
+    --shadow-ticket: 0 1px 0 rgb(29 26 31 / 0.04), 0 10px 30px -12px rgb(29 26 31 / 0.18);
 }
 
 @layer base {
@@ -95,8 +99,8 @@
 /*
  * Modo oscuro. Todo el sistema pinta con la escala añil (más papel, tinta y los rojos, verdes y ámbar de las alertas),
  * así que en lugar de tocar cada pantalla se vuelven a definir esos colores bajo `.dark`.
- *   - `.zona-fija`: zonas que son oscuras también en modo claro (barra lateral, cabeceras, cámara, fondo del login):
- *     recuperan la escala original para que su texto claro siga sobre fondo oscuro.
+ *   - `.zona-fija`: zonas que son oscuras también en modo claro (cámara, tarjetas `bg-fuerte`):
+ *     recuperan la escala de modo claro para que su texto claro siga sobre fondo oscuro.
  *   - `.zona-clara`: papeles que siempre son claros (vista previa del ticket).
  *   - `.zona-tema`: dentro de una zona fija, vuelve a aplicar el modo oscuro (la tarjeta del login).
  */
@@ -104,27 +108,30 @@
     .dark, .dark .zona-tema {
         color-scheme: dark;
 
-        --color-papel: #0e1124;
-        --color-tinta: #e8eafc;
-        --color-superficie: #171b3a;
-        --color-fuerte: #2d3b8f;
-        --color-ok: #34d399;
+        --color-papel: #141216;
+        --color-tinta: #f1eff3;
+        --color-superficie: #1c1a1f;
+        --color-fuerte: #3a3640;
+        --color-ok: #6cc07a;
         --color-peligro: #ff6b81;
 
-        --color-anil-50: #1e2347;
-        --color-anil-100: #252c58;
-        --color-anil-200: #323a6e;
-        --color-anil-300: #5a68ad;
-        --color-anil-400: #7684c7;
-        --color-anil-500: #8c9bea;
-        --color-anil-600: #8d99d6;
-        --color-anil-700: #b4bce8;
-        --color-anil-800: #cdd3f5;
-        --color-anil-900: #e8eafc;
+        --color-anil-50: #242127;
+        --color-anil-100: #2c2930;
+        --color-anil-200: #3a363e;
+        --color-anil-300: #5b5661;
+        --color-anil-400: #7b7581;
+        --color-anil-500: #9b95a1;
+        --color-anil-600: #aaa4b0;
+        --color-anil-700: #c9c4cd;
+        --color-anil-800: #ddd9e0;
+        --color-anil-900: #f1eff3;
 
-        --color-rosa-50: rgb(194 56 111 / 0.14);
-        --color-rosa-100: rgb(194 56 111 / 0.22);
-        --color-rosa-200: rgb(194 56 111 / 0.4);
+        /* En oscuro el rosa del texto es un tono más suave para que no brille sobre el fondo. */
+        --color-rosa-400: #ee8dbd;
+
+        --color-rosa-50: rgb(228 0 124 / 0.14);
+        --color-rosa-100: rgb(228 0 124 / 0.22);
+        --color-rosa-200: rgb(228 0 124 / 0.35);
 
         --color-red-50: rgb(248 113 113 / 0.12);
         --color-red-200: rgb(248 113 113 / 0.35);
@@ -149,17 +156,18 @@
         --color-ok: #0e8f63;
         --color-peligro: #d02847;
 
-        --color-anil-50: #f1f3fd;
-        --color-anil-100: #e4e8fa;
-        --color-anil-200: #c9d1f4;
-        --color-anil-300: #a3b0ea;
-        --color-anil-400: #7788dc;
-        --color-anil-500: #4f63cb;
-        --color-anil-600: #3a4cb0;
-        --color-anil-700: #2d3b8f;
-        --color-anil-800: #1f2a68;
-        --color-anil-900: #141a4a;
+        --color-anil-50: #f6f5f7;
+        --color-anil-100: #eceaee;
+        --color-anil-200: #dedbe1;
+        --color-anil-300: #c5c0c9;
+        --color-anil-400: #9f99a5;
+        --color-anil-500: #7a7380;
+        --color-anil-600: #5e5764;
+        --color-anil-700: #47414c;
+        --color-anil-800: #322d36;
+        --color-anil-900: #1d1a1f;
 
+        --color-rosa-400: #f2429b;
         --color-rosa-50: #fff0f7;
         --color-rosa-100: #ffd9ec;
         --color-rosa-200: #fbb3d6;
@@ -185,10 +193,10 @@
 
     .dark .zona-clara {
         color-scheme: light;
-        --color-papel: #f1f2f6;
-        --color-tinta: #11153a;
+        --color-papel: #f6f5f7;
+        --color-tinta: #1d1a1f;
         --color-superficie: #ffffff;
-        --color-fuerte: #141a4a;
+        --color-fuerte: #1d1a1f;
     }
 
     /* Campos sin clase de fondo (selectores, montos, casillas): el plugin de formularios los pinta de blanco. */
@@ -203,24 +211,21 @@
 
     .dark .zona-clara :is(input, select, textarea) {
         background-color: #fff;
-        color: #11153a;
+        color: #1d1a1f;
     }
 
-    /* La barra lateral, las cabeceras y el login quedan un poco más oscuros que la página para distinguirse de ella. */
+    /* Las zonas oscuras fijas quedan un poco más oscuras que la página para distinguirse de ella. */
     .dark .zona-fija {
-        --color-anil-900: #0a0c1f;
-        --color-anil-800: #1c2250;
+        --color-anil-900: #0f0d11;
+        --color-anil-800: #2a272e;
     }
 }
 
 @layer components {
-    /* Etiqueta en mayúsculas pequeñas, como las del ticket */
+    /* Etiqueta pequeña sobre un dato o una sección */
     .rotulo {
-        font-family: var(--font-mono);
-        font-size: 0.6875rem;
-        font-weight: 500;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 600;
         color: var(--color-anil-600);
     }
 
@@ -283,7 +288,6 @@
 .toldo {
     --olan: 28px;
     background: repeating-linear-gradient(90deg, var(--color-rosa-500) 0 var(--olan), #fff var(--olan) calc(var(--olan) * 2));
-    box-shadow: inset 0 -10px 12px -10px rgb(0 0 0 / 0.25);
     -webkit-mask: radial-gradient(calc(var(--olan) / 2) at 50% calc(100% - calc(var(--olan) / 2)), #000 99%, #0000) 0 0 / var(--olan) 100%,
         linear-gradient(#000 0 0) top / 100% calc(100% - calc(var(--olan) / 2)) no-repeat;
     mask: radial-gradient(calc(var(--olan) / 2) at 50% calc(100% - calc(var(--olan) / 2)), #000 99%, #0000) 0 0 / var(--olan) 100%,
@@ -291,7 +295,7 @@
     transform-origin: top;
     animation: desplegar 450ms cubic-bezier(.2, .7, .2, 1) both;
 }
-.dark .toldo { background: repeating-linear-gradient(90deg, var(--color-rosa-600) 0 var(--olan), #dfe2f5 var(--olan) calc(var(--olan) * 2)); }
+.dark .toldo { background: repeating-linear-gradient(90deg, var(--color-rosa-600) 0 var(--olan), #e9e6eb var(--olan) calc(var(--olan) * 2)); }
 
 .codigo-barras {
     /* Dos patrones de periodo distinto encimados para que las barras no se vean repetidas */

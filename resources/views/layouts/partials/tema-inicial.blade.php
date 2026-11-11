@@ -9,7 +9,7 @@
         if (tema ? tema === 'oscuro' : window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
             var barra = document.querySelector('meta[name="theme-color"]');
-            if (barra) barra.setAttribute('content', '#0a0c1f');
+            if (barra) barra.setAttribute('content', '#1c1a1f');
         }
     } catch (e) {}
 </script>

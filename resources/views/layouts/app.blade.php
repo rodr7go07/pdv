@@ -16,16 +16,16 @@
         @include('layouts.partials.tema-inicial')
 
         {{-- Barra lateral (PC y tablet horizontal) --}}
-        <aside class="zona-fija fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-anil-900 text-anil-100 lg:flex">
+        <aside class="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-anil-100 bg-white text-anil-800 lg:flex">
             <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 px-6 pb-5 pt-7">
                 @if ($tienda->logoUrl())
-                    <img src="{{ $tienda->logoUrl() }}" alt="" class="size-10 rounded-lg bg-white object-contain p-1">
+                    <img src="{{ $tienda->logoUrl() }}" alt="" class="size-10 rounded-lg border border-anil-100 bg-white object-contain p-1">
                 @else
                     <x-application-logo class="size-10 shrink-0 text-rosa-500" />
                 @endif
                 <span class="min-w-0">
-                    <span class="block truncate font-display text-lg font-extrabold leading-tight text-white [font-stretch:115%]">{{ $tienda->nombre_tienda }}</span>
-                    <span class="rotulo !text-anil-300">Punto de venta</span>
+                    <span class="block truncate font-display text-lg font-extrabold leading-tight text-tinta [font-stretch:115%]">{{ $tienda->nombre_tienda }}</span>
+                    <span class="rotulo">Punto de venta</span>
                 </span>
             </a>
 
@@ -35,7 +35,7 @@
                     @if ($items->isNotEmpty())
                         <div>
                             @if (! $loop->first)
-                                <p class="rotulo mb-1 px-3 !text-anil-400">{{ $grupo }}</p>
+                                <p class="rotulo mb-1 px-3 !text-anil-500">{{ $grupo }}</p>
                             @endif
                             <div class="space-y-0.5">
                                 @foreach ($items as $item)
@@ -43,14 +43,11 @@
                                     <a href="{{ route($item['ruta']) }}" wire:navigate
                                        @class([
                                            'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.9375rem] font-medium transition-colors',
-                                           'bg-anil-800 text-white' => $activo,
-                                           'text-anil-200 hover:bg-anil-800/60 hover:text-white' => ! $activo,
+                                           'bg-rosa-50 text-rosa-700' => $activo,
+                                           'text-anil-700 hover:bg-anil-50 hover:text-tinta' => ! $activo,
                                        ])
                                        @if ($activo) aria-current="page" @endif>
-                                        @if ($activo)
-                                            <span class="absolute inset-y-2 left-0 w-1 rounded-r-full bg-rosa-500"></span>
-                                        @endif
-                                        {{ svg('phosphor-'.$item['icono'].($activo ? '-fill' : '-bold'), 'size-5 shrink-0 '.($activo ? 'text-rosa-400' : '')) }}
+                                        {{ svg('phosphor-'.$item['icono'].($activo ? '-fill' : '-bold'), 'size-5 shrink-0 '.($activo ? 'text-rosa-600' : 'text-anil-500')) }}
                                         {{ $item['etiqueta'] }}
                                     </a>
                                 @endforeach
@@ -60,24 +57,24 @@
                 @endforeach
             </nav>
 
-            <div class="border-t border-anil-800 p-4">
+            <div class="border-t border-anil-100 p-4">
                 <x-tema-interruptor />
                 <button type="button" x-data x-show="$store.pwa.puedeInstalar" x-cloak x-on:click="$store.pwa.instalar()"
-                        class="mb-3 flex min-h-11 w-full items-center gap-3 rounded-lg border border-anil-700 px-3 text-sm font-semibold text-anil-100 transition hover:bg-anil-800 hover:text-white">
-                    {{ svg('phosphor-download-simple-bold', 'size-5 shrink-0 text-rosa-400') }} Instalar app
+                        class="mb-3 flex min-h-11 w-full items-center gap-3 rounded-lg border border-anil-200 px-3 text-sm font-semibold text-anil-800 transition hover:bg-anil-50">
+                    {{ svg('phosphor-download-simple-bold', 'size-5 shrink-0 text-rosa-600') }} Instalar app
                 </button>
                 <div class="flex items-center gap-3">
-                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-anil-700 font-display text-sm font-extrabold uppercase text-white">
+                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-rosa-50 font-display text-sm font-extrabold uppercase text-rosa-700">
                         {{ \Illuminate\Support\Str::of($usuario->name)->explode(' ')->take(2)->map(fn ($p) => mb_substr($p, 0, 1))->implode('') }}
                     </span>
                     <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-semibold text-white">{{ $usuario->name }}</span>
-                        <span class="rotulo !text-anil-300">{{ $usuario->nombreRol() ?? 'Sin rol' }}</span>
+                        <span class="block truncate text-sm font-semibold text-tinta">{{ $usuario->name }}</span>
+                        <span class="rotulo">{{ $usuario->nombreRol() ?? 'Sin rol' }}</span>
                     </span>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" title="Cerrar sesión" aria-label="Cerrar sesión"
-                                class="grid size-10 place-items-center rounded-lg text-anil-200 transition hover:bg-anil-800 hover:text-white">
+                                class="grid size-10 place-items-center rounded-lg text-anil-600 transition hover:bg-anil-50 hover:text-tinta">
                             {{ svg('phosphor-sign-out-bold', 'size-5') }}
                         </button>
                     </form>
@@ -86,24 +83,24 @@
         </aside>
 
         {{-- Barra superior (teléfono y tablet vertical) --}}
-        <header class="zona-fija sticky top-0 z-30 flex h-14 items-center justify-between bg-anil-900 px-4 pt-[env(safe-area-inset-top)] lg:hidden">
+        <header class="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-anil-100 bg-white px-4 pt-[env(safe-area-inset-top)] lg:hidden">
             <a href="{{ route('dashboard') }}" wire:navigate class="flex min-h-11 min-w-0 items-center gap-2.5">
                 @if ($tienda->logoUrl())
-                    <img src="{{ $tienda->logoUrl() }}" alt="" class="size-8 rounded-md bg-white object-contain p-0.5">
+                    <img src="{{ $tienda->logoUrl() }}" alt="" class="size-8 rounded-md border border-anil-100 bg-white object-contain p-0.5">
                 @else
                     <x-application-logo class="size-8 shrink-0 text-rosa-500" />
                 @endif
-                <span class="truncate font-display text-base font-extrabold text-white [font-stretch:115%]">{{ $tienda->nombre_tienda }}</span>
+                <span class="truncate font-display text-base font-extrabold text-tinta [font-stretch:115%]">{{ $tienda->nombre_tienda }}</span>
             </a>
             <div class="flex items-center gap-1">
-            <x-tema-interruptor variante="icono" class="active:bg-anil-800" />
+            <x-tema-interruptor variante="icono" class="active:bg-anil-100" />
             <button type="button" x-data x-show="$store.pwa.puedeInstalar" x-cloak x-on:click="$store.pwa.instalar()" aria-label="Instalar app" title="Instalar app"
-                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold text-anil-100 active:bg-anil-800">
-                {{ svg('phosphor-download-simple-bold', 'size-5 text-rosa-400') }} Instalar
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold text-anil-800 active:bg-anil-100">
+                {{ svg('phosphor-download-simple-bold', 'size-5 text-rosa-600') }} Instalar
             </button>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" aria-label="Cerrar sesión" class="grid size-11 place-items-center rounded-lg text-anil-200 active:bg-anil-800">
+                <button type="submit" aria-label="Cerrar sesión" class="grid size-11 place-items-center rounded-lg text-anil-600 active:bg-anil-100">
                     {{ svg('phosphor-sign-out-bold', 'size-5') }}
                 </button>
             </form>
@@ -131,7 +128,7 @@
 
         {{-- Barra inferior (teléfono y tablet vertical) --}}
         <div x-data="{ mas: false }" class="lg:hidden" x-on:keydown.escape.window="mas = false">
-            <nav class="zona-fija zona-segura-abajo fixed inset-x-0 bottom-0 z-40 border-t border-anil-800 bg-anil-900" aria-label="Principal">
+            <nav class="zona-segura-abajo fixed inset-x-0 bottom-0 z-40 border-t border-anil-100 bg-white" aria-label="Principal">
                 <ul class="grid" style="grid-template-columns: repeat({{ $barra['visibles']->count() + ($barra['mas'] ? 1 : 0) }}, minmax(0, 1fr))">
                     @foreach ($barra['visibles'] as $item)
                         @php $activo = $activoEn($item); @endphp
@@ -139,21 +136,21 @@
                             <a href="{{ route($item['ruta']) }}" wire:navigate
                                @class([
                                    'relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold',
-                                   'text-white' => $activo,
-                                   'text-anil-300' => ! $activo,
+                                   'text-rosa-700' => $activo,
+                                   'text-anil-600' => ! $activo,
                                ])
                                @if ($activo) aria-current="page" @endif>
                                 @if ($activo)
-                                    <span class="absolute inset-x-5 top-0 h-0.5 rounded-b-full bg-rosa-500"></span>
+                                    <span class="absolute inset-x-5 top-0 h-0.5 bg-rosa-500"></span>
                                 @endif
-                                {{ svg('phosphor-'.$item['icono'].($activo ? '-fill' : '-bold'), 'size-6 '.($activo ? 'text-rosa-400' : '')) }}
+                                {{ svg('phosphor-'.$item['icono'].($activo ? '-fill' : '-bold'), 'size-6 '.($activo ? 'text-rosa-600' : '')) }}
                                 {{ $item['etiqueta'] }}
                             </a>
                         </li>
                     @endforeach
                     @if ($barra['mas'])
                         <li>
-                            <button type="button" x-on:click="mas = true" class="flex min-h-14 w-full flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold text-anil-300"
+                            <button type="button" x-on:click="mas = true" class="flex min-h-14 w-full flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold text-anil-600"
                                     aria-haspopup="dialog" :aria-expanded="mas">
                                 <x-phosphor-list-bold class="size-6" /> Más
                             </button>

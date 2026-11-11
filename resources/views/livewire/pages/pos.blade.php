@@ -396,19 +396,19 @@ new #[Layout('layouts.pos')] class extends Component
         </div>
     @else
         {{-- Barra superior --}}
-        <header class="zona-fija flex h-14 shrink-0 items-center gap-2 bg-anil-900 px-2 text-white sm:gap-3 sm:px-4">
-            <a href="{{ route('dashboard') }}" wire:navigate class="grid size-11 shrink-0 place-items-center rounded-lg text-anil-200 hover:bg-anil-800" aria-label="Salir de la caja" title="Salir de la caja">
+        <header class="flex h-14 shrink-0 items-center gap-2 border-b border-anil-100 bg-white px-2 text-tinta sm:gap-3 sm:px-4">
+            <a href="{{ route('dashboard') }}" wire:navigate class="grid size-11 shrink-0 place-items-center rounded-lg text-anil-600 hover:bg-anil-50" aria-label="Salir de la caja" title="Salir de la caja">
                 <x-phosphor-arrow-left-bold class="size-5" />
             </a>
             <x-application-logo class="hidden size-7 shrink-0 text-rosa-500 sm:block" />
             <div class="min-w-0 leading-tight">
                 <p class="truncate font-display text-sm font-extrabold [font-stretch:115%]">{{ \App\Models\Configuracion::actual()->nombre_tienda }}</p>
-                <p class="rotulo !text-anil-300">{{ $this->caja->nombre }}</p>
+                <p class="rotulo">{{ $this->caja->nombre }}</p>
             </div>
             <div class="ml-auto flex items-center gap-1">
-                <span class="mr-2 hidden text-sm text-anil-200 md:block">{{ auth()->user()->name }}</span>
+                <span class="mr-2 hidden text-sm text-anil-600 md:block">{{ auth()->user()->name }}</span>
                 <x-tema-interruptor variante="icono" />
-                <button type="button" x-on:click="modal = 'atajos'" class="grid size-11 place-items-center rounded-lg text-anil-200 hover:bg-anil-800" aria-label="Atajos de teclado" title="Atajos de teclado">
+                <button type="button" x-on:click="modal = 'atajos'" class="grid size-11 place-items-center rounded-lg text-anil-600 hover:bg-anil-50" aria-label="Atajos de teclado" title="Atajos de teclado">
                     <x-phosphor-keyboard-bold class="size-5" />
                 </button>
             </div>

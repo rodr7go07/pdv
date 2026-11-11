@@ -4,7 +4,7 @@
  * Aquí vive solo el interruptor: la clase `dark` va en <html> y los colores salen de resources/css/app.css.
  */
 const CLAVE = 'tema';
-const COLOR_BARRA = { claro: '#141a4a', oscuro: '#0a0c1f' };
+const COLOR_BARRA = { claro: '#ffffff', oscuro: '#1c1a1f' };
 
 function guardado() {
     try {

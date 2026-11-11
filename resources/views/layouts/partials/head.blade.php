@@ -5,7 +5,7 @@
 <title>{{ ! empty($titulo) ? $titulo.' · ' : '' }}{{ \App\Models\Configuracion::actual()->nombre_tienda }}</title>
 
 {{-- PWA --}}
-<meta name="theme-color" content="#141a4a">
+<meta name="theme-color" content="#ffffff">
 {{-- crossorigin="use-credentials" envía la cookie, así el manifest también se lee detrás de túneles que piden confirmar la visita (ngrok). --}}
 <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">
 <link rel="icon" type="image/svg+xml" href="/icons/icono.svg">

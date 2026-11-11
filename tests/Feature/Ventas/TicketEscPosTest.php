@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Services\TicketEscPos;
 use Database\Seeders\CatalogosBaseSeeder;
 use Database\Seeders\RolesYPermisosSeeder;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
@@ -68,4 +70,32 @@ it('el ticket para RawBT lo ve el cajero de la venta y quien ve todas, no otro c
     $this->actingAs($this->otro)->get($url)->assertForbidden();
     auth()->logout();
     $this->get($url)->assertRedirect('/login');
+});
+
+it('imprime el logo de la tienda como imagen en blanco y negro arriba del ticket', function () {
+    Storage::fake('public');
+    $imagen = imagecreatetruecolor(100, 50);
+    imagefill($imagen, 0, 0, imagecolorallocate($imagen, 228, 0, 124)); // el rosa cuenta como negro en la térmica
+    ob_start();
+    imagepng($imagen);
+    Storage::disk('public')->put('logos/tienda.png', ob_get_clean());
+    Configuracion::actual()->update(['logo_ruta' => 'logos/tienda.png']);
+    Cache::forget('configuracion.tienda');
+
+    $bytes = TicketEscPos::generar($this->venta->fresh(), Configuracion::actual());
+
+    // 58 mm: 192 puntos = 24 bytes por fila; la imagen de 100×50 queda en 192×96, toda en negro.
+    $cabecera = "\x1Bt\x00\x1Ba\x01\x1Dv0\x00".chr(24)."\x00".chr(96)."\x00";
+    expect($bytes)->toContain($cabecera)
+        ->and(substr($bytes, strpos($bytes, $cabecera) + strlen($cabecera), 24 * 96))->toBe(str_repeat("\xFF", 24 * 96))
+        ->and($bytes)->toContain('ABARROTES LA ESQUINA');
+});
+
+it('si el logo no se puede leer, el ticket sale sin él', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('logos/tienda.svg', '<svg xmlns="http://www.w3.org/2000/svg"/>');
+    Configuracion::actual()->update(['logo_ruta' => 'logos/tienda.svg']);
+    Cache::forget('configuracion.tienda');
+
+    expect(TicketEscPos::generar($this->venta->fresh(), Configuracion::actual()))->not->toContain("\x1Dv0");
 });

@@ -41,7 +41,9 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Relativa (sin dominio): el logo y las fotos de artículos cargan igual por ngrok, por punto-de-venta.test
+            // o por el dominio de producción, aunque APP_URL apunte a otro (con dominio fijo salían rotas).
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

@@ -24,7 +24,7 @@
                     <x-application-logo class="size-10 shrink-0 text-rosa-500" />
                 @endif
                 <span class="min-w-0">
-                    <span class="block truncate font-display text-lg font-extrabold leading-tight text-tinta [font-stretch:115%]">{{ $tienda->nombre_tienda }}</span>
+                    <span class="line-clamp-2 font-display text-lg font-extrabold leading-tight text-tinta [font-stretch:115%]">{{ $tienda->nombre_tienda }}</span>
                     <span class="rotulo">Punto de venta</span>
                 </span>
             </a>

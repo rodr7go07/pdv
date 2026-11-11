@@ -41,7 +41,7 @@
             'bloques' => [
                 ['pasos' => [
                     'Cambia tu contraseña por una que solo tú sepas. (**Mi cuenta**)',
-                    'Escribe los datos de tu tienda: nombre, dirección, teléfono y el mensaje que sale al final del ticket. Puedes subir tu logotipo. (**Configuración**)',
+                    'Escribe los datos de tu tienda: nombre, dirección, teléfono y el mensaje que sale al final del ticket. Puedes subir tu logotipo: sale en el ticket de pantalla, en el PDF y también en la impresora de tickets (en blanco y negro). Usa una imagen PNG o JPG con fondo blanco o transparente. (**Configuración**)',
                     'Revisa los **departamentos** (grupos de productos, como lácteos o bebidas), las **unidades** (pieza, kilo, litro) y los **impuestos**. Las unidades y los impuestos más comunes ya vienen listos. De departamentos solo viene uno, «General»: crea aquí los tuyos (lácteos, bebidas, botanas…). (**Catálogos**)',
                     'Revisa tu caja y elige si tu impresora usa papel angosto (58) o normal (80). Con el botón de la impresora imprimes una hoja de prueba. (**Cajas**)',
                     'Da de alta a tus cajeros: les pones un usuario y una contraseña, y les entregas los datos. (**Usuarios**)',

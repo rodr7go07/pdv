@@ -4,11 +4,14 @@ namespace App\Services;
 
 use App\Models\Configuracion;
 use App\Models\Venta;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * El ticket de una venta en comandos ESC/POS, para mandarlo directo a la térmica con RawBT (Android) sin cuadro de impresión.
  * El contenido es el mismo de `TicketTexto` (una sola fuente) al ancho de la impresora; aquí solo se le da formato:
- * encabezado centrado, nombre de la tienda y TOTAL en negritas, avance y corte de papel al final.
+ * logo de la tienda (si hay) como imagen en blanco y negro, encabezado centrado, nombre de la tienda y TOTAL en negritas,
+ * avance y corte de papel al final.
  *
  * Los acentos y la ñ van en la página de códigos PC437, la que traen de fábrica casi todas las térmicas.
  */
@@ -26,11 +29,17 @@ final class TicketEscPos
 
     public static function generar(Venta $venta, ?Configuracion $tienda = null): string
     {
+        $tienda ??= Configuracion::actual();
         $venta->loadMissing('caja');
-        $lineas = explode("\n", rtrim(TicketTexto::generar($venta, $tienda, self::columnas((int) $venta->caja?->ancho_papel))));
+        $anchoPapel = (int) $venta->caja?->ancho_papel;
+        $lineas = explode("\n", rtrim(TicketTexto::generar($venta, $tienda, self::columnas($anchoPapel))));
         $separador = array_search(true, array_map(fn ($l) => $l !== '' && trim($l, '-') === '', $lineas), true);
 
         $b = self::ESC.'@'.self::ESC.'t'.chr(0); // reinicia la impresora y elige PC437
+
+        if ($logo = self::logo($tienda, $anchoPapel)) {
+            $b .= self::ESC.'a'.chr(1).$logo.self::ESC.'d'.chr(1);
+        }
 
         foreach ($lineas as $i => $linea) {
             $encabezado = $separador !== false && $i < $separador;
@@ -48,6 +57,83 @@ final class TicketEscPos
 
         // Avanza para que el ticket salga de la cuchilla y corta (las que no tienen cuchilla ignoran el corte).
         return $b.self::ESC.'a'.chr(0).self::ESC.'d'.chr(4).self::GS.'V'.chr(66).chr(0);
+    }
+
+    /**
+     * El logo de la tienda como imagen de puntos (GS v 0): blanco y negro, centrado, a 192 puntos de ancho en 58 mm
+     * (256 en 80 mm). Lo transparente cuenta como blanco y los colores oscuros (el rosa también) como negro.
+     * Se guarda en caché por archivo y ancho. Si no hay logo o no se puede leer (por ejemplo un SVG), el ticket sale sin él.
+     */
+    public static function logo(Configuracion $tienda, int $anchoPapel): string
+    {
+        $ruta = $tienda->logo_ruta;
+        $disco = Storage::disk('public');
+
+        if (! $ruta || ! function_exists('imagecreatefromstring') || ! $disco->exists($ruta)) {
+            return '';
+        }
+
+        $ancho = $anchoPapel === 58 ? 192 : 256;
+        $clave = 'ticket-logo:'.md5($ruta.'|'.$disco->lastModified($ruta).'|'.$disco->size($ruta)).':'.$ancho;
+
+        return base64_decode(Cache::rememberForever($clave, fn () => base64_encode(self::rasterizar($disco->get($ruta), $ancho))));
+    }
+
+    private static function rasterizar(string $imagen, int $anchoMaximo): string
+    {
+        $origen = @imagecreatefromstring($imagen);
+
+        if (! $origen) {
+            return '';
+        }
+
+        // Cabe en un cuadro de anchoMaximo × anchoMaximo para que un logo alto no se coma el ticket.
+        $escala = min($anchoMaximo / imagesx($origen), $anchoMaximo / imagesy($origen));
+        $w = max(8, (int) round(imagesx($origen) * $escala));
+        $h = max(1, (int) round(imagesy($origen) * $escala));
+
+        $lienzo = imagecreatetruecolor($w, $h);
+        imagefill($lienzo, 0, 0, imagecolorallocate($lienzo, 255, 255, 255));
+        imagecopyresampled($lienzo, $origen, 0, 0, 0, 0, $w, $h, imagesx($origen), imagesy($origen));
+
+        $bytesPorFila = (int) ceil($w / 8);
+        $filas = [];
+
+        for ($y = 0; $y < $h; $y++) {
+            $fila = '';
+            for ($xb = 0; $xb < $bytesPorFila; $xb++) {
+                $byte = 0;
+                for ($bit = 0; $bit < 8; $bit++) {
+                    $x = $xb * 8 + $bit;
+                    if ($x < $w) {
+                        $c = imagecolorat($lienzo, $x, $y);
+                        $luz = ((($c >> 16) & 0xFF) * 299 + (($c >> 8) & 0xFF) * 587 + ($c & 0xFF) * 114) / 1000;
+                        if ($luz < 160) {
+                            $byte |= 0x80 >> $bit;
+                        }
+                    }
+                }
+                $fila .= chr($byte);
+            }
+            $filas[] = $fila;
+        }
+
+        // Quita las filas en blanco de arriba y de abajo (el margen del archivo no se imprime).
+        $vacia = str_repeat("\0", $bytesPorFila);
+        while ($filas && $filas[0] === $vacia) {
+            array_shift($filas);
+        }
+        while ($filas && end($filas) === $vacia) {
+            array_pop($filas);
+        }
+
+        if (! $filas) {
+            return '';
+        }
+
+        $alto = count($filas);
+
+        return self::GS.'v0'.chr(0).chr($bytesPorFila & 0xFF).chr($bytesPorFila >> 8).chr($alto & 0xFF).chr($alto >> 8).implode('', $filas);
     }
 
     /** Pasa el texto a PC437; lo que esa página no tiene (mayúsculas con acento, símbolos) se cambia por su letra simple. */

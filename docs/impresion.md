@@ -66,6 +66,10 @@ Esta decisión se confirma con el dueño según el modelo de impresora y si usa 
 - El código de barras es EAN-13 cuando la clave tiene 13 dígitos válidos; si no, Code 128.
 - Para rollos de etiquetas térmicas de 50×30 mm, selecciona ese tamaño de papel en el controlador de la impresora.
 
+## Logotipo de la tienda
+
+El logo de *Configuración* sale en el ticket HTML, en el PDF y en el ticket ESC/POS (Bluetooth y RawBT), este último como imagen de puntos en blanco y negro (`TicketEscPos::logo`, en caché por archivo y ancho). El logo de **Miscelánea Emmanuel** (tiendita con toldo rosa) y sus versiones están en `docs/marca/`: `icono.png`/`icono.svg` (el que se sube a Configuración), `icono-termica.*` (en negro) y `logo-completo.png` (ícono con el nombre, para letrero o redes).
+
 ## Visita a la tienda: qué probar y qué opciones hay
 
 Equipo de la tienda: la **tablet Android es la caja**, con la térmica **Moon 58W** (58 mm) ya vinculada en la app nativa SicarX (USB y/o Bluetooth), una báscula (STM32 Virtual COM) y un lector «Checko2B». SicarX habla con la impresora directamente; Chrome no, solo lista las impresoras registradas en los servicios de impresión de Android. Por eso el cuadro de impresión de Chrome sale sin la térmica.

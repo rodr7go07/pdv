@@ -126,9 +126,6 @@
         --color-anil-800: #ddd9e0;
         --color-anil-900: #f1eff3;
 
-        /* En oscuro el rosa del texto es un tono más suave para que no brille sobre el fondo. */
-        --color-rosa-400: #ee8dbd;
-
         --color-rosa-50: rgb(228 0 124 / 0.14);
         --color-rosa-100: rgb(228 0 124 / 0.22);
         --color-rosa-200: rgb(228 0 124 / 0.35);
@@ -264,9 +261,9 @@
 .dark .ticket:not(.zona-clara) { background: var(--color-superficie); }
 .dark .zona-clara { background-color: #fff; }
 
-/* El rosa del texto sube de tono para leerse sobre fondo oscuro (el del botón, con texto blanco, no cambia). */
-.dark .text-rosa-500, .dark .text-rosa-600, .dark .text-rosa-700 { color: var(--color-rosa-400); }
-.dark .hover\:text-rosa-600:hover { color: var(--color-rosa-300); }
+/* En oscuro el texto rosa usa el mismo rosa mexicano del botón (los tonos 600/700 no se leerían sobre fondo oscuro). */
+.dark .text-rosa-500, .dark .text-rosa-600, .dark .text-rosa-700 { color: var(--color-rosa-500); }
+.dark .hover\:text-rosa-600:hover { color: var(--color-rosa-400); }
 .dark .zona-clara .text-rosa-500, .dark .zona-clara .text-rosa-600, .dark .zona-clara .text-rosa-700 { color: revert-layer; }
 
 /* El ticket sale de la ranura de la impresora */
@@ -295,7 +292,7 @@
     transform-origin: top;
     animation: desplegar 450ms cubic-bezier(.2, .7, .2, 1) both;
 }
-.dark .toldo { background: repeating-linear-gradient(90deg, var(--color-rosa-600) 0 var(--olan), #e9e6eb var(--olan) calc(var(--olan) * 2)); }
+.dark .toldo { background: repeating-linear-gradient(90deg, var(--color-rosa-500) 0 var(--olan), #e9e6eb var(--olan) calc(var(--olan) * 2)); }
 
 .codigo-barras {
     /* Dos patrones de periodo distinto encimados para que las barras no se vean repetidas */

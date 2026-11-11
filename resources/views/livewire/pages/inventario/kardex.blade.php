@@ -121,7 +121,7 @@ new #[Layout('layouts.app')] class extends Component
     @if ($lista->isEmpty())
         <x-empty icono="list-magnifying-glass" titulo="Sin movimientos" texto="Cuando compres, vendas o ajustes este artículo, cada cambio aparecerá aquí." />
     @else
-        <div class="overflow-x-auto rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="overflow-x-auto rounded-xl border border-anil-100 bg-white">
             <table class="w-full min-w-[40rem] text-left text-sm">
                 <thead>
                     <tr class="rotulo border-b border-anil-100 bg-anil-50/60">

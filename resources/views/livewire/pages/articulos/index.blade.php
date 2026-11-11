@@ -101,7 +101,7 @@ new #[Layout('layouts.app')] class extends Component
         @endcan
         @can('articulos.crear')
             <a href="{{ route('articulos.crear') }}" wire:navigate
-               class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 px-4 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] hover:bg-rosa-600 active:translate-y-[3px] active:shadow-none">
+               class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 active:bg-rosa-700 px-4 text-sm font-extrabold uppercase tracking-wide text-white hover:bg-rosa-600">
                 <x-phosphor-plus-bold class="size-4" /> Nuevo
             </a>
         @endcan
@@ -149,13 +149,13 @@ new #[Layout('layouts.app')] class extends Component
                  :texto="$buscar !== '' || $departamento !== '' ? 'Prueba con otra palabra o quita los filtros.' : 'Aún no has dado de alta ningún artículo.'">
             @can('articulos.crear')
                 @if ($buscar === '' && $departamento === '')
-                    <a href="{{ route('articulos.crear') }}" wire:navigate class="rounded-lg bg-fuerte px-4 py-2.5 text-sm font-semibold text-white">Crear el primero</a>
+                    <a href="{{ route('articulos.crear') }}" wire:navigate class="rounded-lg bg-fuerte active:opacity-80 px-4 py-2.5 text-sm font-semibold text-white">Crear el primero</a>
                 @endif
             @endcan
         </x-empty>
     @else
         {{-- Tabla (PC y tablet) --}}
-        <div class="hidden overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)] md:block">
+        <div class="hidden overflow-hidden rounded-xl border border-anil-100 bg-white md:block">
             <table class="w-full text-left text-sm">
                 <thead>
                     <tr class="rotulo border-b border-anil-100 bg-anil-50/60">
@@ -205,7 +205,7 @@ new #[Layout('layouts.app')] class extends Component
                 <li wire:key="card-{{ $a->id }}">
                     @php $tag = $puedeEditar ? 'a' : 'div'; @endphp
                     <{{ $tag }} @if ($puedeEditar) href="{{ route('articulos.editar', $a) }}" wire:navigate @endif
-                        @class(['block rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)]', 'opacity-60' => ! $a->activo])>
+                        @class(['block rounded-xl border border-anil-100 bg-white p-4', 'opacity-60' => ! $a->activo])>
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <p class="font-semibold leading-snug text-tinta">{{ $a->descripcion }}</p>

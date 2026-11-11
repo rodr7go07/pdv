@@ -468,7 +468,7 @@ new #[Layout('layouts.app')] class extends Component
                             <input x-ref="archivo" x-on:change="elegir($event)" id="imagen" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" tabindex="-1" aria-hidden="true">
                             <div class="flex flex-wrap gap-2">
                                 <button type="button" x-on:click="$refs.camara.click()"
-                                        class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-fuerte px-4 text-sm font-semibold text-white shadow-[0_3px_0_0_var(--color-anil-950)] active:translate-y-[3px] active:shadow-none lg:hidden">
+                                        class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-fuerte px-4 text-sm font-semibold text-white lg:hidden">
                                     <x-phosphor-camera-bold class="size-4" /> Tomar foto
                                 </button>
                                 <button type="button" x-on:click="$refs.archivo.click()"

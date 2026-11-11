@@ -40,18 +40,19 @@
     --color-anil-900: #141a4a;
     --color-anil-950: #0d1132;
 
-    --color-rosa-50: #fff0f7;
-    --color-rosa-100: #ffd9ec;
-    --color-rosa-200: #fbb3d6;
-    --color-rosa-300: #f77ebb;
-    --color-rosa-400: #f2429b;
-    --color-rosa-500: #e4007c;
-    --color-rosa-600: #c40069;
-    --color-rosa-700: #9c0054;
+    /* Rosa mexicano mate (decisión 77): mismo tono, menos saturado, para que no se vea neón. */
+    --color-rosa-50: #fbf1f5;
+    --color-rosa-100: #f7e6ed;
+    --color-rosa-200: #ecc6d6;
+    --color-rosa-300: #dc9bb8;
+    --color-rosa-400: #d4789e;
+    --color-rosa-500: #c2386f;
+    --color-rosa-600: #a82f60;
+    --color-rosa-700: #8a264f;
 
     --color-papel: #f1f2f6;
     --color-tinta: #11153a;
-    --color-etiqueta: #ffd60a;
+    --color-etiqueta: #e3b34c; /* mostaza suave para avisos (antes amarillo puro) */
     --color-ok: #0e8f63;
     --color-peligro: #d02847;
 
@@ -121,9 +122,9 @@
         --color-anil-800: #cdd3f5;
         --color-anil-900: #e8eafc;
 
-        --color-rosa-50: rgb(228 0 124 / 0.14);
-        --color-rosa-100: rgb(228 0 124 / 0.22);
-        --color-rosa-200: rgb(228 0 124 / 0.4);
+        --color-rosa-50: rgb(194 56 111 / 0.14);
+        --color-rosa-100: rgb(194 56 111 / 0.22);
+        --color-rosa-200: rgb(194 56 111 / 0.4);
 
         --color-red-50: rgb(248 113 113 / 0.12);
         --color-red-200: rgb(248 113 113 / 0.35);
@@ -302,7 +303,6 @@
 .aparecer { animation: aparecer 600ms cubic-bezier(.2, .7, .2, 1) 150ms both; }
 
 .foco {
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ok) 30%, transparent), 0 0 10px var(--color-ok);
     animation: parpadeo 2.4s ease-in-out infinite;
 }
 

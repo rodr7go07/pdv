@@ -11,16 +11,34 @@ it('pinta la tarjeta de indicador con su cifra, nota y tono', function () {
         ->toContain('A costo')
         ->toContain('border-etiqueta')
         ->toContain('text-3xl')
-        ->toContain('shadow-[0_2px_0_0_var(--color-anil-100)]');
+        // Diseño plano (decisión 77): sin la orilla de sombra de color debajo de la tarjeta.
+        ->not->toContain('shadow-[');
 });
 
-it('la tarjeta de indicador puede ser un botón y quitar la sombra', function () {
-    $html = Blade::render('<x-kpi tag="button" type="button" etiqueta="Agotados" :sombra="false">3</x-kpi>');
+it('la tarjeta de indicador puede ser un botón', function () {
+    $html = Blade::render('<x-kpi tag="button" type="button" etiqueta="Agotados">3</x-kpi>');
 
     expect($html)
         ->toStartWith('<button')
-        ->toContain('type="button"')
-        ->not->toContain('shadow-[0_2px_0_0_var(--color-anil-100)]');
+        ->toContain('type="button"');
+});
+
+it('los botones y tarjetas son planos: sin sombra de tecla ni brillos de color (decisión 77)', function () {
+    $faltan = [];
+
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views'))) as $archivo) {
+        if (! str_ends_with($archivo->getFilename(), '.blade.php')) {
+            continue;
+        }
+
+        foreach (file($archivo->getPathname()) as $n => $linea) {
+            if (preg_match('/shadow-\[0_\d+px_0_0_var\(--color-|active:translate-y-/', $linea)) {
+                $faltan[] = str_replace(resource_path('views').DIRECTORY_SEPARATOR, '', $archivo->getPathname()).':'.($n + 1);
+            }
+        }
+    }
+
+    expect($faltan)->toBe([], 'Quita la sombra de tecla en: '.implode(', ', $faltan));
 });
 
 it('pinta los tres tonos de la alerta', function () {

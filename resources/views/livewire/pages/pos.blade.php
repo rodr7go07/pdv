@@ -388,7 +388,7 @@ new #[Layout('layouts.pos')] class extends Component
             <x-empty icono="cash-register" titulo="Abre tu turno para empezar a vender" texto="Antes de cobrar necesitas abrir tu turno de caja con el fondo inicial.">
                 <div class="flex flex-wrap justify-center gap-3">
                     @can('caja.abrir')
-                        <a href="{{ route('caja') }}" wire:navigate class="rounded-lg bg-rosa-500 px-4 py-2.5 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)]">Abrir mi turno</a>
+                        <a href="{{ route('caja') }}" wire:navigate class="rounded-lg bg-rosa-500 active:bg-rosa-700 px-4 py-2.5 text-sm font-extrabold uppercase tracking-wide text-white">Abrir mi turno</a>
                     @endcan
                     <a href="{{ route('dashboard') }}" wire:navigate class="rounded-lg border border-anil-200 px-4 py-2.5 text-sm font-semibold text-anil-800">Volver al inicio</a>
                 </div>
@@ -422,7 +422,7 @@ new #[Layout('layouts.pos')] class extends Component
                 Llegó un ticket para imprimir: <span class="font-mono" x-text="colaImpresion.pendientes[0]?.folio"></span>
                 <span x-show="colaImpresion.pendientes.length > 1" x-text="'(y ' + (colaImpresion.pendientes.length - 1) + ' más)'"></span>
             </span>
-            <button type="button" x-on:click="imprimirPedido(colaImpresion.pendientes[0])" :disabled="colaImpresion.imprimiendo" class="min-h-10 rounded-lg bg-fuerte px-4 text-white disabled:opacity-60">Imprimir</button>
+            <button type="button" x-on:click="imprimirPedido(colaImpresion.pendientes[0])" :disabled="colaImpresion.imprimiendo" class="min-h-10 rounded-lg bg-fuerte active:opacity-80 px-4 text-white disabled:opacity-60">Imprimir</button>
             <button type="button" x-on:click="descartarPedido(colaImpresion.pendientes[0])" class="min-h-10 rounded-lg px-3 underline">Descartar</button>
         </div>
 
@@ -440,7 +440,7 @@ new #[Layout('layouts.pos')] class extends Component
                                placeholder="Escanea o escribe el código  ·  5* para varias piezas"
                                class="block w-full min-w-0 rounded-xl border-2 border-anil-200 bg-white py-3.5 pl-12 pr-4 font-mono text-lg text-tinta placeholder:font-sans placeholder:text-base placeholder:text-anil-300 focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
                         <button type="button" x-on:click="abrirCamara()" aria-label="Escanear con la cámara" title="Escanear con la cámara"
-                                class="grid w-14 shrink-0 place-items-center rounded-xl bg-fuerte text-white shadow-[0_3px_0_0_var(--color-anil-950)] active:translate-y-[3px] active:shadow-none lg:hidden">
+                                class="grid w-14 shrink-0 place-items-center rounded-xl bg-fuerte text-white lg:hidden">
                             <x-phosphor-camera-bold class="size-6" />
                         </button>
                         {{-- Coincidencias mientras se escribe: tocar una la agrega; ↑ ↓ y Enter también; el Enter normal sigue funcionando --}}
@@ -586,7 +586,7 @@ new #[Layout('layouts.pos')] class extends Component
                         <x-phosphor-trash-bold class="size-4" /> <span class="hidden sm:inline lg:inline">Vaciar</span>
                     </button>
                     <button type="button" x-on:click="abrirCobro()" :disabled="!lineas.length"
-                            class="inline-flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-rosa-500 px-6 font-display text-lg font-extrabold uppercase tracking-wide text-white shadow-[0_4px_0_0_var(--color-rosa-700)] transition [font-stretch:112%] hover:bg-rosa-600 active:translate-y-[4px] active:shadow-none disabled:pointer-events-none disabled:opacity-40">
+                            class="inline-flex min-h-14 flex-1 items-center justify-center gap-3 rounded-xl bg-rosa-500 active:bg-rosa-700 px-6 font-display text-lg font-extrabold uppercase tracking-wide text-white transition [font-stretch:112%] hover:bg-rosa-600 disabled:pointer-events-none disabled:opacity-40">
                         Cobrar <span class="hidden rounded bg-white/20 px-2 py-0.5 font-mono text-xs lg:inline">F8</span>
                     </button>
                 </div>
@@ -646,7 +646,7 @@ new #[Layout('layouts.pos')] class extends Component
                     <p x-show="camara.iniciando" aria-live="polite" class="absolute inset-0 grid place-items-center text-sm text-anil-200">Abriendo la cámara…</p>
                     <p x-show="camara.error" x-text="camara.error" x-cloak class="absolute inset-0 grid place-items-center px-6 text-center text-sm font-medium text-red-200" role="alert"></p>
                     <button type="button" x-show="camara.hayLinterna" x-cloak x-on:click="alternarLinterna()" :aria-pressed="camara.linterna" aria-label="Linterna"
-                            :class="camara.linterna ? 'bg-rosa-500 text-white' : 'bg-black/50 text-white'"
+                            :class="camara.linterna ? 'bg-rosa-500 active:bg-rosa-700 text-white' : 'bg-black/50 text-white'"
                             class="absolute bottom-3 right-3 grid size-11 place-items-center rounded-full">
                         <x-phosphor-flashlight-bold class="size-5" />
                     </button>
@@ -661,13 +661,13 @@ new #[Layout('layouts.pos')] class extends Component
                     </p>
                     <p x-show="!aviso && !ultimoLeido" class="text-anil-200">Apunta al código de barras. Puedes escanear varios artículos seguidos.</p>
                     <button type="button" x-show="codigoSinAlta" x-cloak x-on:click="abrirAlta(codigoSinAlta)"
-                            class="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-rosa-500 px-3 text-sm font-semibold text-white">
+                            class="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-rosa-500 active:bg-rosa-700 px-3 text-sm font-semibold text-white">
                         <x-phosphor-plus-bold class="size-4" /> Dar de alta «<span x-text="codigoSinAlta"></span>»
                     </button>
                 </div>
                 <div class="flex shrink-0 items-center justify-between gap-3 border-t border-anil-800 px-4 py-3">
                     <p class="text-sm text-anil-200"><span class="font-bold text-white" x-text="piezas"></span> en la venta · <span class="font-bold text-white" x-text="dinero(total)"></span></p>
-                    <button type="button" x-on:click="modal = null; enfocar()" class="min-h-11 rounded-lg bg-rosa-500 px-5 font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] active:translate-y-[3px] active:shadow-none">Listo</button>
+                    <button type="button" x-on:click="modal = null; enfocar()" class="min-h-11 rounded-lg bg-rosa-500 active:bg-rosa-700 px-5 font-extrabold uppercase tracking-wide text-white">Listo</button>
                 </div>
             </div>
 
@@ -780,7 +780,7 @@ new #[Layout('layouts.pos')] class extends Component
                                 <span class="block truncate font-semibold" x-text="e.nombre || 'Sin nombre'"></span>
                                 <span class="text-xs text-anil-600" x-text="e.piezas + ' artículos · ' + e.hora + ' · ' + (e.usuario || '')"></span>
                             </button>
-                            <button type="button" x-on:click="recuperarEspera(e.id)" class="rounded-lg bg-fuerte px-3 py-2 text-sm font-semibold text-white">Recuperar</button>
+                            <button type="button" x-on:click="recuperarEspera(e.id)" class="rounded-lg bg-fuerte active:opacity-80 px-3 py-2 text-sm font-semibold text-white">Recuperar</button>
                             <button type="button" x-on:click="descartarEspera(e.id)" class="grid size-10 place-items-center rounded-lg text-anil-500 hover:bg-red-50 hover:text-red-700" aria-label="Descartar"><x-phosphor-trash-bold class="size-4" /></button>
                         </li>
                     </template>
@@ -915,7 +915,7 @@ new #[Layout('layouts.pos')] class extends Component
 
                 <footer class="border-t border-anil-100 p-4">
                     <button type="button" x-on:click="confirmarCobro()" :disabled="!puedeConfirmar"
-                            class="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-rosa-500 font-display text-lg font-extrabold uppercase tracking-wide text-white shadow-[0_4px_0_0_var(--color-rosa-700)] transition [font-stretch:112%] hover:bg-rosa-600 active:translate-y-[4px] active:shadow-none disabled:pointer-events-none disabled:opacity-40">
+                            class="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-rosa-500 active:bg-rosa-700 font-display text-lg font-extrabold uppercase tracking-wide text-white transition [font-stretch:112%] hover:bg-rosa-600 disabled:pointer-events-none disabled:opacity-40">
                         <span x-show="!cobro.procesando">Confirmar cobro</span>
                         <span x-show="cobro.procesando">Procesando…</span>
                     </button>

@@ -359,7 +359,7 @@ new #[Layout('layouts.app')] class extends Component
         </div>
         @error('cantidades')<x-alerta tono="error" class="mb-3">{{ $message }}</x-alerta>@enderror
 
-        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white">
             <div class="hidden grid-cols-[minmax(0,1fr)_5.5rem_5.5rem_5.5rem_8rem_6.5rem_2.75rem] gap-x-3 border-b border-anil-100 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-anil-600 md:grid">
                 <span>Artículo</span><span class="text-right">Existencia</span><span class="text-right">Vendido</span><span class="text-right">Alcanza</span><span class="text-right">Comprar</span><span class="text-right">Costo est.</span><span></span>
             </div>

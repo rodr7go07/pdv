@@ -69,10 +69,10 @@ new #[Layout('layouts.app')] class extends Component
     @endif
 
     <div class="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <x-kpi etiqueta="Debe" tamano="chico" :sombra="false" :tono="(float) $cliente->saldo > 0 ? 'peligro' : 'normal'">${{ number_format((float) $cliente->saldo, 2) }}</x-kpi>
-        <x-kpi etiqueta="Límite de crédito" tamano="chico" :sombra="false">${{ number_format((float) $cliente->limite_credito, 2) }}</x-kpi>
-        <x-kpi etiqueta="Disponible" tamano="chico" :sombra="false">${{ number_format((float) $cliente->disponible(), 2) }}</x-kpi>
-        <x-kpi etiqueta="Lista de precios" tamano="chico" :sombra="false">Precio {{ $cliente->lista_precios }}</x-kpi>
+        <x-kpi etiqueta="Debe" tamano="chico" :tono="(float) $cliente->saldo > 0 ? 'peligro' : 'normal'">${{ number_format((float) $cliente->saldo, 2) }}</x-kpi>
+        <x-kpi etiqueta="Límite de crédito" tamano="chico">${{ number_format((float) $cliente->limite_credito, 2) }}</x-kpi>
+        <x-kpi etiqueta="Disponible" tamano="chico">${{ number_format((float) $cliente->disponible(), 2) }}</x-kpi>
+        <x-kpi etiqueta="Lista de precios" tamano="chico">Precio {{ $cliente->lista_precios }}</x-kpi>
     </div>
 
     <p class="mb-6 text-sm text-anil-700">
@@ -83,7 +83,7 @@ new #[Layout('layouts.app')] class extends Component
     @can('clientes.abonar')
         @if ((float) $cliente->saldo > 0)
             <div class="mb-6">
-                <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'abono' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 px-5 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] hover:bg-rosa-600 active:translate-y-[3px] active:shadow-none">
+                <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'abono' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 active:bg-rosa-700 px-5 text-sm font-extrabold uppercase tracking-wide text-white hover:bg-rosa-600">
                     <x-phosphor-hand-coins-bold class="size-5" /> Registrar abono
                 </button>
             </div>

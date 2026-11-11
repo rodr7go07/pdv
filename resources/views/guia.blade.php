@@ -378,7 +378,7 @@
 
             <div x-ref="secciones" class="space-y-6">
                 @foreach ($secciones as $s)
-                    <section id="{{ $s['id'] }}" data-seccion data-texto="{{ $texto($s) }}"                             class="scroll-mt-6 rounded-2xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)] sm:p-7">
+                    <section id="{{ $s['id'] }}" data-seccion data-texto="{{ $texto($s) }}"                             class="scroll-mt-6 rounded-2xl border border-anil-100 bg-white p-5 sm:p-7">
                         <header class="mb-4 flex items-start gap-4">
                             <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-fuerte text-rosa-400">{{ svg('phosphor-'.$s['icono'].'-fill', 'size-6') }}</span>
                             <div class="min-w-0">
@@ -398,7 +398,7 @@
                                     <ol class="space-y-3">
                                         @foreach ($b['pasos'] as $paso)
                                             <li class="flex items-start gap-3">
-                                                <span class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-rosa-500 font-display text-sm font-extrabold text-white">{{ $loop->iteration }}</span>
+                                                <span class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-rosa-500 active:bg-rosa-700 font-display text-sm font-extrabold text-white">{{ $loop->iteration }}</span>
                                                 <span class="leading-relaxed text-anil-900">{{ $fmt($paso) }}</span>
                                             </li>
                                         @endforeach

@@ -167,7 +167,7 @@ new #[Layout('layouts.app')] class extends Component
     <x-slot name="acciones">
         @can('ventas.cobrar')
             @if ($this->turno)
-                <a href="{{ route('pos') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 px-4 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] hover:bg-rosa-600 active:translate-y-[3px] active:shadow-none">
+                <a href="{{ route('pos') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 active:bg-rosa-700 px-4 text-sm font-extrabold uppercase tracking-wide text-white hover:bg-rosa-600">
                     <x-phosphor-cash-register-bold class="size-4" /> Ir a vender
                 </a>
             @endif
@@ -215,7 +215,7 @@ new #[Layout('layouts.app')] class extends Component
     @else
         @php $t = $this->turno; $r = $this->resumen; @endphp
 
-        <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-anil-100 bg-white px-5 py-4 shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-anil-100 bg-white px-5 py-4">
             <div>
                 <p class="font-display text-xl font-extrabold">{{ $t->caja->nombre }}</p>
                 <p class="text-sm text-anil-700">Abierto desde el {{ $t->abierto_at->translatedFormat('j \d\e F, H:i') }} por {{ $t->usuario->name }}</p>
@@ -238,7 +238,7 @@ new #[Layout('layouts.app')] class extends Component
                 <button type="button" wire:click="corteX" class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
                     <x-phosphor-file-text-bold class="size-5" /> Corte parcial (X)
                 </button>
-                <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'cerrar-turno' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-fuerte px-4 text-sm font-semibold text-white hover:bg-anil-800">
+                <button type="button" x-on:click="$dispatch('abrir-modal', { nombre: 'cerrar-turno' })" class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-fuerte active:opacity-80 px-4 text-sm font-semibold text-white hover:bg-anil-800">
                     <x-phosphor-lock-key-bold class="size-5" /> Cerrar turno
                 </button>
             @endcan

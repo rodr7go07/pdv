@@ -152,7 +152,7 @@ new #[Layout('layouts.app')] class extends Component
                 </div>
                 <p class="mt-4 text-sm text-anil-700"><strong>{{ count($etiquetas) }}</strong> {{ count($etiquetas) === 1 ? 'etiqueta' : 'etiquetas' }} para imprimir{{ count($etiquetas) >= 500 ? ' (máximo 500)' : '' }}.</p>
                 <button type="button" onclick="window.print()" @disabled($etiquetas === [])
-                        class="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-rosa-500 px-5 font-display text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] hover:bg-rosa-600 active:translate-y-[3px] active:shadow-none disabled:pointer-events-none disabled:opacity-40">
+                        class="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-rosa-500 active:bg-rosa-700 px-5 font-display text-sm font-extrabold uppercase tracking-wide text-white hover:bg-rosa-600 disabled:pointer-events-none disabled:opacity-40">
                     <x-phosphor-printer-bold class="size-5" /> Imprimir etiquetas
                 </button>
                 <p class="mt-3 text-xs text-anil-600">En la ventana de impresión elige tu impresora de etiquetas y desactiva los márgenes y encabezados.</p>

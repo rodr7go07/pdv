@@ -73,7 +73,7 @@ new #[Layout('layouts.app')] class extends Component
             </a>
         @endcan
         @can('compras.registrar')
-            <a href="{{ route('compras.crear') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 px-4 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] hover:bg-rosa-600 active:translate-y-[3px] active:shadow-none">
+            <a href="{{ route('compras.crear') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 active:bg-rosa-700 px-4 text-sm font-extrabold uppercase tracking-wide text-white hover:bg-rosa-600">
                 <x-phosphor-plus-bold class="size-4" /> Nueva compra
             </a>
         @endcan
@@ -106,7 +106,7 @@ new #[Layout('layouts.app')] class extends Component
     @if ($lista->isEmpty())
         <x-empty icono="truck" titulo="No hay compras" :texto="$buscar || $proveedor || $estado || $desde || $hasta ? 'Ninguna compra cumple estos filtros.' : 'Registra la mercancía que recibes para actualizar existencias y costos.'" />
     @else
-        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white">
             <ul class="divide-y divide-anil-50">
                 @foreach ($lista as $c)
                     <li wire:key="co-{{ $c->id }}">

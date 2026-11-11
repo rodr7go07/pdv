@@ -1,7 +1,7 @@
 {{-- Tarjeta de indicador: una etiqueta, una cifra grande y, si hace falta, una nota debajo.
      Uso: <x-kpi etiqueta="Ventas" tono="aviso">{{ $cifra }}<x-slot:nota>texto</x-slot:nota></x-kpi>
      Con tag="button" (más wire:click) la tarjeta es un botón. --}}
-@props(['etiqueta', 'tono' => 'normal', 'tamano' => 'medio', 'sombra' => true, 'tag' => 'div'])
+@props(['etiqueta', 'tono' => 'normal', 'tamano' => 'medio', 'tag' => 'div'])
 
 @php
     // [tarjeta, etiqueta, nota]
@@ -14,7 +14,7 @@
     $cifra = ['medio' => 'text-2xl sm:text-3xl', 'chico' => 'text-2xl', 'grande' => 'text-3xl'][$tamano];
 @endphp
 
-<{{ $tag }} {{ $attributes->class(['rounded-xl border p-4', 'shadow-[0_2px_0_0_var(--color-anil-100)]' => $sombra, $colores[0]]) }}>
+<{{ $tag }} {{ $attributes->class(['rounded-xl border p-4', $colores[0]]) }}>
     <p @class(['rotulo', $colores[1]])>{{ $etiqueta }}</p>
     <p class="mt-1 font-display {{ $cifra }} font-extrabold">{{ $slot }}</p>
     @isset($nota)

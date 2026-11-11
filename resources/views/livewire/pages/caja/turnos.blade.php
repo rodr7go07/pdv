@@ -74,7 +74,7 @@ new #[Layout('layouts.app')] class extends Component
     @if ($lista->isEmpty())
         <x-empty icono="clock-counter-clockwise" titulo="No hay turnos" texto="Cuando los cajeros abran su caja, sus turnos aparecerán aquí." />
     @else
-        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white">
             <ul class="divide-y divide-anil-50">
                 @foreach ($lista as $t)
                     @php $d = $t->diferencia !== null ? (float) $t->diferencia : null; @endphp

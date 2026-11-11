@@ -100,7 +100,7 @@ new #[Layout('layouts.app')] class extends Component
     <x-slot name="titulo">Ventas</x-slot>
     <x-slot name="acciones">
         @can('ventas.cobrar')
-            <a href="{{ route('pos') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 px-4 text-sm font-extrabold uppercase tracking-wide text-white shadow-[0_3px_0_0_var(--color-rosa-700)] hover:bg-rosa-600 active:translate-y-[3px] active:shadow-none">
+            <a href="{{ route('pos') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-rosa-500 active:bg-rosa-700 px-4 text-sm font-extrabold uppercase tracking-wide text-white hover:bg-rosa-600">
                 <x-phosphor-cash-register-bold class="size-4" /> Ir a caja
             </a>
         @endcan
@@ -141,7 +141,7 @@ new #[Layout('layouts.app')] class extends Component
     @if ($lista->isEmpty())
         <x-empty icono="receipt" titulo="No hay ventas en este periodo" texto="Cambia las fechas o los filtros para ver otras ventas." />
     @else
-        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white">
             <ul class="divide-y divide-anil-50">
                 @foreach ($lista as $v)
                     <li wire:key="v-{{ $v->id }}">

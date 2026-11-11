@@ -161,7 +161,7 @@ new #[Layout('layouts.app')] class extends Component
     @if ($lista->isEmpty())
         <x-empty icono="users" titulo="No hay clientes" :texto="$buscar !== '' || $filtro !== '' ? 'Ningún cliente cumple este filtro.' : 'Da de alta a tus clientes frecuentes para darles crédito o precios de mayoreo.'" />
     @else
-        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white">
             <ul class="divide-y divide-anil-50">
                 @foreach ($lista as $c)
                     <li wire:key="cl-{{ $c->id }}" class="flex items-center gap-2 pr-2 sm:pr-4">

@@ -114,13 +114,13 @@ new class extends Component
                     @if ($var === null) Ayer no hubo ventas @else {{ $var >= 0 ? '▲' : '▼' }} {{ abs($var) }}% contra ayer ({{ $m($this->ayer['neto']) }}) @endif
                 </p>
             </div>
-            <x-kpi etiqueta="Ventas" tamano="grande" :sombra="false">{{ number_format($h['ventas']) }}</x-kpi>
-            <x-kpi etiqueta="Ticket promedio" :sombra="false">{{ $m($h['ticket_promedio']) }}</x-kpi>
-            <x-kpi etiqueta="Utilidad bruta" :sombra="false" class="col-span-2 lg:col-span-1">{{ $m($h['utilidad']) }}<x-slot:nota>Margen {{ $h['margen'] === null ? '—' : $h['margen'].'%' }}</x-slot:nota></x-kpi>
+            <x-kpi etiqueta="Ventas" tamano="grande">{{ number_format($h['ventas']) }}</x-kpi>
+            <x-kpi etiqueta="Ticket promedio">{{ $m($h['ticket_promedio']) }}</x-kpi>
+            <x-kpi etiqueta="Utilidad bruta" class="col-span-2 lg:col-span-1">{{ $m($h['utilidad']) }}<x-slot:nota>Margen {{ $h['margen'] === null ? '—' : $h['margen'].'%' }}</x-slot:nota></x-kpi>
         </div>
     </section>
 
-    <section class="rounded-xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)]" aria-labelledby="semana-titulo">
+    <section class="rounded-xl border border-anil-100 bg-white p-5" aria-labelledby="semana-titulo">
         <h2 id="semana-titulo" class="rotulo">Últimos 7 días</h2>
         <div class="mt-4 flex h-32 items-end gap-2" role="img" aria-label="Ventas netas de los últimos 7 días">
             @foreach ($semana as $d)

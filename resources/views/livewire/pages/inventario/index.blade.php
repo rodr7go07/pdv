@@ -127,7 +127,7 @@ new #[Layout('layouts.app')] class extends Component
         <x-empty icono="package" titulo="No hay artículos para mostrar"
                  :texto="$filtro !== 'todos' ? 'Ningún artículo cumple este filtro.' : 'Aquí aparecen los artículos que llevan control de inventario.'" />
     @else
-        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white">
             <table class="hidden w-full text-left text-sm md:table">
                 <thead>
                     <tr class="rotulo border-b border-anil-100 bg-anil-50/60">

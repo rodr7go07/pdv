@@ -16,7 +16,7 @@
     @endif
 
     @if ($miTurno)
-        <section class="{{ $verTablero ? 'mt-6' : '' }} rounded-xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)]" aria-labelledby="mi-turno">
+        <section class="{{ $verTablero ? 'mt-6' : '' }} rounded-xl border border-anil-100 bg-white p-5" aria-labelledby="mi-turno">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h2 id="mi-turno" class="rotulo">Mi turno</h2>
@@ -37,7 +37,7 @@
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($modulos as $modulo)
                 <a href="{{ route($modulo['ruta']) }}" wire:navigate
-                   class="group flex items-start gap-4 rounded-xl border border-anil-100 bg-white p-4 shadow-[0_2px_0_0_var(--color-anil-100)] transition hover:-translate-y-0.5 hover:border-anil-300 hover:shadow-[0_4px_0_0_var(--color-anil-200)]">
+                   class="group flex items-start gap-4 rounded-xl border border-anil-100 bg-white p-4 transition hover:-translate-y-0.5 hover:border-anil-300 hover:">
                     <span class="grid size-11 shrink-0 place-items-center rounded-lg bg-fuerte text-rosa-400">
                         {{ svg('phosphor-'.$modulo['icono'].'-fill', 'size-6') }}
                     </span>

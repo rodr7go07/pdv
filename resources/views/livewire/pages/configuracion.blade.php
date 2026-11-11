@@ -76,7 +76,7 @@ new #[Layout('layouts.app')] class extends Component
 
     <div class="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_21rem]">
         {{-- Formulario --}}
-        <form wire:submit="guardar" class="space-y-6 rounded-xl border border-anil-100 bg-white p-5 shadow-[0_2px_0_0_var(--color-anil-100)] sm:p-6">
+        <form wire:submit="guardar" class="space-y-6 rounded-xl border border-anil-100 bg-white p-5 sm:p-6">
             <div>
                 <h2 class="text-lg font-extrabold text-anil-900">Datos de la tienda</h2>
                 <p class="mt-1 text-sm text-anil-700">Aparecen en el encabezado de cada ticket.</p>

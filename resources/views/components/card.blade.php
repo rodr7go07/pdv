@@ -1,6 +1,6 @@
 @props(['titulo' => null, 'descripcion' => null, 'padding' => true])
 
-<section {{ $attributes->class(['rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]']) }}>
+<section {{ $attributes->class(['rounded-xl border border-anil-100 bg-white']) }}>
     @if ($titulo || isset($acciones))
         <header class="flex flex-wrap items-start justify-between gap-3 border-b border-anil-50 px-5 pb-4 pt-5 sm:px-6">
             <div class="min-w-0">

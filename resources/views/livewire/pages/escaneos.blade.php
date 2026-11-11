@@ -160,7 +160,7 @@ new #[Layout('layouts.app')] class extends Component
     @if ($lista->isEmpty())
         <x-empty icono="barcode" titulo="No hay escaneos" :texto="$hayFiltros ? 'Ningún escaneo cumple estos filtros.' : 'Cuando alguien escanee un código aparecerá aquí.'" />
     @else
-        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]">
+        <div class="overflow-hidden rounded-xl border border-anil-100 bg-white">
             <div class="hidden grid-cols-[9.5rem_minmax(0,1fr)_minmax(0,1.2fr)_9rem_11rem] gap-x-4 border-b border-anil-100 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-anil-600 md:grid">
                 <span>Fecha</span><span>Código</span><span>Artículo</span><span>Pantalla</span><span>Persona</span>
             </div>

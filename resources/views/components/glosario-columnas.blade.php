@@ -2,7 +2,7 @@
 @props(['filas', 'titulo' => 'Qué significa cada columna'])
 
 @if (count($filas))
-    <aside {{ $attributes->class(['rounded-xl border border-anil-100 bg-white shadow-[0_2px_0_0_var(--color-anil-100)]']) }} aria-label="{{ $titulo }}">
+    <aside {{ $attributes->class(['rounded-xl border border-anil-100 bg-white']) }} aria-label="{{ $titulo }}">
         <h3 class="border-b border-anil-100 px-4 py-3 text-sm font-extrabold text-anil-900">{{ $titulo }}</h3>
         <table class="w-full text-left text-xs">
             <thead>

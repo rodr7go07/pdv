@@ -275,6 +275,51 @@
     }
 }
 
+/*
+ * Login: toldo de la tiendita (rayas rosa y blanco con orilla de olanes), código de barras del ticket
+ * y foco de la impresora. Los colores son fijos: el toldo se ve igual en claro y en oscuro.
+ */
+.toldo {
+    --olan: 28px;
+    background: repeating-linear-gradient(90deg, var(--color-rosa-500) 0 var(--olan), #fff var(--olan) calc(var(--olan) * 2));
+    box-shadow: inset 0 -10px 12px -10px rgb(0 0 0 / 0.25);
+    -webkit-mask: radial-gradient(calc(var(--olan) / 2) at 50% calc(100% - calc(var(--olan) / 2)), #000 99%, #0000) 0 0 / var(--olan) 100%,
+        linear-gradient(#000 0 0) top / 100% calc(100% - calc(var(--olan) / 2)) no-repeat;
+    mask: radial-gradient(calc(var(--olan) / 2) at 50% calc(100% - calc(var(--olan) / 2)), #000 99%, #0000) 0 0 / var(--olan) 100%,
+        linear-gradient(#000 0 0) top / 100% calc(100% - calc(var(--olan) / 2)) no-repeat;
+    transform-origin: top;
+    animation: desplegar 450ms cubic-bezier(.2, .7, .2, 1) both;
+}
+.dark .toldo { background: repeating-linear-gradient(90deg, var(--color-rosa-600) 0 var(--olan), #dfe2f5 var(--olan) calc(var(--olan) * 2)); }
+
+.codigo-barras {
+    /* Dos patrones de periodo distinto encimados para que las barras no se vean repetidas */
+    background:
+        repeating-linear-gradient(90deg, transparent 0 17px, var(--color-superficie) 17px 19px),
+        repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 5px, currentColor 5px 6px, transparent 6px 9px, currentColor 9px 12px, transparent 12px 14px);
+}
+
+.aparecer { animation: aparecer 600ms cubic-bezier(.2, .7, .2, 1) 150ms both; }
+
+.foco {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ok) 30%, transparent), 0 0 10px var(--color-ok);
+    animation: parpadeo 2.4s ease-in-out infinite;
+}
+
+@keyframes desplegar {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}
+
+@keyframes aparecer {
+    from { opacity: 0; transform: translateY(0.75rem); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes parpadeo {
+    50% { opacity: 0.45; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, ::before, ::after {
         animation-duration: 0.01ms !important;

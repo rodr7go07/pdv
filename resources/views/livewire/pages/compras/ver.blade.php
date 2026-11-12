@@ -64,7 +64,7 @@ new #[Layout('layouts.app')] class extends Component
 
     <x-card class="mb-6">
         <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div><dt class="rotulo">Proveedor</dt><dd class="mt-0.5 font-semibold">{{ $compra->proveedor->nombre }}</dd></div>
+            <div><dt class="rotulo">Proveedor</dt><dd class="mt-0.5 font-semibold">{{ $compra->proveedor?->nombre ?? 'Sin proveedor (entrada rápida)' }}</dd></div>
             <div><dt class="rotulo">Fecha</dt><dd class="mt-0.5 font-semibold">{{ $compra->fecha->translatedFormat('j \d\e F Y') }}</dd></div>
             <div><dt class="rotulo">Factura o remisión</dt><dd class="mt-0.5 font-mono font-semibold">{{ $compra->factura ?: '—' }}</dd></div>
             <div><dt class="rotulo">Registró</dt><dd class="mt-0.5 font-semibold">{{ $compra->usuario?->name ?? '—' }}</dd></div>

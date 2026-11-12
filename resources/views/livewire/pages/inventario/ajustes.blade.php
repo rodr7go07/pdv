@@ -104,6 +104,14 @@ new #[Layout('layouts.app')] class extends Component
                 <x-alerta class="mb-4">{{ $exito }}</x-alerta>
             @endif
 
+            @can('compras.registrar')
+                <p class="mb-4 rounded-lg bg-anil-50 px-4 py-3 text-sm text-anil-800">
+                    ¿Llegó mercancía? Es más rápido con
+                    <a href="{{ route('inventario.entrada') }}" wire:navigate class="font-semibold text-rosa-600 underline underline-offset-2">Entrada de mercancía</a>.
+                    Los ajustes son para mermas, caducidad y correcciones.
+                </p>
+            @endcan
+
             @if (! $this->articulo)
                 <livewire:articulos.selector origen="ajustes" :solo-inventariables="true" placeholder="Escanea o busca" />
             @else

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['folio', 'proveedor_id', 'factura', 'fecha', 'total', 'notas', 'estado', 'user_id', 'cancelada_at', 'cancelada_por', 'motivo_cancelacion'])]
+#[Fillable(['folio', 'tipo', 'proveedor_id', 'factura', 'fecha', 'total', 'notas', 'estado', 'user_id', 'cancelada_at', 'cancelada_por', 'motivo_cancelacion'])]
 class Compra extends Model
 {
     protected function casts(): array

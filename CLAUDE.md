@@ -46,7 +46,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - Verificación visual: Playwright viene instalado (`require('playwright')`); levantar `php artisan serve` con una base SQLite temporal (`DB_CONNECTION=sqlite DB_DATABASE=<ruta> SESSION_DRIVER=file CACHE_STORE=file`) y revisar a 1280, 390 y 800×360 px. No usar `pkill -f`/`pgrep -f` (matan el propio shell): guardar el PID en un archivo.
 
 ## Estado del proyecto
-- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–83; la 82 está en la rama `pedidos-por-voz`).
+- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–84; la 82 está en la rama `pedidos-por-voz`).
 - La guía de uso vive en `resources/views/guia.blade.php` (lenguaje sencillo) y `docs/GUIA_DETALLADA.md`. Todo cambio de flujo o de atajos debe actualizar ambas (hay pruebas en `GuiaTest`).
 - Pendientes por confirmar con el dueño de la tienda: método de costeo y precios con impuestos incluidos (el cajón de dinero no lo necesita abrir el sistema). Además, el catálogo cargado casi no marca IVA: confirmar qué artículos llevan impuesto.
 - **Hardware de la tienda probado:** la térmica SICAR de 58 mm (Printer001) imprime de un toque por Bluetooth directo con logo (decisiones 80 y 81) y el lector Bluetooth funciona en Venta como teclado sin configurar nada. La impresora y el lector atienden a un aparato a la vez (SicarX los tenía vinculados). Detalle en `docs/impresion.md`.

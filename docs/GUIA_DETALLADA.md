@@ -163,6 +163,9 @@ Con el **teléfono acostado** (horizontal) la venta pone el resumen y los botone
 
 ## 6. Inventario y compras
 
+### Entrada de mercancía
+*Inventario → Entrada de mercancía* (`/inventario/entrada`, permiso `compras.registrar`): se escanea con el lector o la cámara (selector de artículos, solo inventariables); cada lectura suma 1 y sube el renglón al principio; − / + o cantidad escrita; muestra «Había → quedará». **Guardar entrada** llama a `RegistrarEntradaRapida`, que registra una compra `tipo = entrada` (proveedor y nota opcionales, fecha de hoy, nota por omisión «Entrada rápida») con el **costo vigente** de cada artículo, así que el costo promedio y el último no cambian. Quien tiene `articulos.editar_precio` puede escribir otro costo por renglón. En la lista de *Inventario* el botón **+** de cada artículo hace lo mismo para un solo artículo. En *Compras* aparece como «Entrada rápida»; se cancela como cualquier compra. *Ajustes* queda para mermas, caducidad, robo y correcciones.
+
 ### Filtros e impresión de existencias
 Las tarjetas de *Inventario* filtran (todos, bajo el mínimo, agotados); la elegida se marca con orilla rosa, «Filtrando» y `aria-pressed`. Las casillas marcan artículos (se conservan al cambiar de página o filtro; *Marcar todos los de este filtro* agrega todas las páginas, máximo 300). **Imprimir existencias** usa `ListaExistencias` (decisión 83): descripción, clave, existencia con unidad, «Contado:____», mínimo/máximo y AGOTADO/BAJO MIN, total de artículos, «Revisó» y renglones para notas, al ancho del papel de la caja del turno (o de la primera caja activa; 58 mm si no hay). Sale por Bluetooth directo o RawBT si están activos en el aparato (`pdv-imprime-bt`, `pdv-imprime-rawbt`; ESC/POS de `/inventario/existencias/escpos?ids=`) o por el navegador (`/inventario/existencias/imprimir?ids=`). Requiere `inventario.ver`.
 

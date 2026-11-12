@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Articulo;
+use App\Actions\Inventario\RegistrarEntradaRapida;
 use App\Models\Departamento;
 use App\Services\ListaExistencias;
 use Livewire\Attributes\Computed;
@@ -54,6 +55,58 @@ new #[Layout('layouts.app')] class extends Component
     public function quitarSeleccion(): void
     {
         $this->seleccion = [];
+    }
+
+    // ─── Botón «+»: meter mercancía de un artículo (decisión 84) ───────────────────
+    public ?int $entradaId = null;
+
+    public string $entradaCantidad = '';
+
+    public ?string $entradaExito = null;
+
+    #[Computed]
+    public function puedeEntrada(): bool
+    {
+        return auth()->user()->can('compras.registrar');
+    }
+
+    #[Computed]
+    public function articuloEntrada(): ?Articulo
+    {
+        return $this->entradaId ? Articulo::query()->with('unidad:id,abreviatura')->find($this->entradaId) : null;
+    }
+
+    public function abrirEntrada(int $id): void
+    {
+        $this->authorize('compras.registrar');
+        $this->entradaId = $id;
+        $this->entradaCantidad = '';
+        $this->entradaExito = null;
+        $this->resetErrorBag('entradaCantidad');
+        $this->dispatch('abrir-modal', nombre: 'entrada');
+    }
+
+    public function guardarEntrada(RegistrarEntradaRapida $registrar): void
+    {
+        $this->authorize('compras.registrar');
+        $this->resetErrorBag('entradaCantidad');
+        $articulo = $this->articuloEntrada;
+        if (! $articulo) {
+            return;
+        }
+
+        try {
+            $registrar([['articulo_id' => $articulo->id, 'cantidad' => trim($this->entradaCantidad)]], auth()->user());
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->addError('entradaCantidad', collect($e->errors())->flatten()->first() ?? 'Revisa la cantidad.');
+
+            return;
+        }
+
+        $this->entradaExito = 'Entraron '.\App\Support\Numero::cantidad(trim($this->entradaCantidad)).' '.$articulo->unidad->abreviatura.' de '.$articulo->descripcion.'.';
+        $this->entradaId = null;
+        $this->dispatch('cerrar-modal', nombre: 'entrada');
+        unset($this->resumen, $this->articulos);
     }
 
     #[Computed]
@@ -110,6 +163,11 @@ new #[Layout('layouts.app')] class extends Component
                 <x-phosphor-clipboard-text-bold class="size-4" /> Conteo físico
             </a>
         @endcan
+        @can('compras.registrar')
+            <a href="{{ route('inventario.entrada') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-fuerte px-4 text-sm font-semibold text-white hover:opacity-90">
+                <x-phosphor-plus-circle-bold class="size-4" /> Entrada de mercancía
+            </a>
+        @endcan
         @can('inventario.ajustar')
             <a href="{{ route('inventario.ajustes') }}" wire:navigate class="inline-flex min-h-11 items-center gap-2 rounded-lg border border-anil-200 bg-white px-4 text-sm font-semibold text-anil-800 hover:bg-anil-50">
                 <x-phosphor-sliders-horizontal-bold class="size-4" /> Ajustes
@@ -150,6 +208,10 @@ new #[Layout('layouts.app')] class extends Component
 
     @php $lista = $this->articulos; @endphp
 
+    @if ($entradaExito)
+        <x-alerta class="mb-4">{{ $entradaExito }}</x-alerta>
+    @endif
+
     {{-- Hoja de existencias: marcar artículos e imprimirlos en la térmica (decisión 83) --}}
     <div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
         <span class="text-anil-700">Marca artículos para imprimir sus existencias.</span>
@@ -172,6 +234,7 @@ new #[Layout('layouts.app')] class extends Component
                         <th class="px-3 py-3 text-right font-medium">Existencia</th>
                         <th class="hidden px-3 py-3 text-right font-medium lg:table-cell">Mín. / Máx.</th>
                         <th class="px-4 py-3 text-right font-medium">Estado</th>
+                        @if ($this->puedeEntrada)<th class="w-14 py-3 pr-4"><span class="sr-only">Meter</span></th>@endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-anil-50">
@@ -198,6 +261,13 @@ new #[Layout('layouts.app')] class extends Component
                                 {{ $a->existencia_maxima !== null ? \App\Support\Numero::cantidad($a->existencia_maxima) : '—' }}
                             </td>
                             <td class="px-4 py-3 text-right"><x-badge :tono="$estado[0]">{{ $estado[1] }}</x-badge></td>
+                            @if ($this->puedeEntrada)
+                                <td class="py-3 pr-4 text-right">
+                                    <button type="button" wire:click="abrirEntrada({{ $a->id }})" class="grid size-10 place-items-center rounded-lg border border-anil-200 text-rosa-600 hover:bg-rosa-50" aria-label="Meter mercancía de {{ $a->descripcion }}" title="Meter mercancía">
+                                        <x-phosphor-plus-bold class="size-5" />
+                                    </button>
+                                </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>
@@ -225,6 +295,11 @@ new #[Layout('layouts.app')] class extends Component
                                 <span class="block text-xs font-medium text-anil-500">{{ $a->unidad->abreviatura }}</span>
                             </span>
                         </a>
+                        @if ($this->puedeEntrada)
+                            <button type="button" wire:click="abrirEntrada({{ $a->id }})" class="mr-3 grid size-11 shrink-0 place-items-center rounded-lg border border-anil-200 text-rosa-600 active:bg-rosa-50" aria-label="Meter mercancía de {{ $a->descripcion }}">
+                                <x-phosphor-plus-bold class="size-5" />
+                            </button>
+                        @endif
                     </li>
                 @endforeach
             </ul>
@@ -248,6 +323,26 @@ new #[Layout('layouts.app')] class extends Component
                 </x-primary-button>
             </div>
         </div>
+    @endif
+
+    @if ($this->puedeEntrada)
+        <x-modal nombre="entrada" titulo="Meter mercancía">
+            @if ($this->articuloEntrada)
+                <form wire:submit="guardarEntrada" class="space-y-4">
+                    <div>
+                        <p class="font-semibold">{{ $this->articuloEntrada->descripcion }}</p>
+                        <p class="text-sm text-anil-700">Hay <strong class="font-mono">{{ \App\Support\Numero::cantidad($this->articuloEntrada->existencia) }}</strong> {{ $this->articuloEntrada->unidad->abreviatura }}</p>
+                    </div>
+                    <div>
+                        <x-input-label for="entradaCantidad" value="¿Cuántos entran?" />
+                        <x-text-input wire:model="entradaCantidad" id="entradaCantidad" type="text" inputmode="decimal" autocomplete="off" class="text-center font-mono text-2xl font-bold"
+                                      x-init="$watch('abierto', (v) => v && setTimeout(() => $el.focus(), 80))" />
+                        <x-input-error :messages="$errors->get('entradaCantidad')" class="mt-1.5" />
+                    </div>
+                    <x-primary-button class="w-full justify-center">Guardar</x-primary-button>
+                </form>
+            @endif
+        </x-modal>
     @endif
 
     <x-escaner-camara />

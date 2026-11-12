@@ -33,7 +33,7 @@ class RegistrarCompra
     public function __construct(private readonly RegistrarMovimientoInventario $movimiento) {}
 
     /**
-     * @param  array{proveedor_id: int|string, factura?: ?string, fecha: string, notas?: ?string}  $datos
+     * @param  array{proveedor_id: int|string|null, factura?: ?string, fecha: string, notas?: ?string, tipo?: string}  $datos
      * @param  list<array{articulo_id: int|string, cantidad: string, costo_unitario: string}>  $partidas
      *
      * @throws ValidationException
@@ -47,7 +47,8 @@ class RegistrarCompra
         return DB::transaction(function () use ($datos, $partidas, $usuario, $metodo) {
             $compra = Compra::query()->create([
                 'folio' => Folios::formato('C', Folios::siguiente('C')),
-                'proveedor_id' => $datos['proveedor_id'],
+                'tipo' => ($datos['tipo'] ?? 'compra') === 'entrada' ? 'entrada' : 'compra',
+                'proveedor_id' => ($datos['proveedor_id'] ?? null) ?: null,
                 'factura' => ($datos['factura'] ?? null) ?: null,
                 'fecha' => $datos['fecha'],
                 'notas' => ($datos['notas'] ?? null) ?: null,
@@ -162,7 +163,8 @@ class RegistrarCompra
         Validator::make(
             $datos + ['partidas' => $partidas],
             [
-                'proveedor_id' => ['required', Rule::exists('proveedores', 'id')->whereNull('deleted_at')],
+                // Una entrada rápida puede no tener proveedor; una compra normal sí lo exige.
+                'proveedor_id' => [($datos['tipo'] ?? 'compra') === 'entrada' ? 'nullable' : 'required', Rule::exists('proveedores', 'id')->whereNull('deleted_at')],
                 'factura' => ['nullable', 'string', 'max:60'],
                 'fecha' => ['required', 'date', 'before_or_equal:today'],
                 'notas' => ['nullable', 'string', 'max:2000'],

@@ -94,6 +94,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
         Route::get('existencias/imprimir', [ExistenciasImpresionController::class, 'pagina'])->middleware('can:inventario.ver')->name('existencias');
         Route::get('existencias/escpos', [ExistenciasImpresionController::class, 'escpos'])->middleware('can:inventario.ver')->name('existencias-escpos');
         Volt::route('kardex/{articulo}', 'pages.inventario.kardex')->middleware('can:inventario.ver')->name('kardex');
+        Volt::route('entrada', 'pages.inventario.entrada')->middleware('can:compras.registrar')->name('entrada');
         Volt::route('ajustes', 'pages.inventario.ajustes')->middleware('can:inventario.ajustar')->name('ajustes');
         Volt::route('conteos', 'pages.inventario.conteos')->middleware('can:inventario.conteo')->name('conteos');
         Volt::route('conteos/{conteo}', 'pages.inventario.conteo')->middleware('can:inventario.conteo')->name('conteo');

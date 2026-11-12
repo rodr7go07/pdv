@@ -12,9 +12,13 @@
 
             <div class="mx-auto grid w-full max-w-5xl flex-1 grid-cols-[minmax(0,1fr)] content-center items-center gap-8 px-4 pb-10 pt-6 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-16 lg:px-8 apaisado:grid-cols-2 apaisado:items-start apaisado:gap-8 apaisado:pt-6">
                 {{-- Rótulo pintado de la fachada --}}
-                <header class="aparecer text-center lg:text-left apaisado:sticky apaisado:top-6 apaisado:text-left">
+                {{-- El tamaño del nombre se ajusta para que su palabra más larga quepa completa en el ancho disponible
+                     (cada letra mide ~0.86 de su tamaño en esta letra ancha; 0.95 deja margen). Nunca se corta una palabra. --}}
+                @php($letras = max(1, ...array_map('mb_strlen', preg_split('/\s+/u', trim($tienda->nombre_tienda)) ?: [''])))
+                <header class="aparecer @container text-center lg:text-left apaisado:sticky apaisado:top-6 apaisado:text-left">
                     <p class="text-sm font-semibold text-rosa-600">Punto de venta</p>
-                    <h1 class="mt-3 break-words font-display text-4xl font-black uppercase leading-[0.9] tracking-tight text-tinta [font-stretch:125%] sm:text-5xl lg:text-7xl apaisado:text-4xl">
+                    <h1 style="--letras: {{ $letras }}"
+                        class="mt-3 font-display text-[clamp(1.25rem,calc(100cqi/(var(--letras)*0.95)),var(--tam))] font-black uppercase leading-[0.95] tracking-tight text-tinta [--tam:2.5rem] [font-stretch:125%] [hyphens:manual] [overflow-wrap:break-word] sm:[--tam:3.5rem] lg:[--tam:4.5rem] apaisado:[--tam:2.5rem]">
                         {{ $tienda->nombre_tienda }}
                     </h1>
                     <div class="mx-auto mt-5 h-1.5 w-20 bg-rosa-500 lg:mx-0 apaisado:mx-0"></div>

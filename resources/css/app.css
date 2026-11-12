@@ -188,6 +188,16 @@
         --color-amber-950: oklch(27.9% 0.077 45.635);
     }
 
+    /* Listas desplegables nativas en oscuro: la opción elegida en rosa (el azul claro del sistema no se leía). */
+    .dark select option {
+        background-color: var(--color-superficie);
+        color: var(--color-tinta);
+    }
+    .dark select option:checked {
+        background-color: var(--color-rosa-600);
+        color: #fff;
+    }
+
     .dark .zona-clara {
         color-scheme: light;
         --color-papel: #f6f5f7;

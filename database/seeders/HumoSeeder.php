@@ -23,6 +23,13 @@ class HumoSeeder extends Seeder
             return;
         }
 
+        // Llena la base con el catálogo de demostración: solo en una base SQLite de prueba, nunca en la MySQL con datos.
+        if (config('database.connections.'.config('database.default').'.driver') !== 'sqlite') {
+            $this->command?->error('HumoSeeder solo se ejecuta en una base SQLite de prueba (la actual es '.config('database.default').').');
+
+            return;
+        }
+
         $this->call([DatabaseSeeder::class, DemoSeeder::class]);
 
         $encargado = User::query()->where('usuario', 'encargado')->firstOrFail();

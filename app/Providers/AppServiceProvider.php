@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Http\Middleware\UsuarioActivo;
+use App\Support\ProteccionBase;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Http\Middleware\TrustProxies;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Spatie\Permission\Middleware\PermissionMiddleware;
@@ -36,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
                 TrustProxies::at($proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)));
             }
         }
+
+        // Nada de borrar toda la base (migrate:fresh, db:wipe…) fuera de SQLite o en producción: ver ProteccionBase.
+        DB::prohibitDestructiveCommands(ProteccionBase::bloquear());
 
         // Las peticiones de Livewire también revisan que el usuario siga activo y conserve los permisos de la ruta.
         Livewire::addPersistentMiddleware([UsuarioActivo::class, Authorize::class, PermissionMiddleware::class]);

@@ -20,6 +20,13 @@ return [
     'default' => env('DB_CONNECTION', 'sqlite'),
 
     /*
+    | Candado (App\Support\ProteccionBase): migrate:fresh, migrate:refresh, migrate:reset y db:wipe se bloquean en
+    | producción y en cualquier base que no sea SQLite. Para borrar a propósito una MySQL local, pon
+    | PERMITIR_BORRAR_BASE=true en el .env, corre el comando y vuelve a quitarlo.
+    */
+    'permitir_borrar' => (bool) env('PERMITIR_BORRAR_BASE', false),
+
+    /*
     |--------------------------------------------------------------------------
     | Database Connections
     |--------------------------------------------------------------------------

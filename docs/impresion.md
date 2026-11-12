@@ -90,6 +90,10 @@ Equipo de la tienda: la **tablet Android es la caja**, con la térmica **Moon 58
 6. **Compartir ticket** por WhatsApp u otra app (ya construido).
 7. QZ Tray solo hace falta si se quiere abrir el **cajón de dinero** desde una PC (no integrado).
 
+### Resultado de las pruebas
+- **Lector:** vinculado por Bluetooth a la tablet, ya venía en modo teclado con Enter: en Venta escanea, busca y agrega el artículo sin tocar nada.
+- **Impresora:** SICAR de 58 mm (aparece como Printer001), acepta BLE: imprime de un toque por Bluetooth directo, con logo (decisiones 80 y 81).
+
 ### Datos que hay que traer de la tienda
 - ¿La térmica está por USB o por Bluetooth (o ambos)?
 - ¿RawBT imprime la página de prueba? ¿Y un ticket del sistema? ¿Cómo se ve a 58 mm (en el cuadro de Android, tamaño de papel)?

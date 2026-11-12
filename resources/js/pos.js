@@ -150,8 +150,12 @@ export function registrarPos(Alpine) {
 
         // ─── Impresora Bluetooth directa (Chrome, sin apps) ─────────────────────────
         prepararImpresoraBt() {
-            this.imprimeBt = guardado.leer('pdv-imprime-bt') === true;
             this.impresoraBt.soportada = impresoraBt.soportada();
+            // Sin elección guardada, en Android (teléfono o tablet de la caja) viene activo; en la PC no (allá imprime el navegador).
+            const elegido = guardado.leer('pdv-imprime-bt');
+            this.imprimeBt = elegido === null
+                ? !this.imprimeRawbt && this.impresoraBt.soportada && /Android/i.test(navigator.userAgent)
+                : elegido === true;
             const refrescar = () => { this.impresoraBt.conectada = impresoraBt.conectada(); this.impresoraBt.nombre = impresoraBt.nombre(); };
             this._dejarDeOirBt = impresoraBt.alCambiar(refrescar);
             refrescar();

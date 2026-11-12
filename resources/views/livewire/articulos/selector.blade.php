@@ -45,8 +45,16 @@ new class extends Component
     }
 
     /** Enter (el escáner lo envía): si hay coincidencia exacta se elige; si no, el primer resultado único. */
-    public function entrar(string $medio = 'lector'): void
+    /**
+     * El Enter manda también lo que hay en el campo: un lector rápido envía el Enter antes de que la escritura
+     * (con pausa de 250 ms) llegue al servidor, y sin esto la primera lectura se perdía.
+     */
+    public function entrar(string $medio = 'lector', ?string $leido = null): void
     {
+        if ($leido !== null) {
+            $this->texto = mb_substr($leido, 0, 120);
+        }
+
         $texto = trim($this->texto);
 
         if ($texto === '') {
@@ -110,7 +118,7 @@ new class extends Component
     <div class="flex gap-2">
         <div class="relative min-w-0 flex-1">
             <x-phosphor-barcode-bold class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-anil-400" />
-            <input x-ref="entrada" wire:model.live.debounce.250ms="texto" wire:keydown.enter.prevent="entrar" type="search"
+            <input x-ref="entrada" wire:model.live.debounce.250ms="texto" x-on:keydown.enter.prevent="const leido = $el.value; $wire.texto = ''; $el.value = ''; $wire.entrar('lector', leido)" type="search"
                    placeholder="{{ $placeholder }}" aria-label="Buscar artículo" autocomplete="off" spellcheck="false" autofocus
                    class="block w-full rounded-lg border border-anil-200 bg-white py-3 pl-11 pr-3.5 text-base text-tinta placeholder:text-anil-300 focus:border-anil-500 focus:ring-4 focus:ring-anil-500/15 focus:outline-none">
         </div>

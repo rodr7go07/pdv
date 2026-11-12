@@ -163,6 +163,9 @@ Con el **teléfono acostado** (horizontal) la venta pone el resumen y los botone
 
 ## 6. Inventario y compras
 
+### Filtros e impresión de existencias
+Las tarjetas de *Inventario* filtran (todos, bajo el mínimo, agotados); la elegida se marca con orilla rosa, «Filtrando» y `aria-pressed`. Las casillas marcan artículos (se conservan al cambiar de página o filtro; *Marcar todos los de este filtro* agrega todas las páginas, máximo 300). **Imprimir existencias** usa `ListaExistencias` (decisión 83): descripción, clave, existencia con unidad, «Contado:____», mínimo/máximo y AGOTADO/BAJO MIN, total de artículos, «Revisó» y renglones para notas, al ancho del papel de la caja del turno (o de la primera caja activa; 58 mm si no hay). Sale por Bluetooth directo o RawBT si están activos en el aparato (`pdv-imprime-bt`, `pdv-imprime-rawbt`; ESC/POS de `/inventario/existencias/escpos?ids=`) o por el navegador (`/inventario/existencias/imprimir?ids=`). Requiere `inventario.ver`.
+
 ### Compras
 *Compras → Nueva compra:* elige proveedor, factura y fecha; escanea la mercancía y captura cantidad y costo (sin impuestos). Al registrar: sube la existencia, se guarda el último costo y el costo promedio, y se actualiza el costo vigente según el método elegido en Configuración. Si te equivocas, *Cancelar compra* (con motivo) regresa las existencias.
 

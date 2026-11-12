@@ -60,6 +60,23 @@ final class TicketEscPos
     }
 
     /**
+     * Cualquier texto ya acomodado a las columnas del papel (como la hoja de existencias) en ESC/POS: el primer
+     * renglón en negritas y doble alto, los tres primeros centrados; al final avanza y corta.
+     */
+    public static function documento(string $texto): string
+    {
+        $b = self::ESC.'@'.self::ESC.'t'.chr(0);
+        foreach (explode("\n", rtrim($texto, "\n")) as $i => $linea) {
+            $b .= self::ESC.'a'.chr($i < 3 ? 1 : 0);
+            $b .= $i === 0
+                ? self::ESC.'E'.chr(1).self::GS.'!'.chr(0x01).self::pc437(trim($linea))."\n".self::GS.'!'.chr(0).self::ESC.'E'.chr(0)
+                : self::pc437($i < 3 ? trim($linea) : $linea)."\n";
+        }
+
+        return $b.self::ESC.'a'.chr(0).self::ESC.'d'.chr(4).self::GS.'V'.chr(66).chr(0);
+    }
+
+    /**
      * El logo de la tienda como imagen de puntos (GS v 0): blanco y negro, centrado, a 192 puntos de ancho en 58 mm
      * (256 en 80 mm). Lo transparente cuenta como blanco y los colores oscuros (el rosa también) como negro.
      * Se guarda en caché por archivo y ancho. Si no hay logo o no se puede leer (por ejemplo un SVG), el ticket sale sin él.

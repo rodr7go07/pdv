@@ -5,6 +5,7 @@ use App\Http\Controllers\CerrarSesionController;
 use App\Http\Controllers\CorteController;
 use App\Http\Controllers\EscaneoController;
 use App\Http\Controllers\EstadoCuentaController;
+use App\Http\Controllers\ExistenciasImpresionController;
 use App\Http\Controllers\ImpresionesCajaController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReporteExportController;
@@ -90,6 +91,8 @@ Route::middleware(['auth', 'activo'])->group(function () {
     // Inventario y compras (Fase 2)
     Route::prefix('inventario')->name('inventario.')->group(function () {
         Volt::route('/', 'pages.inventario.index')->middleware('can:inventario.ver')->name('index');
+        Route::get('existencias/imprimir', [ExistenciasImpresionController::class, 'pagina'])->middleware('can:inventario.ver')->name('existencias');
+        Route::get('existencias/escpos', [ExistenciasImpresionController::class, 'escpos'])->middleware('can:inventario.ver')->name('existencias-escpos');
         Volt::route('kardex/{articulo}', 'pages.inventario.kardex')->middleware('can:inventario.ver')->name('kardex');
         Volt::route('ajustes', 'pages.inventario.ajustes')->middleware('can:inventario.ajustar')->name('ajustes');
         Volt::route('conteos', 'pages.inventario.conteos')->middleware('can:inventario.conteo')->name('conteos');

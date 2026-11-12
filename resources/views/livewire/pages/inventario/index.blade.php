@@ -2,6 +2,7 @@
 
 use App\Models\Articulo;
 use App\Models\Departamento;
+use App\Services\ListaExistencias;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -27,9 +28,32 @@ new #[Layout('layouts.app')] class extends Component
         $this->authorize('inventario.ver');
     }
 
-    public function updating(): void
+    /** Artículos marcados para imprimir su hoja de existencias (se conservan al cambiar de página o de filtro). */
+    public array $seleccion = [];
+
+    public function updating(string $propiedad): void
     {
-        $this->resetPage();
+        if ($propiedad !== 'seleccion') {
+            $this->resetPage();
+        }
+    }
+
+    public function updatedSeleccion(): void
+    {
+        $this->seleccion = collect($this->seleccion)->map(fn ($id) => (string) (int) $id)->filter(fn ($id) => $id !== '0')
+            ->unique()->take(ListaExistencias::MAXIMO)->values()->all();
+    }
+
+    /** Marca todos los artículos que muestra el filtro actual (todas las páginas), hasta el máximo de la hoja. */
+    public function seleccionarFiltrados(): void
+    {
+        $ids = $this->consulta()->limit(ListaExistencias::MAXIMO)->pluck('articulos.id')->map(fn ($id) => (string) $id);
+        $this->seleccion = collect($this->seleccion)->merge($ids)->unique()->take(ListaExistencias::MAXIMO)->values()->all();
+    }
+
+    public function quitarSeleccion(): void
+    {
+        $this->seleccion = [];
     }
 
     #[Computed]
@@ -59,19 +83,22 @@ new #[Layout('layouts.app')] class extends Component
         ];
     }
 
-    #[Computed]
-    public function articulos()
+    private function consulta()
     {
         return Articulo::query()
-            ->with(['departamento:id,nombre', 'unidad:id,abreviatura'])
             ->activos()
             ->where('inventariable', true)
             ->buscar($this->buscar)
             ->when($this->departamento !== '', fn ($q) => $q->where('departamento_id', $this->departamento))
             ->when($this->filtro === 'bajo', fn ($q) => $q->bajoMinimoConExistencia())
             ->when($this->filtro === 'agotados', fn ($q) => $q->agotados())
-            ->orderBy('descripcion')
-            ->paginate(20);
+            ->orderBy('descripcion');
+    }
+
+    #[Computed]
+    public function articulos()
+    {
+        return $this->consulta()->with(['departamento:id,nombre', 'unidad:id,abreviatura'])->paginate(20);
     }
 }; ?>
 
@@ -94,9 +121,9 @@ new #[Layout('layouts.app')] class extends Component
 
     {{-- Resumen --}}
     <div class="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'todos')" etiqueta="Artículos con inventario" tamano="grande" class="text-left">{{ number_format($r['articulos']) }}</x-kpi>
-        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'bajo')" etiqueta="Bajo el mínimo" tamano="grande" :tono="$r['bajo'] > 0 ? 'aviso' : 'normal'" class="text-left">{{ number_format($r['bajo']) }}</x-kpi>
-        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'agotados')" etiqueta="Agotados" tamano="grande" :tono="$r['agotados'] > 0 ? 'peligro' : 'normal'" class="text-left">{{ number_format($r['agotados']) }}</x-kpi>
+        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'todos')" :activo="$filtro === 'todos'" etiqueta="Artículos con inventario" tamano="grande" class="text-left">{{ number_format($r['articulos']) }}</x-kpi>
+        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'bajo')" :activo="$filtro === 'bajo'" etiqueta="Bajo el mínimo" tamano="grande" :tono="$r['bajo'] > 0 ? 'aviso' : 'normal'" class="text-left">{{ number_format($r['bajo']) }}</x-kpi>
+        <x-kpi tag="button" type="button" wire:click="$set('filtro', 'agotados')" :activo="$filtro === 'agotados'" etiqueta="Agotados" tamano="grande" :tono="$r['agotados'] > 0 ? 'peligro' : 'normal'" class="text-left">{{ number_format($r['agotados']) }}</x-kpi>
         @if ($r['valor'] !== null)
             <x-kpi etiqueta="Valor del inventario">${{ number_format((float) $r['valor'], 2) }}<x-slot:nota class="mt-0.5">A costo vigente</x-slot:nota></x-kpi>
         @endif
@@ -123,6 +150,14 @@ new #[Layout('layouts.app')] class extends Component
 
     @php $lista = $this->articulos; @endphp
 
+    {{-- Hoja de existencias: marcar artículos e imprimirlos en la térmica (decisión 83) --}}
+    <div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
+        <span class="text-anil-700">Marca artículos para imprimir sus existencias.</span>
+        @if ($lista->isNotEmpty())
+            <button type="button" wire:click="seleccionarFiltrados" class="font-semibold text-rosa-600 underline underline-offset-2">Marcar todos los de este filtro</button>
+        @endif
+    </div>
+
     @if ($lista->isEmpty())
         <x-empty icono="package" titulo="No hay artículos para mostrar"
                  :texto="$filtro !== 'todos' ? 'Ningún artículo cumple este filtro.' : 'Aquí aparecen los artículos que llevan control de inventario.'" />
@@ -131,6 +166,7 @@ new #[Layout('layouts.app')] class extends Component
             <table class="hidden w-full text-left text-sm md:table">
                 <thead>
                     <tr class="rotulo border-b border-anil-100 bg-anil-50/60">
+                        <th class="w-12 py-3 pl-4"><span class="sr-only">Marcar</span></th>
                         <th class="px-4 py-3 font-medium">Artículo</th>
                         <th class="hidden px-3 py-3 font-medium lg:table-cell">Departamento</th>
                         <th class="px-3 py-3 text-right font-medium">Existencia</th>
@@ -144,7 +180,11 @@ new #[Layout('layouts.app')] class extends Component
                             $existencia = (float) $a->existencia;
                             $estado = $existencia <= 0 ? ['peligro', 'Agotado'] : ($a->estaBajoMinimo() ? ['aviso', 'Bajo el mínimo'] : ['ok', 'Bien']);
                         @endphp
-                        <tr wire:key="inv-{{ $a->id }}" class="hover:bg-anil-50/50">
+                        <tr wire:key="inv-{{ $a->id }}" @class(['hover:bg-anil-50/50', 'bg-rosa-50' => in_array((string) $a->id, $seleccion, true)])>
+                            <td class="py-3 pl-4">
+                                <input type="checkbox" wire:model.live="seleccion" value="{{ $a->id }}" aria-label="Marcar {{ $a->descripcion }}"
+                                       class="size-5 rounded border-anil-300 text-rosa-600 focus:ring-rosa-500">
+                            </td>
                             <td class="px-4 py-3">
                                 <a href="{{ route('inventario.kardex', $a) }}" wire:navigate class="font-semibold hover:text-rosa-600">{{ $a->descripcion }}</a>
                                 <span class="block font-mono text-xs text-anil-600">{{ $a->clave }}</span>
@@ -169,8 +209,12 @@ new #[Layout('layouts.app')] class extends Component
                         $existencia = (float) $a->existencia;
                         $estado = $existencia <= 0 ? ['peligro', 'Agotado'] : ($a->estaBajoMinimo() ? ['aviso', 'Bajo el mínimo'] : ['ok', 'Bien']);
                     @endphp
-                    <li wire:key="invm-{{ $a->id }}">
-                        <a href="{{ route('inventario.kardex', $a) }}" wire:navigate class="flex items-center justify-between gap-3 px-4 py-3.5">
+                    <li wire:key="invm-{{ $a->id }}" @class(['flex items-center', 'bg-rosa-50' => in_array((string) $a->id, $seleccion, true)])>
+                        <label class="grid min-h-14 shrink-0 place-items-center self-stretch pl-4 pr-1">
+                            <input type="checkbox" wire:model.live="seleccion" value="{{ $a->id }}" aria-label="Marcar {{ $a->descripcion }}"
+                                   class="size-6 rounded border-anil-300 text-rosa-600 focus:ring-rosa-500">
+                        </label>
+                        <a href="{{ route('inventario.kardex', $a) }}" wire:navigate class="flex min-w-0 flex-1 items-center justify-between gap-3 py-3.5 pl-2 pr-4">
                             <span class="min-w-0">
                                 <span class="block truncate font-semibold">{{ $a->descripcion }}</span>
                                 <span class="mt-0.5 block font-mono text-xs text-anil-600">{{ $a->clave }}</span>
@@ -187,6 +231,23 @@ new #[Layout('layouts.app')] class extends Component
         </div>
 
         <div class="mt-5">{{ $lista->links() }}</div>
+    @endif
+
+    @if ($seleccion !== [])
+        <div class="sticky bottom-20 z-20 mt-5 lg:bottom-4"
+             x-data="imprimirLista({ pagina: @js(route('inventario.existencias', absolute: false)), escpos: @js(route('inventario.existencias-escpos', absolute: false)) })">
+            <div class="flex flex-wrap items-center gap-3 rounded-xl border border-rosa-300 bg-white px-4 py-3">
+                <p class="mr-auto font-semibold text-anil-900">
+                    {{ count($seleccion) }} {{ count($seleccion) === 1 ? 'artículo marcado' : 'artículos marcados' }}
+                    <span x-show="mensaje" x-text="mensaje" :class="error ? 'text-red-700' : 'text-emerald-700'" class="block text-sm font-medium"></span>
+                </p>
+                <x-secondary-button type="button" wire:click="quitarSeleccion">Desmarcar</x-secondary-button>
+                <x-primary-button type="button" x-on:click="imprimir($wire.seleccion.map(Number))" x-bind:disabled="imprimiendo">
+                    <x-phosphor-printer-bold class="size-4" />
+                    <span x-text="imprimiendo ? 'Imprimiendo…' : 'Imprimir existencias'"></span>
+                </x-primary-button>
+            </div>
+        </div>
     @endif
 
     <x-escaner-camara />

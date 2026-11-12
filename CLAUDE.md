@@ -89,6 +89,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 
 ## Continuar en una sesión local
 - La conversación de una sesión en la nube no se transfiere: el estado vive en la rama, `CLAUDE.md` y `PLAN.md`. En el equipo del usuario (cmd o PowerShell, PHP 8.3 en el PATH): `git fetch origin`, `git checkout <rama>`, `git pull`, `composer install`, `npm run build`, `php artisan migrate`, `php artisan view:clear`, y `claude` en la carpeta del proyecto.
+- **Rutas protegidas:** `tests/Feature/SeguridadRutasTest.php` exige que toda ruta pida sesión y un permiso (`can:` o `permission:`); las excepciones están anotadas ahí con su motivo. Una ruta nueva sin protección rompe la suite: protégela o anótala explicando por qué. Las acciones con permiso extra (cancelar, descontar, retirar, crédito, precios) se validan en `app/Actions`, no solo ocultando el botón.
 - Lo que solo se puede probar en local (la nube no lo alcanza): MySQL real, impresora térmica, lector, tablet y la Fase 8 en el servidor.
 - En las sesiones de la nube `composer` puede quejarse de `ext-bcmath` (una dependencia de `laravel-lang` la pide y el contenedor no la trae): `composer require ... --ignore-platform-req=ext-bcmath` solo allá; en el equipo del usuario y en el flujo de GitHub sí está.
 

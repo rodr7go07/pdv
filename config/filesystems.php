@@ -33,7 +33,8 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Sin ruta /storage/{path} para el disco privado: nada usa sus URL temporales y así no queda expuesta.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

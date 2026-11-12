@@ -37,5 +37,6 @@ it('la plantilla de producción apaga el modo de depuración y exige cookies seg
 it('nginx bloquea archivos ocultos y guarda los archivos compilados', function () {
     $conf = file_get_contents(base_path('deploy/nginx/punto-de-venta.conf'));
 
-    expect($conf)->toContain('deny all')->toContain('location /build/')->toContain('client_max_body_size');
+    expect($conf)->toContain('deny all')->toContain('location /build/')->toContain('client_max_body_size')
+        ->toContain('Strict-Transport-Security');
 });

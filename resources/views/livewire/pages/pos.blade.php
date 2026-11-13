@@ -82,6 +82,8 @@ new #[Layout('layouts.pos')] class extends Component
             // Direcciones relativas (sin dominio): detrás de un túnel o proxy el dominio y el https pueden no coincidir y el navegador bloquearía las consultas.
             'urlBuscar' => route('pos.buscar', absolute: false),
             'urlPorIds' => route('pos.por-ids', absolute: false),
+            'urlRapidos' => route('pos.rapidos', absolute: false),
+            'departamentosRapidos' => $this->departamentos->map(fn ($d) => ['id' => (string) $d->id, 'nombre' => $d->nombre])->all(),
             'urlTicket' => route('ventas.ticket', ['venta' => '__ID__'], absolute: false),
             'urlTicketTexto' => route('ventas.ticket-texto', ['venta' => '__ID__'], absolute: false),
             'urlTicketPdf' => route('ventas.ticket-pdf', ['venta' => '__ID__'], absolute: false),
@@ -435,10 +437,13 @@ new #[Layout('layouts.pos')] class extends Component
             <button type="button" x-on:click="descartarPedido(colaImpresion.pendientes[0])" class="min-h-10 rounded-lg px-3 underline">Descartar</button>
         </div>
 
-        <div class="flex min-h-0 flex-1 flex-col apaisado:flex-row lg:flex-row">
+        {{-- De 1024 px en adelante (decisión 86): cuadrícula de dos columnas. Izquierda: captura y productos; derecha: botones,
+             renglones de la venta, total y Cobrar. section y aside se vuelven «contents» para acomodar a sus hijos en la cuadrícula;
+             en el teléfono (y acostado) todo queda como antes. --}}
+        <div class="flex min-h-0 flex-1 flex-col apaisado:flex-row lg:grid lg:grid-cols-[minmax(0,1fr)_28rem] lg:grid-rows-[auto_auto_minmax(0,1fr)_auto_auto]">
             {{-- Captura y carrito --}}
-            <section class="flex min-h-0 flex-1 flex-col">
-                <div class="shrink-0 border-b border-anil-100 bg-white p-3 sm:p-4">
+            <section class="flex min-h-0 flex-1 flex-col lg:contents">
+                <div class="shrink-0 border-b border-anil-100 bg-white p-3 sm:p-4 lg:col-start-1 lg:row-start-1 lg:row-span-2">
                     <div class="relative flex items-stretch gap-2" x-on:focusout="if (!$el.contains($event.relatedTarget)) cerrarSugerencias()">
                         <x-phosphor-barcode-bold class="pointer-events-none absolute left-3.5 top-1/2 size-6 -translate-y-1/2 text-anil-400" />
                         <input x-ref="entrada" x-model="entrada" x-on:input="sugerir()" x-on:keydown.enter.prevent="entrarOElegir()"
@@ -488,12 +493,48 @@ new #[Layout('layouts.pos')] class extends Component
                     </div>
                 </div>
 
-                <div x-ref="lista" class="min-h-0 flex-1 overflow-y-auto">
+                {{-- Productos (solo PC y tablet): los más vendidos y una pestaña por departamento; tocar uno lo agrega --}}
+                <div class="hidden min-h-0 flex-col bg-papel lg:col-start-1 lg:row-start-3 lg:row-span-3 lg:flex" aria-label="Productos">
+                    <div class="flex shrink-0 gap-1.5 overflow-x-auto border-b border-anil-100 bg-white px-4 py-2" role="tablist">
+                        <button type="button" role="tab" x-on:click="cargarRapidos('')" :aria-selected="rapidos.depto === ''"
+                                :class="rapidos.depto === '' ? 'bg-rosa-600 text-white' : 'text-anil-800 hover:bg-anil-50'"
+                                class="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold">
+                            <x-phosphor-star-bold class="size-4" /> Más vendidos
+                        </button>
+                        <template x-for="d in cfg.departamentosRapidos" :key="d.id">
+                            <button type="button" role="tab" x-on:click="cargarRapidos(d.id)" :aria-selected="rapidos.depto === d.id"
+                                    :class="rapidos.depto === d.id ? 'bg-rosa-600 text-white' : 'text-anil-800 hover:bg-anil-50'"
+                                    class="min-h-10 shrink-0 rounded-lg px-3.5 text-sm font-semibold" x-text="d.nombre"></button>
+                        </template>
+                    </div>
+                    <div class="min-h-0 flex-1 overflow-y-auto p-4">
+                        <p x-show="rapidos.cargando && !rapidos.lista.length" class="py-10 text-center text-anil-600">Cargando productos…</p>
+                        <p x-show="rapidos.error" x-cloak class="py-10 text-center text-red-700">No se pudieron cargar los productos. <button type="button" class="underline" x-on:click="_rapidosCache = {}; cargarRapidos(rapidos.depto)">Reintentar</button></p>
+                        <p x-show="!rapidos.cargando && !rapidos.error && !rapidos.lista.length" x-cloak class="py-10 text-center text-anil-600">No hay productos en este departamento.</p>
+                        <div class="grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-3" :class="rapidos.cargando && 'opacity-60'">
+                            <template x-for="a in rapidos.lista" :key="a.id">
+                                <button type="button" x-on:click="tocarRapido(a)" :title="a.descripcion"
+                                        class="flex flex-col overflow-hidden rounded-xl border border-anil-100 bg-white text-left transition hover:border-rosa-300 active:scale-[0.98]">
+                                    <span class="grid aspect-[4/3] place-items-center overflow-hidden bg-anil-50">
+                                        <template x-if="a.imagen"><img :src="a.imagen" alt="" loading="lazy" class="size-full object-cover"></template>
+                                        <template x-if="!a.imagen"><span class="font-display text-3xl font-extrabold text-rosa-500" x-text="inicialesDe(a.descripcion)"></span></template>
+                                    </span>
+                                    <span class="flex flex-1 flex-col gap-1 p-2.5">
+                                        <span class="line-clamp-2 text-sm font-semibold leading-snug text-tinta" x-text="a.descripcion"></span>
+                                        <span class="mt-auto font-display text-base font-extrabold text-anil-900" x-text="dinero(Math.round(parseFloat(a.precios[0]) * 100)) + (a.granel ? '/' + a.unidad : '')"></span>
+                                    </span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-ref="lista" class="min-h-0 flex-1 overflow-y-auto lg:col-start-2 lg:row-start-3 lg:border-l lg:border-anil-100 lg:bg-superficie">
                     <div x-show="!lineas.length" class="grid h-full place-items-center p-6 text-center" x-cloak>
                         <div>
                             <x-phosphor-barcode-bold class="mx-auto size-12 text-anil-200" />
                             <p class="mt-3 font-display text-lg font-extrabold text-anil-900">Escanea el primer artículo</p>
-                            <p class="mt-1 text-sm text-anil-700">También puedes buscarlo por nombre con <kbd class="rounded bg-anil-100 px-1.5 py-0.5 font-mono text-xs">F2</kbd>.</p>
+                            <p class="mt-1 text-sm text-anil-700">También puedes buscarlo por nombre con <kbd class="rounded bg-anil-100 px-1.5 py-0.5 font-mono text-xs">F2</kbd><span class="hidden lg:inline"> o tocarlo en los productos</span>.</p>
                         </div>
                     </div>
 
@@ -550,8 +591,8 @@ new #[Layout('layouts.pos')] class extends Component
             </section>
 
             {{-- Resumen y acciones --}}
-            <aside class="shrink-0 border-t border-anil-100 bg-white apaisado:flex apaisado:w-64 apaisado:flex-col apaisado:overflow-y-auto apaisado:border-l apaisado:border-t-0 lg:flex lg:w-[22rem] lg:flex-col lg:border-l lg:border-t-0">
-                <div class="grid grid-cols-5 gap-1.5 border-b border-anil-50 p-2 apaisado:grid-cols-3 lg:grid-cols-2 lg:gap-2 lg:p-4">
+            <aside class="shrink-0 border-t border-anil-100 bg-white apaisado:flex apaisado:w-64 apaisado:flex-col apaisado:overflow-y-auto apaisado:border-l apaisado:border-t-0 lg:contents">
+                <div class="grid grid-cols-5 gap-1.5 border-b border-anil-50 p-2 apaisado:grid-cols-3 lg:col-start-2 lg:row-start-1 lg:grid-cols-3 lg:gap-2 lg:border-l lg:border-anil-100 lg:bg-superficie lg:p-3">
                     <button type="button" x-on:click="abrirBusqueda()" class="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg border border-anil-200 text-[0.6875rem] font-semibold text-anil-800 active:bg-anil-100 lg:min-h-11 lg:flex-row lg:gap-2 lg:text-sm">
                         <x-phosphor-magnifying-glass-bold class="size-5" /> Buscar <span class="hidden font-mono text-anil-500 lg:inline">F2</span>
                     </button>
@@ -569,7 +610,7 @@ new #[Layout('layouts.pos')] class extends Component
                     </button>
                 </div>
 
-                <div x-show="cliente" x-cloak class="mx-2 mt-2 flex items-center justify-between gap-2 rounded-lg bg-rosa-50 px-3 py-2 text-sm lg:mx-4">
+                <div x-show="cliente" x-cloak class="mx-2 mt-2 flex items-center justify-between gap-2 rounded-lg bg-rosa-50 px-3 py-2 text-sm lg:col-start-2 lg:row-start-2 lg:mx-0 lg:mt-0 lg:rounded-none lg:border-l lg:border-anil-100 lg:px-4">
                     <div class="min-w-0">
                         <p class="truncate font-semibold text-rosa-700" x-text="cliente?.nombre"></p>
                         <p class="text-xs text-anil-700">
@@ -580,7 +621,7 @@ new #[Layout('layouts.pos')] class extends Component
                     <button type="button" x-on:click="quitarCliente()" class="grid size-9 shrink-0 place-items-center rounded-lg text-anil-600 hover:bg-white" aria-label="Quitar cliente"><x-phosphor-x-bold class="size-4" /></button>
                 </div>
 
-                <div class="flex items-end justify-between gap-3 px-4 pb-1 pt-3 lg:mt-auto lg:flex-col lg:items-stretch lg:gap-1 lg:px-5 lg:pt-5">
+                <div class="flex items-end justify-between gap-3 px-4 pb-1 pt-3 lg:col-start-2 lg:row-start-4 lg:flex-col lg:items-stretch lg:gap-1 lg:border-l lg:border-t lg:border-anil-100 lg:bg-superficie lg:px-5 lg:pt-4">
                     <dl class="hidden space-y-1 text-sm text-anil-700 lg:block">
                         <div class="flex justify-between"><dt>Artículos</dt><dd class="font-mono" x-text="lineas.length + ' (' + (Math.round(piezas * 1000) / 1000) + ' pzas)'"></dd></div>
                         <div class="flex justify-between" x-show="descuentoTotal > 0" x-cloak><dt>Descuento</dt><dd class="font-mono text-emerald-700" x-text="'−' + dinero(descuentoTotal)"></dd></div>
@@ -590,7 +631,7 @@ new #[Layout('layouts.pos')] class extends Component
                         <p class="font-display text-4xl font-extrabold leading-none tracking-tight text-anil-900 lg:text-5xl [font-stretch:112%]" x-text="dinero(total)" aria-live="polite"></p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 px-4 pb-3 lg:flex-col-reverse lg:items-stretch lg:px-5 lg:pb-5">
+                <div class="flex items-center gap-2 px-4 pb-3 lg:col-start-2 lg:row-start-5 lg:flex-col-reverse lg:items-stretch lg:border-l lg:border-anil-100 lg:bg-superficie lg:px-5 lg:pb-5">
                     <button type="button" x-on:click="vaciar()" x-show="lineas.length" x-cloak aria-label="Vaciar la venta" class="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-peligro hover:bg-red-50">
                         <x-phosphor-trash-bold class="size-4" /> <span class="hidden sm:inline lg:inline">Vaciar</span>
                     </button>
@@ -945,7 +986,12 @@ new #[Layout('layouts.pos')] class extends Component
                 <p class="mt-3 text-sm text-anil-700">Total <strong x-text="exito ? dinero(Math.round(parseFloat(exito.total) * 100)) : ''"></strong></p>
                 <div class="mt-5 grid gap-2">
                     <x-primary-button type="button" x-on:click="nuevaVenta()" class="w-full">Nueva venta <span class="font-mono text-xs opacity-80">Enter</span></x-primary-button>
-                    <x-secondary-button x-on:click="imprimirTicket(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir ticket</x-secondary-button>
+                    <x-secondary-button x-on:click="imprimirTicket(exito.id)" x-bind:aria-busy="impresionTicket === 'imprimiendo'"
+                                        x-bind:class="impresionTicket === 'listo' && '!border-emerald-300 !bg-emerald-50 !text-emerald-800'" class="w-full">
+                        <span x-show="!impresionTicket" class="inline-flex items-center gap-2"><x-phosphor-printer-bold class="size-4" /> Imprimir ticket</span>
+                        <span x-show="impresionTicket === 'imprimiendo'" x-cloak class="inline-flex items-center gap-2"><x-phosphor-circle-notch-bold class="size-4 animate-spin" /> Imprimiendo…</span>
+                        <span x-show="impresionTicket === 'listo'" x-cloak class="inline-flex items-center gap-2"><x-phosphor-check-circle-bold class="size-4" /> Enviado a la impresora</span>
+                    </x-secondary-button>
                     <x-secondary-button x-show="!imprimeAqui && !imprimeRawbt && !imprimeBt" x-cloak x-on:click="pedirImpresionEnCaja(exito.id)" class="w-full"><x-phosphor-printer-bold class="size-4" /> Imprimir en la caja</x-secondary-button>
                     <x-secondary-button x-on:click="compartirTicket(exito.id, exito.folio)" class="w-full"><x-phosphor-share-network-bold class="size-4" /> Compartir ticket</x-secondary-button>
                     <x-secondary-button x-on:click="compartirPdfDelTicket(exito.id, exito.folio)" class="w-full"><x-phosphor-file-pdf-bold class="size-4" /> Compartir PDF</x-secondary-button>

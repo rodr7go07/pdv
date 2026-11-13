@@ -8,6 +8,7 @@ use App\Enums\OrigenEscaneo;
 use App\Models\Articulo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Búsqueda de artículos para la pantalla de caja (el escáner manda un código y Enter).
@@ -49,6 +50,34 @@ class PosController extends Controller
     }
 
     /** Precios vigentes de artículos que ya estaban en un carrito guardado. */
+    /**
+     * Cuadrícula de productos de la caja en PC y tablet (decisión 86): los más vendidos de los últimos 30 días
+     * (24) o, con ?depto=, los de ese departamento (60), siempre de más a menos vendido y luego por nombre.
+     */
+    public function rapidos(Request $request): JsonResponse
+    {
+        $depto = is_string($request->query('depto')) && ctype_digit($request->query('depto')) ? (int) $request->query('depto') : null;
+
+        $vendidas = DB::table('venta_partidas')
+            ->join('ventas', 'ventas.id', '=', 'venta_partidas.venta_id')
+            ->where('ventas.estado', 'completada')
+            ->where('ventas.created_at', '>=', now()->subDays(30))
+            ->groupBy('venta_partidas.articulo_id')
+            ->selectRaw('venta_partidas.articulo_id, SUM(venta_partidas.cantidad) as vendidas');
+
+        $articulos = Articulo::query()->with('unidad')->activos()
+            ->leftJoinSub($vendidas, 'v', 'v.articulo_id', '=', 'articulos.id')
+            ->when($depto, fn ($q) => $q->where('articulos.departamento_id', $depto))
+            ->orderByRaw('COALESCE(v.vendidas, 0) DESC')
+            ->orderBy('articulos.descripcion')
+            ->limit($depto ? 60 : 24)
+            ->get(['articulos.*']);
+
+        return response()->json([
+            'articulos' => $articulos->map(fn (Articulo $a) => $this->formato($a) + ['imagen' => $a->imagenUrl()])->all(),
+        ])->header('Cache-Control', 'no-store');
+    }
+
     public function porIds(Request $request): JsonResponse
     {
         $ids = collect(explode(',', (string) $request->query('ids', '')))

@@ -45,6 +45,7 @@ Route::middleware(['auth', 'activo'])->group(function () {
     Volt::route('venta', 'pages.pos')->middleware('can:ventas.cobrar')->name('pos');
     Route::get('venta/buscar', [PosController::class, 'buscar'])->middleware('can:ventas.cobrar')->name('pos.buscar');
     Route::get('venta/por-ids', [PosController::class, 'porIds'])->middleware('can:ventas.cobrar')->name('pos.por-ids');
+    Route::get('venta/rapidos', [PosController::class, 'rapidos'])->middleware('can:ventas.cobrar')->name('pos.rapidos');
 
     // Pedidos de impresión en caja (los atiende la pantalla de Venta de la caja con turno abierto)
     Route::middleware('can:ventas.cobrar')->prefix('venta/impresiones')->name('impresiones.')->group(function () {

@@ -79,6 +79,14 @@ export function registrarPos(Alpine) {
         _colaT: null,
         _colaRevisando: false,
 
+        // Botón «Imprimir ticket»: '' | 'imprimiendo' | 'listo' (para que se note que sí se tocó).
+        impresionTicket: '',
+        _impresionTicketT: null,
+
+        // Cuadrícula de productos en PC y tablet (decisión 86). depto '' = los más vendidos.
+        rapidos: { depto: '', lista: [], cargando: false, error: false },
+        _rapidosCache: {},
+
         // ─── Ciclo de vida ──────────────────────────────────────────────────────────
         init() {
             const previo = guardado.leer(this.claveGuardado());
@@ -107,6 +115,7 @@ export function registrarPos(Alpine) {
             });
             this.enfocar();
             this.vigilarImpresiones();
+            this.prepararRapidos();
         },
 
         /** Alpine lo llama al salir de la pantalla (wire:navigate): la cámara no debe quedar encendida. */
@@ -202,7 +211,7 @@ export function registrarPos(Alpine) {
             if (!impresoraBt.conectada() && !(await impresoraBt.reconectar())) {
                 if (!(await this.conectarImpresoraBt())) {
                     this.avisar('La impresora no está conectada: toca el botón de la impresora arriba y vuelve a imprimir.', 'error', 7000);
-                    return;
+                    return false;
                 }
             }
             try {
@@ -210,8 +219,10 @@ export function registrarPos(Alpine) {
                 if (!r.ok) throw new Error('No se pudo preparar el ticket.');
                 const bytes = Uint8Array.from(atob((await r.text()).trim()), (c) => c.charCodeAt(0));
                 await impresoraBt.imprimir(bytes);
+                return true;
             } catch (e) {
                 this.avisar(`No se imprimió: ${e?.message || e}`, 'error', 7000);
+                return false;
             }
         },
 
@@ -510,6 +521,43 @@ export function registrarPos(Alpine) {
             this.codigoSinAlta = codigo;
             clearTimeout(this._codigoSinAltaT);
             this._codigoSinAltaT = setTimeout(() => (this.codigoSinAlta = ''), 12000);
+        },
+
+        // ─── Cuadrícula de productos (PC y tablet) ───────────────────────────────────
+        /** Solo de 1024 px en adelante: en el teléfono la cuadrícula no se muestra ni se consulta. */
+        prepararRapidos() {
+            const ancho = window.matchMedia('(min-width: 64rem)');
+            if (ancho.matches) this.cargarRapidos('');
+            ancho.addEventListener?.('change', (e) => { if (e.matches && !this.rapidos.lista.length) this.cargarRapidos(this.rapidos.depto); });
+        },
+
+        async cargarRapidos(depto) {
+            this.rapidos.depto = depto;
+            this.rapidos.error = false;
+            if (this._rapidosCache[depto]) { this.rapidos.lista = this._rapidosCache[depto]; return; }
+            this.rapidos.cargando = true;
+            try {
+                const url = this.cfg.urlRapidos + (depto ? `?depto=${encodeURIComponent(depto)}` : '');
+                const r = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'same-origin', signal: AbortSignal.timeout(10000) });
+                if (!r.ok) throw new Error();
+                const { articulos } = await r.json();
+                this._rapidosCache[depto] = articulos;
+                if (this.rapidos.depto === depto) this.rapidos.lista = articulos;
+            } catch {
+                if (this.rapidos.depto === depto) this.rapidos.error = true;
+            } finally {
+                if (this.rapidos.depto === depto) this.rapidos.cargando = false;
+            }
+        },
+
+        /** Iniciales para el cuadro de un producto sin foto («COCA COLA 600» → «CC»). */
+        inicialesDe(texto) {
+            return (texto || '').split(/\s+/).filter((p) => /^[a-záéíóúñ]/i.test(p)).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || '·';
+        },
+
+        tocarRapido(a) {
+            this.agregar(a);
+            this.enfocar();
         },
 
         // ─── Carrito ────────────────────────────────────────────────────────────────
@@ -1047,14 +1095,25 @@ export function registrarPos(Alpine) {
             }
         },
 
-        imprimirTicket(id) {
-            if (this.imprimeBt) { this.imprimirPorBt(id); return; }
-            if (this.imprimeRawbt) { this.imprimirConRawbt(id); return; }
-            const marco = document.createElement('iframe');
-            marco.style.cssText = 'position:fixed;width:0;height:0;border:0;visibility:hidden';
-            marco.src = this.cfg.urlTicket.replace('__ID__', id) + '?imprimir=1';
-            document.body.appendChild(marco);
-            setTimeout(() => marco.remove(), 60000);
+        /**
+         * Imprime el ticket por el camino de este aparato (Bluetooth, RawBT o el navegador) y muestra en el botón que está
+         * trabajando: «Imprimiendo…» con un círculo que gira y luego «Enviado a la impresora». Un segundo toque mientras
+         * imprime no manda otro ticket.
+         */
+        async imprimirTicket(id) {
+            if (this.impresionTicket === 'imprimiendo') return;
+            clearTimeout(this._impresionTicketT);
+            this.impresionTicket = 'imprimiendo';
+            let ok = true;
+            try {
+                if (this.imprimeBt) ok = await this.imprimirPorBt(id);
+                else if (this.imprimeRawbt) ok = await this.imprimirConRawbt(id);
+                else ok = await this.imprimirEnMarco(this.cfg.urlTicket.replace('__ID__', id) + '?imprimir=1');
+            } catch {
+                ok = false;
+            }
+            this.impresionTicket = ok ? 'listo' : '';
+            if (ok) this._impresionTicketT = setTimeout(() => { this.impresionTicket = ''; }, 3000);
         },
 
         /**
@@ -1067,12 +1126,16 @@ export function registrarPos(Alpine) {
                 if (!r.ok) throw new Error();
                 const datos = (await r.text()).trim();
                 window.location.href = `intent:base64,${datos}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+                return true;
             } catch {
                 this.avisar('No se pudo preparar el ticket para RawBT. Revisa tu internet e inténtalo de nuevo.', 'error', 6000);
+                return false;
             }
         },
 
         nuevaVenta() {
+            clearTimeout(this._impresionTicketT);
+            this.impresionTicket = '';
             this.exito = null;
             this.modal = null;
             this.enfocar();

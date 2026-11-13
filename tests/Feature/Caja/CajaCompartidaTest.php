@@ -112,3 +112,10 @@ it('Mi caja muestra el turno compartido a los asignados y oculta la caja a los d
     Volt::actingAs($this->beto)->test('pages.caja.index')->assertSee('caja compartida');
     Volt::actingAs($this->ajeno)->test('pages.caja.index')->assertDontSee('Mostrador');
 });
+
+it('la pantalla Cajas dice quién tiene el turno abierto y desde cuándo', function () {
+    $admin = User::factory()->conRol(Rol::Administrador)->create();
+    app(AbrirTurno::class)($this->caja, $this->ana, '0');
+
+    Volt::actingAs($admin)->test('pages.cajas')->assertSee('Turno abierto: Ana')->assertSee('desde');
+});

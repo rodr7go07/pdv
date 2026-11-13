@@ -39,6 +39,10 @@ new #[Layout('layouts.app')] class extends Component
     {
         return Caja::query()->withCount('ventas')
             ->addSelect(['turno_abierto' => \App\Models\Turno::query()->select('id')->whereColumn('caja_id', 'cajas.id')->where('estado', 'abierto')->limit(1)])
+            // Quién abrió el turno y desde cuándo, para saber de un vistazo quién tiene cada caja.
+            ->addSelect(['turno_de' => \App\Models\Turno::query()->join('users', 'users.id', '=', 'turnos.user_id')
+                ->select('users.name')->whereColumn('turnos.caja_id', 'cajas.id')->where('turnos.estado', 'abierto')->limit(1)])
+            ->addSelect(['turno_desde' => \App\Models\Turno::query()->select('abierto_at')->whereColumn('caja_id', 'cajas.id')->where('estado', 'abierto')->limit(1)])
             ->with('usuarios:id,name')
             ->orderBy('nombre')->get();
     }
@@ -148,16 +152,21 @@ new #[Layout('layouts.app')] class extends Component
         <x-card :padding="false">
             <ul class="divide-y divide-anil-50">
                 @foreach ($this->lista as $c)
-                    <li wire:key="cj-{{ $c->id }}" class="flex items-center gap-3 px-5 py-3 sm:px-6">
-                        <div class="min-w-0 flex-1">
+                    <li wire:key="cj-{{ $c->id }}" class="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 sm:flex-nowrap sm:px-6">
+                        <div class="min-w-0 basis-full sm:flex-1 sm:basis-auto">
                             <p @class(['truncate font-semibold', 'text-anil-400 line-through' => ! $c->activa])>{{ $c->nombre }} <span class="font-mono text-sm font-normal text-anil-600">({{ $c->serie }})</span></p>
+                            @if ($c->turno_abierto)
+                                <p class="text-sm font-semibold text-amber-900">
+                                    Turno abierto: {{ $c->turno_de ?? 'usuario borrado' }}
+                                    <span class="font-normal text-anil-700">· desde {{ \Illuminate\Support\Carbon::parse($c->turno_desde)->translatedFormat('j M, H:i') }}</span>
+                                </p>
+                            @endif
                             <p class="text-xs text-anil-600">Papel de {{ $c->ancho_papel }} mm · {{ $c->imprimir_automatico ? 'imprime solo' : 'impresión manual' }} · {{ number_format($c->ventas_count) }} {{ $c->ventas_count === 1 ? 'venta' : 'ventas' }}</p>
                         </div>
                         @if ($c->compartida)
                             <span class="hidden text-xs text-anil-700 sm:block" title="{{ $c->usuarios->pluck('name')->join(', ') }}">Compartida · {{ $c->usuarios->count() }} {{ $c->usuarios->count() === 1 ? 'usuario' : 'usuarios' }}</span>
                         @endif
-                        @if ($c->turno_abierto)<x-badge tono="aviso">Turno abierto</x-badge>@endif
-                        <x-badge :tono="$c->activa ? 'ok' : 'gris'">{{ $c->activa ? 'Activa' : 'Inactiva' }}</x-badge>
+                        <x-badge :tono="$c->activa ? 'ok' : 'gris'" class="mr-auto sm:mr-0">{{ $c->activa ? 'Activa' : 'Inactiva' }}</x-badge>
                         <a href="{{ route('cajas.prueba', $c) }}" target="_blank" rel="noopener" class="grid size-11 place-items-center rounded-lg text-anil-700 hover:bg-anil-50" aria-label="Imprimir prueba de {{ $c->nombre }}" title="Imprimir prueba"><x-phosphor-printer-bold class="size-5" /></a>
                         <button type="button" wire:click="editar({{ $c->id }})" class="grid size-11 place-items-center rounded-lg text-anil-700 hover:bg-anil-50" aria-label="Editar {{ $c->nombre }}"><x-phosphor-pencil-simple-bold class="size-5" /></button>
                     </li>

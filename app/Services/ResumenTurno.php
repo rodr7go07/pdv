@@ -27,7 +27,8 @@ final class ResumenTurno
      *   abonos: array<string, string>,
      *   entradas: string,
      *   retiros: string,
-     *   efectivo_esperado: string
+     *   efectivo_esperado: string,
+     *   vendedores: list<array{nombre: string, cantidad: int, total: string}>
      * }
      */
     public static function calcular(Turno $turno): array
@@ -57,6 +58,15 @@ final class ResumenTurno
             ->groupBy('tipo')->selectRaw('tipo, SUM(monto) as monto')->pluck('monto', 'tipo');
 
         $dinero = fn ($v) => (string) BigDecimal::of((string) ($v ?? 0))->toScale(2, RoundingMode::HalfUp);
+
+        // Lo que vendió cada quien en el turno (en una caja compartida venden varios: decisión 85).
+        $vendedores = DB::table('ventas')->leftJoin('users', 'users.id', '=', 'ventas.user_id')
+            ->where('ventas.turno_id', $turno->id)->where('ventas.estado', 'completada')
+            ->groupBy('ventas.user_id', 'users.name')
+            ->selectRaw('users.name as nombre, COUNT(*) as cantidad, COALESCE(SUM(ventas.total),0) as total')
+            ->orderByDesc('total')->get()
+            ->map(fn ($v) => ['nombre' => $v->nombre ?? 'Usuario borrado', 'cantidad' => (int) $v->cantidad, 'total' => $dinero($v->total)])
+            ->all();
 
         $porForma = [];
         foreach (FormaPago::valores() as $forma) {
@@ -95,6 +105,7 @@ final class ResumenTurno
             'entradas' => $dinero($movimientos['entrada'] ?? 0),
             'retiros' => $dinero($movimientos['retiro'] ?? 0),
             'efectivo_esperado' => (string) $esperado->toScale(2, RoundingMode::HalfUp),
+            'vendedores' => $vendedores,
         ];
     }
 }

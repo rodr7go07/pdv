@@ -35,7 +35,18 @@ class AbrirTurno
                     throw ValidationException::withMessages(['caja' => 'Esta caja no está disponible.']);
                 }
 
-                if (Turno::query()->abiertos()->where('user_id', $usuario->id)->exists()) {
+                // Caja compartida (decisión 85): solo la abren sus usuarios asignados; si ya está abierta, se trabaja en ese turno.
+                if ($caja->compartida) {
+                    if (! $caja->asignado($usuario)) {
+                        throw ValidationException::withMessages(['caja' => 'No estás asignado a esta caja. Pide que te agreguen en Cajas.']);
+                    }
+
+                    if ($abierto = Turno::query()->abiertos()->where('caja_id', $caja->id)->first()) {
+                        return $abierto;
+                    }
+                }
+
+                if (Turno::abiertoDe($usuario)) {
                     throw ValidationException::withMessages(['caja' => 'Ya tienes un turno abierto. Ciérralo antes de abrir otro.']);
                 }
 

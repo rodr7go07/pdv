@@ -91,7 +91,7 @@ class CerrarTurno
     private function autorizar(Turno $turno, User $usuario): void
     {
         abort_unless($usuario->can('caja.corte'), 403, 'No tienes permiso para hacer cortes de caja.');
-        abort_unless($turno->user_id === $usuario->id || $usuario->can('caja.supervisar'), 403, 'Este turno es de otro cajero.');
+        abort_unless($turno->esDe($usuario) || $usuario->can('caja.supervisar'), 403, 'Este turno es de otro cajero.');
     }
 
     /** @return array<string, mixed> */

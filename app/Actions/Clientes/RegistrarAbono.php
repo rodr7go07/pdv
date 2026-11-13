@@ -40,7 +40,7 @@ class RegistrarAbono
         )->validate();
 
         return DB::transaction(function () use ($cliente, $monto, $forma, $referencia, $usuario) {
-            $turno = Turno::query()->abiertos()->where('user_id', $usuario->id)->lockForUpdate()->first();
+            $turno = Turno::query()->abiertos()->disponiblesPara($usuario)->lockForUpdate()->first();
 
             if ($forma === 'efectivo' && ! $turno) {
                 throw ValidationException::withMessages(['monto' => 'Para recibir efectivo necesitas tener tu turno de caja abierto.']);

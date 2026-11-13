@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Caja;
+use App\Models\User;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -22,6 +23,12 @@ new #[Layout('layouts.app')] class extends Component
 
     public bool $activa = true;
 
+    /** Turno compartido (decisión 85): el turno es de la caja y venden en él los usuarios asignados. */
+    public bool $compartida = false;
+
+    /** @var list<string> ids de los usuarios asignados */
+    public array $asignados = [];
+
     public function mount(): void
     {
         $this->authorize('cajas.administrar');
@@ -32,13 +39,21 @@ new #[Layout('layouts.app')] class extends Component
     {
         return Caja::query()->withCount('ventas')
             ->addSelect(['turno_abierto' => \App\Models\Turno::query()->select('id')->whereColumn('caja_id', 'cajas.id')->where('estado', 'abierto')->limit(1)])
+            ->with('usuarios:id,name')
             ->orderBy('nombre')->get();
+    }
+
+    /** Quienes pueden cobrar: son los que se pueden asignar a una caja compartida. */
+    #[Computed]
+    public function vendedores()
+    {
+        return User::query()->where('activo', true)->permission('ventas.cobrar')->orderBy('name')->get(['id', 'name', 'usuario']);
     }
 
     public function nueva(): void
     {
         $this->authorize('cajas.administrar');
-        $this->reset('editandoId', 'nombre', 'serie', 'imprimir_automatico');
+        $this->reset('editandoId', 'nombre', 'serie', 'imprimir_automatico', 'compartida', 'asignados');
         $this->ancho_papel = '80';
         $this->impresion_pedidos = Caja::PEDIDOS_SOLA;
         $this->activa = true;
@@ -53,6 +68,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->fill([
             'editandoId' => $c->id, 'nombre' => $c->nombre, 'serie' => $c->serie, 'ancho_papel' => (string) $c->ancho_papel,
             'imprimir_automatico' => $c->imprimir_automatico, 'impresion_pedidos' => $c->impresion_pedidos, 'activa' => $c->activa,
+            'compartida' => $c->compartida, 'asignados' => $c->usuarios()->pluck('users.id')->map(fn ($id) => (string) $id)->all(),
         ]);
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'caja');
@@ -71,6 +87,9 @@ new #[Layout('layouts.app')] class extends Component
             'imprimir_automatico' => ['boolean'],
             'impresion_pedidos' => ['required', Rule::in([Caja::PEDIDOS_SOLA, Caja::PEDIDOS_AVISO])],
             'activa' => ['boolean'],
+            'compartida' => ['boolean'],
+            'asignados' => ['array'],
+            'asignados.*' => ['integer', Rule::in($this->vendedores->pluck('id')->all())],
         ], [
             'nombre.unique' => 'Ya existe una caja con ese nombre.',
             'serie.unique' => 'Esa serie ya la usa otra caja.',
@@ -92,12 +111,27 @@ new #[Layout('layouts.app')] class extends Component
 
                 return;
             }
+
+            // Quitar el turno compartido con el turno abierto dejaría a media venta a los demás vendedores.
+            if ($caja->compartida && ! $d['compartida'] && \App\Models\Turno::query()->abiertos()->where('caja_id', $caja->id)->exists()) {
+                $this->addError('compartida', 'Esta caja tiene un turno abierto. Haz el corte antes de quitar el turno compartido.');
+
+                return;
+            }
         }
 
-        Caja::query()->updateOrCreate(['id' => $this->editandoId], [
+        if ($d['compartida'] && $d['asignados'] === []) {
+            $this->addError('asignados', 'Elige al menos a un usuario que pueda vender en esta caja.');
+
+            return;
+        }
+
+        $caja = Caja::query()->updateOrCreate(['id' => $this->editandoId], [
             'nombre' => trim($d['nombre']), 'serie' => $d['serie'], 'ancho_papel' => (int) $d['ancho_papel'],
             'imprimir_automatico' => $d['imprimir_automatico'], 'impresion_pedidos' => $d['impresion_pedidos'], 'activa' => $d['activa'],
+            'compartida' => $d['compartida'],
         ]);
+        $caja->usuarios()->sync($d['compartida'] ? array_map('intval', $d['asignados']) : []);
 
         unset($this->lista);
         $this->dispatch('cerrar-modal', nombre: 'caja');
@@ -119,6 +153,9 @@ new #[Layout('layouts.app')] class extends Component
                             <p @class(['truncate font-semibold', 'text-anil-400 line-through' => ! $c->activa])>{{ $c->nombre }} <span class="font-mono text-sm font-normal text-anil-600">({{ $c->serie }})</span></p>
                             <p class="text-xs text-anil-600">Papel de {{ $c->ancho_papel }} mm · {{ $c->imprimir_automatico ? 'imprime solo' : 'impresión manual' }} · {{ number_format($c->ventas_count) }} {{ $c->ventas_count === 1 ? 'venta' : 'ventas' }}</p>
                         </div>
+                        @if ($c->compartida)
+                            <span class="hidden text-xs text-anil-700 sm:block" title="{{ $c->usuarios->pluck('name')->join(', ') }}">Compartida · {{ $c->usuarios->count() }} {{ $c->usuarios->count() === 1 ? 'usuario' : 'usuarios' }}</span>
+                        @endif
                         @if ($c->turno_abierto)<x-badge tono="aviso">Turno abierto</x-badge>@endif
                         <x-badge :tono="$c->activa ? 'ok' : 'gris'">{{ $c->activa ? 'Activa' : 'Inactiva' }}</x-badge>
                         <a href="{{ route('cajas.prueba', $c) }}" target="_blank" rel="noopener" class="grid size-11 place-items-center rounded-lg text-anil-700 hover:bg-anil-50" aria-label="Imprimir prueba de {{ $c->nombre }}" title="Imprimir prueba"><x-phosphor-printer-bold class="size-5" /></a>
@@ -161,6 +198,25 @@ new #[Layout('layouts.app')] class extends Component
                 </x-select>
                 <p class="mt-1.5 text-xs text-anil-600">Los atiende la pantalla de Venta de esta caja en la PC que tiene la impresora (se activa en «Atajos» de esa pantalla; en la PC ya viene activado).</p>
                 <x-input-error :messages="$errors->get('impresion_pedidos')" class="mt-1.5" />
+            </div>
+            <div class="space-y-3 rounded-lg border border-anil-100 p-4">
+                <x-checkbox wire:model.live="compartida" label="Turno compartido"
+                            ayuda="El turno es de la caja: lo abre uno y venden en él todos los usuarios que elijas. Cada venta guarda quién la hizo y el corte se hace una vez con lo de cada vendedor." />
+                <x-input-error :messages="$errors->get('compartida')" />
+                @if ($compartida)
+                    <fieldset>
+                        <legend class="rotulo mb-1.5">Quiénes venden en esta caja</legend>
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            @foreach ($this->vendedores as $u)
+                                <label class="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-anil-200 px-3 text-sm">
+                                    <input type="checkbox" wire:model="asignados" value="{{ $u->id }}" class="size-5 rounded border-anil-300 text-rosa-600 focus:ring-rosa-500">
+                                    <span class="min-w-0 truncate">{{ $u->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <x-input-error :messages="$errors->get('asignados')" class="mt-1.5" />
+                    </fieldset>
+                @endif
             </div>
             <div>
                 <x-checkbox wire:model="activa" label="Caja activa" />

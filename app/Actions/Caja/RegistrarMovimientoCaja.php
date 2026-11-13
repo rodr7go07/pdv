@@ -22,7 +22,7 @@ class RegistrarMovimientoCaja
     public function __invoke(Turno $turno, string $tipo, string $monto, string $motivo, User $usuario): MovimientoCaja
     {
         abort_unless($usuario->can('caja.retiro'), 403, 'No tienes permiso para registrar entradas o retiros de efectivo.');
-        abort_unless($turno->user_id === $usuario->id || $usuario->can('caja.supervisar'), 403, 'Este turno es de otro cajero.');
+        abort_unless($turno->esDe($usuario) || $usuario->can('caja.supervisar'), 403, 'Este turno es de otro cajero.');
 
         $motivo = trim($motivo);
 

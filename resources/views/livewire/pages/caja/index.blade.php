@@ -46,8 +46,11 @@ new #[Layout('layouts.app')] class extends Component
     #[Computed]
     public function cajasLibres()
     {
+        // Una caja compartida solo la ven sus usuarios asignados (decisión 85).
         return Caja::query()->activas()
             ->whereNotIn('id', Turno::query()->abiertos()->select('caja_id'))
+            ->where(fn ($q) => $q->where('compartida', false)
+                ->orWhereHas('usuarios', fn ($u) => $u->whereKey(auth()->id())))
             ->orderBy('nombre')->get(['id', 'nombre']);
     }
 
@@ -218,7 +221,7 @@ new #[Layout('layouts.app')] class extends Component
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-anil-100 bg-white px-5 py-4">
             <div>
                 <p class="font-display text-xl font-extrabold">{{ $t->caja->nombre }}</p>
-                <p class="text-sm text-anil-700">Abierto desde el {{ $t->abierto_at->translatedFormat('j \d\e F, H:i') }} por {{ $t->usuario->name }}</p>
+                <p class="text-sm text-anil-700">Abierto desde el {{ $t->abierto_at->translatedFormat('j \d\e F, H:i') }} por {{ $t->usuario->name }}@if ($t->esCompartido()) · <strong>caja compartida</strong>: venden todos sus asignados y cada venta guarda quién la hizo @endif</p>
             </div>
             <x-badge tono="ok">Turno abierto</x-badge>
         </div>

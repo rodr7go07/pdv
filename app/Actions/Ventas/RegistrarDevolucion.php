@@ -99,7 +99,7 @@ class RegistrarDevolucion
             }
 
             // El dinero sale del cajón de quien procesa la devolución; si no tiene turno, del turno aún abierto de la venta.
-            $turno = Turno::query()->abiertos()->where('user_id', $usuario->id)->lockForUpdate()->first()
+            $turno = Turno::query()->abiertos()->disponiblesPara($usuario)->lockForUpdate()->first()
                 ?? ($venta->turno_id ? Turno::query()->abiertos()->lockForUpdate()->find($venta->turno_id) : null);
 
             if (! $turno) {

@@ -137,6 +137,7 @@
                     'Cuenta el dinero que hay en el cajón para dar cambio y escríbelo en **Fondo inicial**.',
                     'Toca **Abrir turno**.',
                 ]],
+                ['p' => '**Caja compartida.** Si el dueño marcó tu caja como **compartida** y te asignó a ella, el primero que llega abre el turno y los demás solo entran a **Venta** y cobran: no hay que abrir nada más. Cada venta guarda quién la hizo y el corte se hace una sola vez para todos, con lo que vendió cada uno.'],
                 ['cuidado' => 'Sin turno abierto el sistema no deja cobrar. Y no puede haber dos turnos abiertos en la misma caja.'],
             ],
         ],

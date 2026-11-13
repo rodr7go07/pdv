@@ -64,6 +64,21 @@
         </dl>
     </div>
 
+    {{-- Con varios vendedores en el turno (caja compartida), lo de cada uno. Los cortes viejos no traen este dato. --}}
+    @if (count($resumen['vendedores'] ?? []) > 1)
+        <div class="rounded-xl border border-anil-100 bg-white p-4">
+            <h3 class="rotulo mb-2">Ventas por vendedor</h3>
+            <dl class="space-y-1.5 text-sm">
+                @foreach ($resumen['vendedores'] as $v)
+                    <div class="flex justify-between gap-3">
+                        <dt class="min-w-0 truncate text-anil-800">{{ $v['nombre'] }} <span class="text-anil-500">· {{ $v['cantidad'] }} {{ $v['cantidad'] === 1 ? 'venta' : 'ventas' }}</span></dt>
+                        <dd class="font-mono font-semibold">{{ $m($v['total']) }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+        </div>
+    @endif
+
     @if ($resumen['canceladas']['cantidad'] > 0)
         <p class="text-sm text-anil-700">
             Ventas canceladas en este turno: <strong>{{ $resumen['canceladas']['cantidad'] }}</strong> por {{ $m($resumen['canceladas']['total']) }} (no se cuentan en lo cobrado).

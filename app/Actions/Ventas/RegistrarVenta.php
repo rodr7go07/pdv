@@ -55,9 +55,10 @@ class RegistrarVenta
         $this->validar($caja, $lineas, $pagos, $descuentoGlobal, $lista);
 
         return DB::transaction(function () use ($caja, $usuario, $lineas, $pagos, $descuentoGlobal, $lista, $cliente) {
-            // Solo se vende con el turno propio abierto en esa caja; se bloquea para que no se cierre a medio cobro.
-            $turno = Turno::query()->abiertos()
-                ->where('caja_id', $caja->id)->where('user_id', $usuario->id)
+            // Solo se vende con el turno propio abierto en esa caja (o el de la caja compartida donde el usuario está
+            // asignado); se bloquea para que no se cierre a medio cobro. La venta guarda quién vendió.
+            $turno = Turno::query()->abiertos()->disponiblesPara($usuario)
+                ->where('caja_id', $caja->id)
                 ->lockForUpdate()->first();
 
             if (! $turno) {

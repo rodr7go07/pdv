@@ -15,7 +15,7 @@ class CorteController extends Controller
         $usuario = $request->user();
         $corte->load(['turno.caja', 'turno.usuario:id,name', 'usuario:id,name']);
 
-        abort_unless($usuario->can('caja.supervisar') || $corte->turno->user_id === $usuario->id, 403);
+        abort_unless($usuario->can('caja.supervisar') || $corte->turno->esDe($usuario), 403);
 
         $ancho = $corte->turno->caja->ancho_papel;
 

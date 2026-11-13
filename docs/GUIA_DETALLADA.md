@@ -40,7 +40,7 @@ Haz estos pasos en orden:
    - *Costo que se usa para la utilidad*: **costo promedio** (mezcla lo que tenías con lo nuevo) o **último costo** (lo que pagaste la última vez). Se guardan siempre los dos; esta opción solo decide cuál se usa para márgenes y utilidad.
    - *Permitir vender aunque no haya existencia*: útil si a veces vendes antes de capturar la compra.
 3. **Catálogos:** crea tus departamentos (solo viene «General») y revisa las unidades de medida y los impuestos que ya vienen (IVA 16 %, IVA 0 %, Exento, IEPS 8 %). Agrega los que falten.
-4. **Cajas:** revisa la *Caja 1* (serie A). Elige el ancho del papel de tu impresora (58 u 80 mm) y si el ticket se imprime solo. El botón de impresora imprime una hoja de prueba.
+4. **Cajas:** revisa la *Caja 1* (serie A). Si varios empleados usan la misma caja, activa **Turno compartido** y marca quiénes venden en ella (decisión 85): el turno es de la caja, lo abre el primero que llega con el fondo, los asignados venden en él sin abrir otro, cada venta guarda quién la hizo y el corte (lo hace cualquiera con permiso de corte que esté asignado, o un supervisor) es uno solo con la sección *Ventas por vendedor*. Un faltante es de todos. No se puede quitar lo compartido con el turno abierto. Elige el ancho del papel de tu impresora (58 u 80 mm) y si el ticket se imprime solo. El botón de impresora imprime una hoja de prueba.
 5. **Usuarios:** da de alta a tus cajeros y encargados (usuario, nombre, contraseña y rol). Entrégales su usuario y contraseña.
 6. **Proveedores:** registra a quienes te surten.
 7. **Artículos:** crea tus artículos uno por uno o impórtalos de Excel (sección 3).

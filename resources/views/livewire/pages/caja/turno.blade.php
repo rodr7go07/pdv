@@ -20,7 +20,7 @@ new #[Layout('layouts.app')] class extends Component
     public function mount(Turno $turno): void
     {
         $u = auth()->user();
-        abort_unless($u->can('caja.supervisar') || $turno->user_id === $u->id, 403);
+        abort_unless($u->can('caja.supervisar') || $turno->esDe($u), 403);
 
         $this->turno = $turno->load(['caja', 'usuario:id,name', 'cerradoPor:id,name']);
     }

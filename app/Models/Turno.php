@@ -71,9 +71,35 @@ class Turno extends Model
         return $this->estado === 'abierto';
     }
 
-    /** Turno abierto de un usuario (como máximo uno). */
+    /**
+     * Turnos en los que el usuario puede trabajar (decisión 85): el suyo, o el de una caja compartida donde está asignado.
+     * El propio va primero.
+     */
+    public function scopeDisponiblesPara(Builder $query, User $usuario): void
+    {
+        $query->where(fn (Builder $q) => $q
+            ->where('turnos.user_id', $usuario->id)
+            ->orWhereHas('caja', fn (Builder $c) => $c->where('compartida', true)
+                ->whereHas('usuarios', fn (Builder $u) => $u->whereKey($usuario->id))))
+            ->orderByRaw('CASE WHEN turnos.user_id = ? THEN 0 ELSE 1 END', [$usuario->id])
+            ->orderBy('turnos.id');
+    }
+
+    /** Turno abierto en el que trabaja el usuario: el suyo o el de su caja compartida (como máximo uno). */
     public static function abiertoDe(?User $usuario): ?self
     {
-        return $usuario ? self::query()->abiertos()->where('user_id', $usuario->id)->with('caja')->first() : null;
+        return $usuario ? self::query()->abiertos()->disponiblesPara($usuario)->with('caja')->first() : null;
+    }
+
+    /** ¿El usuario trabaja en este turno? (lo abrió él, o es de una caja compartida donde está asignado) */
+    public function esDe(User $usuario): bool
+    {
+        return $this->user_id === $usuario->id || (bool) $this->caja?->asignado($usuario);
+    }
+
+    /** Turno de una caja compartida: lo usan varios y el corte muestra lo de cada vendedor. */
+    public function esCompartido(): bool
+    {
+        return (bool) $this->caja?->compartida;
     }
 }

@@ -33,7 +33,7 @@
     <hr class="linea">
     <table>
         <tr><td>Caja</td><td class="der">{{ $d['caja'] ?? $corte->turno->caja->nombre }}</td></tr>
-        <tr><td>Cajero</td><td class="der">{{ $d['cajero'] ?? $corte->turno->usuario->name }}</td></tr>
+        <tr><td>{{ count($d['vendedores'] ?? []) > 1 ? 'Abrió' : 'Cajero' }}</td><td class="der">{{ $d['cajero'] ?? $corte->turno->usuario->name }}</td></tr>
         <tr><td>Abierto</td><td class="der">{{ \Illuminate\Support\Carbon::parse($d['abierto_at'] ?? $corte->turno->abierto_at)->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td></tr>
         <tr><td>Corte</td><td class="der">{{ $corte->created_at->format('d/m/Y H:i') }}</td></tr>
         <tr><td>Hizo el corte</td><td class="der">{{ $corte->usuario?->name }}</td></tr>
@@ -48,6 +48,16 @@
         <tr><td>Descuentos</td><td class="der">{{ $m($d['ventas']['descuento']) }}</td></tr>
         <tr class="negrita"><td>Total vendido</td><td class="der">{{ $m($d['ventas']['total']) }}</td></tr>
     </table>
+
+    @if (count($d['vendedores'] ?? []) > 1)
+        <hr class="linea">
+        <div class="negrita">POR VENDEDOR</div>
+        <table>
+            @foreach ($d['vendedores'] as $v)
+                <tr><td>{{ $v['nombre'] }} ({{ $v['cantidad'] }})</td><td class="der">{{ $m($v['total']) }}</td></tr>
+            @endforeach
+        </table>
+    @endif
 
     <hr class="linea">
     <div class="negrita">FORMAS DE PAGO</div>

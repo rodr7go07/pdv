@@ -69,7 +69,7 @@ sudo nginx -t && sudo systemctl reload nginx
 sudo certbot --nginx -d tienda.midominio.com --redirect --agree-tos -m tu-correo@ejemplo.com
 ```
 
-La **cámara** del teléfono (escaneo de códigos de barras) y la **instalación como app** solo funcionan con HTTPS, y el Nginx ya trae `Permissions-Policy: camera=(self)`: si lo cambias a `camera=()`, el navegador bloqueará la cámara. No actives `TRUSTED_PROXIES` aquí: es solo para desarrollo con túneles (ngrok) y en producción se ignora el valor `*`.
+La **cámara** del teléfono (escaneo de códigos de barras) y la **instalación como app** solo funcionan con HTTPS, y el Nginx ya trae `Permissions-Policy: camera=(self)`: si lo cambias a `camera=()`, el navegador bloqueará la cámara. **Detrás de Cloudflare** pon `TRUSTED_PROXIES=cloudflare` en el `.env` (y `php artisan config:cache`): Laravel confía solo en las direcciones oficiales de Cloudflare (`config/cloudflare.php`) para leer la IP real de cada persona; sin esto todos se ven con la IP de Cloudflare y el límite de intentos de acceso los bloquea juntos. Sin Cloudflare no lo pongas. El valor `*` (solo para ngrok en desarrollo) se ignora en producción. Las cabeceras de seguridad las manda también Laravel (`CabecerasSeguridad`), así que llegan aunque el servidor web no sea el de esta carpeta.
 
 Certbot renueva el certificado solo (hay un temporizador del sistema). Comprobación: abre `https://tienda.midominio.com/up` — debe responder sin error — y luego `https://tienda.midominio.com` para iniciar sesión con **admin**.
 

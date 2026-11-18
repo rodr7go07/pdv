@@ -34,8 +34,15 @@ class AppServiceProvider extends ServiceProvider
             // en producción solo se aceptan IP concretas.
             if ($proxies === '*' && $this->app->isProduction()) {
                 logger()->warning("TRUSTED_PROXIES='*' se ignora en producción: indica la lista de IP de tu proxy.");
+            } elseif ($proxies === '*') {
+                TrustProxies::at('*');
             } else {
-                TrustProxies::at($proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)));
+                // «cloudflare» en la lista se cambia por las direcciones oficiales de Cloudflare (config/cloudflare.php);
+                // se puede combinar con otras IP: TRUSTED_PROXIES=cloudflare,10.0.0.5
+                $lista = collect(explode(',', $proxies))->map(fn ($p) => trim($p))->filter()
+                    ->flatMap(fn ($p) => strtolower($p) === 'cloudflare' ? config('cloudflare.ips') : [$p])
+                    ->values()->all();
+                TrustProxies::at($lista);
             }
         }
 

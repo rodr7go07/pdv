@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CabecerasSeguridad;
 use App\Http\Middleware\UsuarioActivo;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Cabeceras de seguridad en todas las respuestas (en producción el servidor web no las ponía).
+        $middleware->append(CabecerasSeguridad::class);
+
         $middleware->alias([
             'activo' => UsuarioActivo::class,
             'permission' => PermissionMiddleware::class,

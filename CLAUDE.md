@@ -22,7 +22,7 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 
 ## Entorno
 - Desarrollo local en **Windows con Laragon** (MySQL); la terminal real del usuario es cmd/Cmder o PowerShell: dar comandos compatibles con ambas (rutas con `\` o comillas, sin sintaxis de bash).
-- Producción: Droplet de DigitalOcean con Nginx.
+- Producción: `https://solucioneseinnovacion.com.mx`, **detrás de Cloudflare** (decisión 87): en su `.env` va `TRUSTED_PROXIES=cloudflare`. Su servidor web no es el Nginx de `deploy/` (las cabeceras de seguridad las pone Laravel con `CabecerasSeguridad`). Lo que se suba se despliega con `deploy/scripts/desplegar.sh` (rama `main`).
 - Las sesiones en la nube usan SQLite y **no llegan a la base de datos del usuario**: lo que haya que cargar o migrar allá lo ejecuta él (dar los comandos exactos).
 
 ## Convenciones de código
@@ -46,12 +46,12 @@ Laravel 13 + Livewire (Volt) + Alpine + Tailwind 4 + Pest. Rama de trabajo habit
 - Verificación visual: Playwright viene instalado (`require('playwright')`); levantar `php artisan serve` con una base SQLite temporal (`DB_CONNECTION=sqlite DB_DATABASE=<ruta> SESSION_DRIVER=file CACHE_STORE=file`) y revisar a 1280, 390 y 800×360 px. No usar `pkill -f`/`pgrep -f` (matan el propio shell): guardar el PID en un archivo.
 
 ## Estado del proyecto
-- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 solo **preparada** en `deploy/` (falta ejecutarla en un servidor real); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–86; la 82 está en la rama `pedidos-por-voz`).
+- Fases 0 a 7 terminadas (con pruebas Pest); Fase 8 **desplegada** el 18/11/2026 en `solucioneseinnovacion.com.mx` (falta comprobar en el servidor cron, respaldos y su restauración); Fase 9 sin empezar. Las decisiones técnicas van numeradas en `PLAN.md` (1–87; la 82 está en la rama `pedidos-por-voz`).
 - La guía de uso vive en `resources/views/guia.blade.php` (lenguaje sencillo) y `docs/GUIA_DETALLADA.md`. Todo cambio de flujo o de atajos debe actualizar ambas (hay pruebas en `GuiaTest`).
 - Pendientes por confirmar con el dueño de la tienda: método de costeo y precios con impuestos incluidos (el cajón de dinero no lo necesita abrir el sistema). Además, el catálogo cargado casi no marca IVA: confirmar qué artículos llevan impuesto.
 - **Hardware de la tienda probado:** la térmica SICAR de 58 mm (Printer001) imprime de un toque por Bluetooth directo con logo (decisiones 80 y 81) y el lector Bluetooth funciona en Venta como teclado sin configurar nada. La impresora y el lector atienden a un aparato a la vez (SicarX los tenía vinculados). Detalle en `docs/impresion.md`.
 - **Pendientes de negocio antes de producción** (detalle en «Pendientes por decidir» de `PLAN.md`): plan B si se cae el internet de la caja (hoy solo avisa), piloto en paralelo con el sistema anterior comparando cortes, y si los clientes piden factura (CFDI, Fase 9).
-- Pendientes técnicos conocidos: probar con MySQL real y la cola de impresión pedida desde el teléfono hacia una PC; ejecutar la Fase 8 en el servidor; el historial de git conserva un `punto_venta` (SQLite) subido por error con hashes de contraseñas de desarrollo (reescribir historial solo si el usuario lo pide).
+- Pendientes técnicos conocidos: probar con MySQL real y la cola de impresión pedida desde el teléfono hacia una PC; el historial de git conserva un `punto_venta` (SQLite) subido por error con hashes de contraseñas de desarrollo (reescribir historial solo si el usuario lo pide).
 
 ## Módulos y decisiones recientes (ver `PLAN.md` para el detalle)
 - **Roles:** los permisos están en el enum `Permiso` (con `grupo()` para la pantalla) y los roles viven en la base de datos (pantalla **Roles**, `roles.administrar`). El Administrador siempre tiene todos los permisos; Encargado y Cajero se editan pero no se renombran ni se borran. `RolesYPermisosSeeder` solo crea Encargado/Cajero la primera vez: **un permiso nuevo para roles existentes se da en la migración que lo crea** (ver `2026_11_02_000001_autorizacion_de_cancelaciones`). Nadie puede dar permisos que no tiene.

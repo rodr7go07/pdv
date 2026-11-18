@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Articulos\ImportarArticulos;
+use App\Exports\CatalogoArticulos;
 use App\Exports\PlantillaArticulos;
 use App\Imports\LectorHoja;
 use Livewire\Attributes\Layout;
@@ -31,6 +32,18 @@ new #[Layout('layouts.app')] class extends Component
         $this->authorize('articulos.importar');
 
         return Excel::download(new PlantillaArticulos, 'plantilla-articulos.xlsx');
+    }
+
+    /**
+     * Todo el catálogo en el formato de la plantilla, listo para subirlo aquí mismo en otro equipo (decisión 87).
+     * Lleva costos, así que pide también el permiso de cambiar costos y precios.
+     */
+    public function exportarCatalogo(bool $conExistencias = true)
+    {
+        $this->authorize('articulos.importar');
+        $this->authorize('articulos.editar_precio');
+
+        return Excel::download(new CatalogoArticulos($conExistencias), 'catalogo-articulos-'.now()->format('Y-m-d').'.xlsx');
     }
 
     public function updatedArchivo(): void
@@ -86,6 +99,22 @@ new #[Layout('layouts.app')] class extends Component
                 <li>• Si la clave ya existe, se actualiza ese artículo.</li>
                 <li>• Si una fila tiene error, no se guarda ninguna: así puedes corregir y volver a subir.</li>
             </ul>
+
+            @can('articulos.editar_precio')
+                <div class="mt-5 border-t border-anil-100 pt-4">
+                    <p class="text-sm font-semibold text-anil-900">¿Pasar tus artículos a otro equipo?</p>
+                    <p class="mt-1 text-sm text-anil-700">Descarga todo tu catálogo en el formato de la plantilla y súbelo en el otro sistema. Las fotos no van en el Excel.</p>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <x-secondary-button wire:click="exportarCatalogo(true)" wire:loading.attr="disabled">
+                            <x-phosphor-download-simple-bold class="size-4" /> Exportar catálogo
+                        </x-secondary-button>
+                        <x-secondary-button wire:click="exportarCatalogo(false)" wire:loading.attr="disabled">
+                            <x-phosphor-download-simple-bold class="size-4" /> Exportar sin existencias
+                        </x-secondary-button>
+                    </div>
+                    <p class="mt-2 text-xs text-anil-600">«Sin existencias» deja esa columna vacía: úsalo si vas a contar la tienda el día que arranques.</p>
+                </div>
+            @endcan
         </x-card>
 
         <x-card titulo="2. Sube tu archivo" descripcion="Excel (.xlsx) o CSV de hasta 5 MB.">

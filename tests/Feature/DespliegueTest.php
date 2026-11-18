@@ -40,3 +40,17 @@ it('nginx bloquea archivos ocultos y guarda los archivos compilados', function (
     expect($conf)->toContain('deny all')->toContain('location /build/')->toContain('client_max_body_size')
         ->toContain('Strict-Transport-Security');
 });
+
+it('sube el límite de PHP para el Excel de productos aunque el servidor tenga 2 MB', function () {
+    $ini = file_get_contents(public_path('.user.ini'));
+
+    expect($ini)->toContain('upload_max_filesize = 10M')->toContain('post_max_size = 12M')
+        ->and(file_get_contents(public_path('.htaccess')))->toContain('php_value upload_max_filesize 10M');
+});
+
+it('el botón Importar no se queda apagado después de subir el archivo', function () {
+    // wire:loading.attr con la subida como objetivo regresa el botón al estado de antes (apagado, sin archivo).
+    $vista = file_get_contents(resource_path('views/livewire/pages/articulos/importar.blade.php'));
+
+    expect($vista)->toContain('wire:target="importar"')->not->toContain('wire:target="importar,archivo"');
+});

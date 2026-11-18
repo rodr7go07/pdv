@@ -119,13 +119,23 @@ new #[Layout('layouts.app')] class extends Component
 
         <x-card titulo="2. Sube tu archivo" descripcion="Excel (.xlsx) o CSV de hasta 5 MB.">
             <form wire:submit="importar" class="space-y-4">
-                <div>
+                {{-- Si la subida falla antes de llegar al sistema (límite del servidor, conexión), se dice por qué en vez de dejar el botón apagado sin explicación. --}}
+                <div x-data="{ fallo: false }"
+                     x-on:livewire-upload-start="fallo = false"
+                     x-on:livewire-upload-error="fallo = true">
                     <input wire:model="archivo" id="archivo" type="file" accept=".xlsx,.xls,.csv"
                            class="block w-full cursor-pointer text-sm text-anil-800 file:mr-3 file:rounded-lg file:border-0 file:bg-anil-100 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-anil-800 hover:file:bg-anil-200">
                     <p class="mt-1.5 text-xs text-anil-600" wire:loading wire:target="archivo">Subiendo archivo…</p>
+                    <x-alerta x-show="fallo" x-cloak tono="error" class="mt-2">
+                        <span>
+                            No se pudo subir el archivo. Lo más común es que pese más de lo que acepta el servidor o que se haya cortado el internet.
+                            Revisa que sea de menos de 5 MB e inténtalo otra vez. Si sigue fallando, se puede cargar desde la terminal del servidor:
+                            <code class="font-mono">php artisan articulos:importar archivo.xlsx --usuario=admin</code>.
+                        </span>
+                    </x-alerta>
                     <x-input-error :messages="$errors->get('archivo')" class="mt-1.5" />
                 </div>
-                <x-primary-button wire:loading.attr="disabled" wire:target="importar,archivo" :disabled="! $archivo">
+                <x-primary-button wire:loading.attr="disabled" wire:target="importar" :disabled="! $archivo">
                     <span wire:loading.remove wire:target="importar">Importar artículos</span>
                     <span wire:loading wire:target="importar">Importando…</span>
                 </x-primary-button>

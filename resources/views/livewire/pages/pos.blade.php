@@ -239,7 +239,7 @@ new #[Layout('layouts.pos')] class extends Component
             'existencia' => (string) ($l['existencia'] ?? '0'),
             'precios' => array_slice(array_map(fn ($p) => $p === null ? null : (string) $p, (array) ($l['precios'] ?? [])), 0, 3),
             'cantidad' => (string) ($l['cantidad'] ?? '1'),
-            'descTipo' => in_array($l['descTipo'] ?? '', ['pct', 'monto', 'precio'], true) ? $l['descTipo'] : '',
+            'descTipo' => in_array($l['descTipo'] ?? '', ['pct', 'monto'], true) ? $l['descTipo'] : '',
             'descValor' => is_numeric($l['descValor'] ?? null) ? (string) $l['descValor'] : '',
         ])->filter(fn ($l) => $l['id'] > 0 && is_numeric($l['cantidad']) && (float) $l['cantidad'] > 0)->values()->all();
 
@@ -548,7 +548,7 @@ new #[Layout('layouts.pos')] class extends Component
                                     <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-anil-600">
                                         <span class="font-mono" x-text="l.clave"></span>
                                         <span x-show="l.descTipo" class="rounded bg-etiqueta/40 px-1.5 py-0.5 font-semibold text-amber-900"
-                                              x-text="l.descTipo === 'precio' ? 'Precio ' + dinero(Math.round(l.descValor * 100)) + '/' + l.unidad : 'Desc. ' + (l.descTipo === 'pct' ? l.descValor + '%' : dinero(Math.round(l.descValor * 100)))"></span>
+                                              x-text="'Desc. ' + (l.descTipo === 'pct' ? l.descValor + '%' : dinero(Math.round(l.descValor * 100)))"></span>
                                         <span x-show="cfg.venderSinExistencia === false && l.inventariable && parseFloat(l.existencia) < parseFloat(l.cantidad)" class="font-semibold text-red-700">Sin existencia suficiente</span>
                                     </p>
                                 </div>
@@ -559,10 +559,10 @@ new #[Layout('layouts.pos')] class extends Component
                                     <button type="button" x-on:click.stop="cambiarCantidad(i, -1)" class="grid size-11 place-items-center rounded-lg border border-anil-200 bg-white text-anil-800 active:bg-anil-100 ancha:size-9" aria-label="Quitar una pieza">
                                         <x-phosphor-minus-bold class="size-4" />
                                     </button>
-                                    {{-- A granel la cantidad abre la ventana de peso, precio e importe (decisión 89) --}}
+                                    {{-- A granel la cantidad abre la ventana de peso e importe (decisión 89) --}}
                                     <button type="button" x-show="l.granel" x-on:click.stop="abrirPesoLinea(i)"
                                             class="h-11 w-20 rounded-lg border border-anil-200 bg-white px-1 text-center font-mono text-base font-bold text-anil-900 underline decoration-dotted underline-offset-4 active:bg-anil-100 ancha:h-9 ancha:w-[4.75rem]"
-                                            :aria-label="'Peso, precio o importe de ' + l.descripcion" x-text="cantidadTexto(l)"></button>
+                                            :aria-label="'Peso o importe de ' + l.descripcion" x-text="cantidadTexto(l)"></button>
                                     <input type="text" inputmode="decimal" x-show="!l.granel" :value="cantidadTexto(l)" x-on:change="fijarCantidad(i, $event.target.value); $event.target.value = cantidadTexto(l)"
                                            x-on:keydown.enter.stop.prevent="$event.target.blur(); enfocar()" x-on:focus="$event.target.select()"
                                            class="h-11 w-20 rounded-lg border border-anil-200 bg-white px-1 text-center font-mono text-base font-bold focus:border-rosa-500 focus:ring-2 focus:ring-rosa-500/20 ancha:h-9 ancha:w-[4.75rem]" :aria-label="'Cantidad de ' + l.descripcion">
@@ -726,27 +726,19 @@ new #[Layout('layouts.pos')] class extends Component
             </div>
 
             {{-- Peso (granel) --}}
-            {{-- Peso, precio e importe se calculan entre sí: el peso o el precio recalculan el importe; el importe recalcula el peso (decisión 89) --}}
+            {{-- Granel (decisión 89): el precio es el de la base y no se edita; el peso calcula el importe y el importe calcula el peso --}}
             <div x-show="modal === 'peso'" x-cloak class="relative w-full rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-sm sm:rounded-2xl">
                 <h2 class="text-lg font-extrabold" x-text="peso.articulo?.descripcion"></h2>
-                <p class="text-sm text-anil-700">Se vende a granel. Escribe el peso o cuánto dinero quiere el cliente.</p>
+                <p class="text-sm text-anil-700">Escribe el peso o cuánto va a pagar el cliente: lo otro se calcula solo.</p>
+                <p class="mt-2 text-sm text-anil-700">Precio: <span class="font-mono font-bold text-anil-900" x-text="dinero(pesoPrecio) + ' por ' + (peso.articulo?.unidad ?? '')"></span></p>
                 <label for="peso_valor" class="mt-4 block text-xs font-semibold uppercase tracking-wide text-anil-600">Peso <span x-text="peso.articulo ? '(' + peso.articulo.unidad + ')' : ''"></span></label>
                 <input id="peso_valor" x-model="peso.valor" x-on:input="pesoCambio()" x-on:keydown.enter.prevent="confirmarPeso()" x-on:focus="$event.target.select()" x-effect="modal === 'peso' && $nextTick(() => $el.focus())" type="text" inputmode="decimal" autocomplete="off"
                        class="mt-1 block w-full rounded-lg border-2 border-anil-200 px-4 py-3 text-center font-mono text-3xl focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none" placeholder="0.000">
-                <div class="mt-3 grid grid-cols-2 gap-3">
-                    <div>
-                        <label for="peso_precio" class="block text-xs font-semibold uppercase tracking-wide text-anil-600">Precio por <span x-text="peso.articulo?.unidad"></span></label>
-                        <input id="peso_precio" x-model="peso.precio" x-on:input="pesoCambio()" x-on:keydown.enter.prevent="confirmarPeso()" x-on:focus="$event.target.select()" :readonly="!cfg.puedeDescuento" type="text" inputmode="decimal" autocomplete="off"
-                               class="mt-1 block w-full rounded-lg border-2 border-anil-200 px-3 py-2.5 text-center font-mono text-xl focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none read-only:border-anil-100 read-only:bg-anil-50 read-only:text-anil-700">
-                    </div>
-                    <div>
-                        <label for="peso_importe" class="block text-xs font-semibold uppercase tracking-wide text-anil-600">Importe ($)</label>
-                        <input id="peso_importe" x-model="peso.importe" x-on:input="importePesoCambio()" x-on:keydown.enter.prevent="confirmarPeso()" x-on:focus="$event.target.select()" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"
-                               class="mt-1 block w-full rounded-lg border-2 border-anil-200 px-3 py-2.5 text-center font-mono text-xl focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
-                    </div>
-                </div>
+                <label for="peso_importe" class="mt-3 block text-xs font-semibold uppercase tracking-wide text-anil-600">Paga el cliente ($)</label>
+                <input id="peso_importe" x-model="peso.importe" x-on:input="importePesoCambio()" x-on:keydown.enter.prevent="confirmarPeso()" x-on:focus="$event.target.select()" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"
+                       class="mt-1 block w-full rounded-lg border-2 border-anil-200 px-4 py-3 text-center font-mono text-2xl focus:border-rosa-500 focus:ring-4 focus:ring-rosa-500/15 focus:outline-none">
                 <p class="mt-3 flex items-baseline justify-between gap-3 rounded-lg bg-anil-50 px-3 py-2 text-sm text-anil-700">
-                    <span>Se cobra <span x-show="pesoConDescuento" x-cloak class="font-semibold text-amber-900">(con descuento)</span></span>
+                    <span>Se cobra</span>
                     <span class="font-display text-xl font-extrabold text-anil-900" x-text="dinero(pesoCobro)"></span>
                 </p>
                 <button type="button" x-show="'serial' in navigator" x-cloak x-on:click="leerBascula()" :disabled="pesoLeyendo"

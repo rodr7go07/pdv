@@ -181,15 +181,6 @@ it('sanitiza lo que se guarda en espera', function () {
         ->and(mb_strlen($e->nombre))->toBe(60);
 });
 
-it('una venta en espera conserva el precio propio de un renglón a granel', function () {
-    $c = Volt::actingAs($this->cajero)->test('pages.pos')->instance();
-
-    $c->guardarEspera([['id' => $this->leche->id, 'cantidad' => '1.25', 'granel' => true, 'decimales' => true, 'descTipo' => 'precio', 'descValor' => '165.00', 'precios' => ['170.00']]], [], null);
-
-    $linea = VentaEnEspera::first()->carrito['lineas'][0];
-    expect($linea['descTipo'])->toBe('precio')->and($linea['descValor'])->toBe('165.00');
-});
-
 it('el alta rápida exige permisos y crea el artículo', function () {
     $datos = ['clave' => 'NUEVO1', 'descripcion' => 'PRODUCTO NUEVO', 'precio' => '12.50', 'departamento_id' => Departamento::first()->id, 'unidad_medida_id' => UnidadMedida::first()->id, 'iva_id' => ''];
 

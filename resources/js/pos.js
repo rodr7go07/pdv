@@ -55,7 +55,9 @@ export function registrarPos(Alpine) {
         descGlobal: { tipo: '', valor: '' }, // motivo: 'efectivo' cuando es el descuento por pagar todo en efectivo (solo dentro del cobro)
         pctEfectivo: '', // porcentaje del descuento por pago en efectivo para esta venta (arranca en el de Configuración)
         descLinea: { indice: -1, tipo: 'pct', valor: '' },
-        peso: { articulo: null, valor: '' },
+        // Ventana de granel (decisión 89): peso, precio por unidad e importe se calculan entre sí.
+        // indice -1 = artículo nuevo; si no, el renglón que se está corrigiendo.
+        peso: { articulo: null, indice: -1, valor: '', precio: '', importe: '' },
         pesoError: '',
         pesoLeyendo: false,
         alta: { clave: '', descripcion: '', precio: '', departamento_id: '', unidad_medida_id: '', iva_id: '', error: '', guardando: false },
@@ -336,6 +338,8 @@ export function registrarPos(Alpine) {
             const bruto = this.brutoLinea(l);
             const valor = parseFloat(l.descValor || 0);
             if (!l.descTipo || !(valor > 0)) return 0;
+            // Precio propio (granel): se descuenta la diferencia contra el precio de la lista, así cambie el peso.
+            if (l.descTipo === 'precio') return Math.max(bruto - mitadArriba(aCentavos(valor) * aMilesimas(l.cantidad), 1000), 0);
             const d = l.descTipo === 'pct'
                 ? mitadArriba(bruto * Math.round(valor * 100), 10000)
                 : aCentavos(valor);
@@ -564,8 +568,7 @@ export function registrarPos(Alpine) {
         agregar(articulo, cantidad = null) {
             this.codigoSinAlta = '';
             if (articulo.granel && cantidad === null) {
-                this.peso = { articulo, valor: '' };
-                this.modal = 'peso';
+                this.abrirPeso(articulo, -1);
                 return;
             }
 
@@ -643,7 +646,7 @@ export function registrarPos(Alpine) {
                 await lector.cancel().catch(() => {});
                 await cierre;
 
-                if (leido && parseFloat(leido) > 0) this.peso.valor = String(parseFloat(leido));
+                if (leido && parseFloat(leido) > 0) { this.peso.valor = String(parseFloat(leido)); this.pesoCambio(); }
                 else this.pesoError = 'No se obtuvo una lectura estable. Revisa que haya peso en la báscula.';
             } catch (e) {
                 if (e.name !== 'NotFoundError') this.pesoError = 'No se pudo leer la báscula. Revisa el cable y la velocidad (baudios).';
@@ -653,10 +656,83 @@ export function registrarPos(Alpine) {
             }
         },
 
+        /** Precio de la lista vigente para un artículo o renglón, en centavos. */
+        precioListaCents(a) {
+            return aCentavos(a?.precios?.[this.listaActual - 1] ?? a?.precios?.[0]);
+        },
+
+        /** Abre la ventana de granel para agregar (indice -1) o para corregir el renglón indice. */
+        abrirPeso(articulo, indice) {
+            const l = indice >= 0 ? this.lineas[indice] : null;
+            const base = this.precioListaCents(articulo);
+            const propio = l?.descTipo === 'precio' && parseFloat(l.descValor) > 0 ? aCentavos(l.descValor) : base;
+            this.peso = { articulo, indice, valor: l ? limpiarNumero(l.cantidad) : '', precio: (propio / 100).toFixed(2), importe: '' };
+            this.pesoError = '';
+            if (l) this.pesoCambio();
+            this.modal = 'peso';
+        },
+
+        abrirPesoLinea(i) {
+            const l = this.lineas[i];
+            if (!l) return;
+            this.sel = i;
+            this.abrirPeso(l, i);
+        },
+
+        /** Lo que se cobrará con el peso y el precio escritos (centavos), igual que el servidor. */
+        get pesoCobro() {
+            const precio = aCentavos(this.peso.precio);
+            const mil = aMilesimas(this.peso.valor);
+            return precio > 0 && mil > 0 ? mitadArriba(precio * mil, 1000) : 0;
+        },
+
+        get pesoBaseCents() {
+            return this.precioListaCents(this.peso.articulo);
+        },
+
+        get pesoConDescuento() {
+            const precio = aCentavos(this.peso.precio);
+            return precio > 0 && precio < this.pesoBaseCents;
+        },
+
+        // Peso o precio cambian: el peso se queda y el importe se recalcula.
+        pesoCambio() {
+            this.pesoError = '';
+            this.peso.importe = this.pesoCobro > 0 ? (this.pesoCobro / 100).toFixed(2) : '';
+        },
+
+        // Importe escrito («dame $50»): se calcula el peso, en gramos.
+        importePesoCambio() {
+            this.pesoError = '';
+            const precio = aCentavos(this.peso.precio);
+            const importe = aCentavos(this.peso.importe);
+            this.peso.valor = precio > 0 && importe > 0 ? limpiarNumero(Math.round((importe * 1000) / precio) / 1000) : '';
+        },
+
         confirmarPeso() {
             const v = parseFloat(this.peso.valor);
-            if (!(v > 0)) return;
-            this.agregar(this.peso.articulo, v);
+            if (!(v > 0)) { this.pesoError = 'Escribe el peso o el importe.'; return; }
+            const precio = aCentavos(this.peso.precio);
+            const base = this.pesoBaseCents;
+            if (!(precio > 0)) { this.pesoError = 'Escribe el precio.'; return; }
+            if (precio > base) { this.pesoError = `El precio no puede ser mayor al de la lista (${formatear(base)}).`; return; }
+            if (precio < base && !this.cfg.puedeDescuento) { this.pesoError = 'No tienes permiso para bajar el precio.'; return; }
+
+            let l;
+            if (this.peso.indice >= 0) {
+                l = this.lineas[this.peso.indice];
+                if (!l) { this.modal = null; return; }
+                l.cantidad = limpiarNumero(v);
+            } else {
+                this.agregar(this.peso.articulo, v);
+                l = this.lineas[this.sel];
+            }
+
+            if (l) {
+                if (precio < base) { l.descTipo = 'precio'; l.descValor = (precio / 100).toFixed(2); }
+                else if (l.descTipo === 'precio') { l.descTipo = ''; l.descValor = ''; }
+            }
+
             this.modal = null;
             this.enfocar();
         },
@@ -869,7 +945,8 @@ export function registrarPos(Alpine) {
         abrirDescuentoLinea(i) {
             if (!this.cfg.puedeDescuento) { this.avisar('No tienes permiso para dar descuentos.', 'error'); return; }
             const l = this.lineas[i];
-            this.descLinea = { indice: i, tipo: l.descTipo || 'pct', valor: l.descValor || '' };
+            const propio = l.descTipo === 'precio';
+            this.descLinea = { indice: i, tipo: propio ? 'pct' : (l.descTipo || 'pct'), valor: propio ? '' : (l.descValor || '') };
             this.modal = 'descLinea';
             this.$nextTick(() => this.$refs.descLineaValor?.focus());
         },
@@ -890,9 +967,17 @@ export function registrarPos(Alpine) {
             return this.lineas.map((l) => ({
                 articulo_id: l.id,
                 cantidad: String(l.cantidad),
-                descuento_tipo: l.descTipo || null,
-                descuento_valor: l.descTipo ? String(l.descValor) : null,
+                ...this.descuentoDeLinea(l),
             }));
+        },
+
+        /** El precio propio (granel) se manda como descuento en pesos: el servidor recalcula y valida el permiso. */
+        descuentoDeLinea(l) {
+            if (l.descTipo === 'precio') {
+                const d = this.descuentoLinea(l);
+                return d > 0 ? { descuento_tipo: 'monto', descuento_valor: (d / 100).toFixed(2) } : { descuento_tipo: null, descuento_valor: null };
+            }
+            return { descuento_tipo: l.descTipo || null, descuento_valor: l.descTipo ? String(l.descValor) : null };
         },
 
         descuentoPayload() {

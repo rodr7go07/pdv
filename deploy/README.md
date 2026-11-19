@@ -128,13 +128,13 @@ ssh deploy@IP-DEL-DROPLET
 cd /var/www/punto-de-venta && bash deploy/scripts/desplegar.sh
 ```
 
-Pone el sitio en mantenimiento unos segundos, baja la última versión, actualiza la base y los permisos, reconstruye cachés y lo vuelve a abrir. Haz un respaldo antes de actualizar (`bash deploy/scripts/respaldo.sh`).
+Baja la última versión, actualiza la base y los permisos y reconstruye cachés **sin poner el sitio en mantenimiento**: sigue atendiendo mientras se actualiza (los archivos compilados anteriores no se borran, para que las páginas abiertas no se rompan). Aun así, si trae migraciones, conviene correrlo cuando no estén cobrando. Haz un respaldo antes de actualizar (`bash deploy/scripts/respaldo.sh`).
 
 ## Si algo sale mal
 
 | Síntoma | Qué hacer |
 |---|---|
-| El despliegue falló y el sitio dice «mantenimiento» | Lee el error que mostró el script, corrígelo y vuelve a ejecutar `desplegar.sh`. Si necesitas abrir el sitio ya: `php artisan up`. |
+| El despliegue falló | El sitio sigue abierto. Lee el error que mostró el script, corrígelo y vuelve a ejecutar `desplegar.sh`. Si el sitio dice «mantenimiento» (lo dejó una versión vieja del script): `php artisan up`. |
 | Página en blanco o error 500 | `tail -n 50 storage/logs/laravel-$(date +%F).log` y `sudo tail -n 50 /var/log/nginx/punto-de-venta.error.log` |
 | Error de permisos en `storage` | `sudo chown -R deploy:www-data storage bootstrap/cache && chmod -R ug+rwX storage bootstrap/cache` |
 | «No se puede conectar a la base de datos» | Revisa `DB_PASSWORD` en `.env`, que MySQL esté activo (`systemctl status mysql`) y vuelve a `php artisan config:cache`. |

@@ -2,8 +2,9 @@
 # Despliega la última versión del Punto de Venta. Ejecutar como el usuario "deploy":
 #   cd /var/www/punto-de-venta && bash deploy/scripts/desplegar.sh
 #
-# Es seguro ejecutarlo varias veces. Si algo falla, se detiene y deja el sitio en modo mantenimiento
-# con un mensaje claro (ver "Si algo sale mal" en deploy/README.md).
+# Es seguro ejecutarlo varias veces. El sitio NO se pone en mantenimiento: sigue atendiendo mientras se
+# actualiza (por decisión del dueño). Si algo falla, se detiene con un mensaje claro y el sitio sigue
+# abierto (ver "Si algo sale mal" en deploy/README.md).
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
@@ -14,11 +15,8 @@ if [[ ! -f .env ]]; then
   echo "Falta el archivo .env. Copia deploy/.env.production.example a .env y llénalo."; exit 1
 fi
 
-fallo() { echo; echo "✗ El despliegue falló. El sitio sigue en mantenimiento: revisa el error de arriba."; exit 1; }
+fallo() { echo; echo "✗ El despliegue falló: revisa el error de arriba, corrígelo y vuelve a ejecutarlo. El sitio sigue abierto."; exit 1; }
 trap fallo ERR
-
-echo "==> Modo mantenimiento"
-$PHP artisan down --retry=30 --refresh=15 || true
 
 echo "==> Bajando la versión '${RAMA}'"
 git fetch --all --prune
@@ -30,7 +28,8 @@ composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
 echo "==> Compilando archivos del sitio"
 npm ci --no-audit --no-fund
-npm run build
+# Sin vaciar public/build: las páginas que ya están abiertas siguen encontrando sus archivos mientras se compila.
+npm run build -- --emptyOutDir=false
 
 echo "==> Base de datos: migraciones y permisos"
 $PHP artisan migrate --force
@@ -61,8 +60,6 @@ sudo systemctl reload php8.3-fpm
 sudo supervisorctl restart punto-de-venta-worker:* 2>/dev/null || true
 $PHP artisan queue:restart
 
-echo "==> Saliendo de mantenimiento"
-$PHP artisan up
 trap - ERR
 
 echo

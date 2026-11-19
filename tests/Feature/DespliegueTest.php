@@ -54,3 +54,11 @@ it('el botón Importar no se queda apagado después de subir el archivo', functi
 
     expect($vista)->toContain('wire:target="importar"')->not->toContain('wire:target="importar,archivo"');
 });
+
+it('desplegar no pone el sitio en mantenimiento y no borra los archivos compilados anteriores', function () {
+    // Decisión del dueño: la tienda sigue cobrando mientras se actualiza.
+    $script = file_get_contents(base_path('deploy/scripts/desplegar.sh'));
+
+    expect($script)->not->toContain('artisan down')->not->toContain('artisan up')
+        ->toContain('npm run build -- --emptyOutDir=false');
+});

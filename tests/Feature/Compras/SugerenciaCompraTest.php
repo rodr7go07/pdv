@@ -22,7 +22,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create();
     $this->caja = Caja::factory()->create(['serie' => 'A']);
     abrirTurno($this->caja, $this->encargado);
 

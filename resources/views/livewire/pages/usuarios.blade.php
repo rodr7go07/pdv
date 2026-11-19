@@ -22,7 +22,7 @@ new #[Layout('layouts.app')] class extends Component
 
     public string $password = '';
 
-    public string $rol = 'Cajero';
+    public string $rol = 'Vendedor';
 
     public bool $activo = true;
 
@@ -43,7 +43,7 @@ new #[Layout('layouts.app')] class extends Component
     {
         $this->authorize('usuarios.administrar');
         $this->reset('editandoId', 'name', 'usuario', 'email', 'password');
-        $this->rol = 'Cajero';
+        $this->rol = 'Vendedor';
         $this->activo = true;
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'usuario');
@@ -55,7 +55,7 @@ new #[Layout('layouts.app')] class extends Component
         $u = User::query()->with('roles:id,name')->findOrFail($id);
         $this->fill([
             'editandoId' => $u->id, 'name' => $u->name, 'usuario' => $u->usuario, 'email' => $u->email ?? '',
-            'password' => '', 'rol' => $u->nombreRol() ?? 'Cajero', 'activo' => $u->activo,
+            'password' => '', 'rol' => $u->nombreRol() ?? 'Vendedor', 'activo' => $u->activo,
         ]);
         $this->resetValidation();
         $this->dispatch('abrir-modal', nombre: 'usuario');

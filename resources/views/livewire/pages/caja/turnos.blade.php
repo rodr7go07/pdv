@@ -72,7 +72,7 @@ new #[Layout('layouts.app')] class extends Component
     @php $lista = $this->turnos; @endphp
 
     @if ($lista->isEmpty())
-        <x-empty icono="clock-counter-clockwise" titulo="No hay turnos" texto="Cuando los cajeros abran su caja, sus turnos aparecerán aquí." />
+        <x-empty icono="clock-counter-clockwise" titulo="No hay turnos" texto="Cuando los vendedores abran su caja, sus turnos aparecerán aquí." />
     @else
         <div class="overflow-hidden rounded-xl border border-anil-100 bg-white">
             <ul class="divide-y divide-anil-50">

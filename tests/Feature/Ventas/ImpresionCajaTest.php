@@ -18,8 +18,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
-    $this->otro = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create();
+    $this->otro = User::factory()->conRol(Rol::Vendedor)->create();
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
     $this->caja = Caja::factory()->create(['serie' => 'A']);
     $this->cajaB = Caja::factory()->create(['serie' => 'B']);
@@ -134,7 +134,7 @@ it('la pantalla de Venta de la caja consulta sus pedidos y el modo de la caja', 
     expect($this->actingAs($this->otro)->getJson('/venta/impresiones')->json('pendientes'))->toBe([]);
 
     // Sin turno abierto no hay caja que atender.
-    $sinTurno = User::factory()->conRol(Rol::Cajero)->create();
+    $sinTurno = User::factory()->conRol(Rol::Vendedor)->create();
     expect($this->actingAs($sinTurno)->getJson('/venta/impresiones')->json('pendientes'))->toBe([]);
 });
 

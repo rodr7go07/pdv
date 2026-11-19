@@ -15,7 +15,7 @@ use Livewire\Volt\Volt;
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->caja = Caja::factory()->create(['serie' => 'A']);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create();
     abrirTurno($this->caja, $this->cajero);
     [$this->bebidas, $this->pan] = [Departamento::factory()->create(['nombre' => 'Bebidas']), Departamento::factory()->create(['nombre' => 'Pan'])];
     $this->agua = Articulo::factory()->create(['descripcion' => 'AGUA', 'departamento_id' => $this->bebidas->id, 'existencia' => '100']);

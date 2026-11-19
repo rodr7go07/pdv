@@ -45,21 +45,21 @@ it('editar un rol cambia de inmediato lo que pueden hacer sus usuarios', functio
 });
 
 it('valida el nombre y los permisos', function () {
-    foreach ([['', []], ['A', []], [str_repeat('x', 41), []], ['Cajero', []], ['Nuevo', ['no.existe']]] as [$nombre, $permisos]) {
+    foreach ([['', []], ['A', []], [str_repeat('x', 41), []], ['Vendedor', []], ['Nuevo', ['no.existe']]] as [$nombre, $permisos]) {
         expect(fn () => ($this->guardar)(null, $nombre, $permisos, $this->admin))->toThrow(ValidationException::class);
     }
 
     expect(Role::count())->toBe(3);
 });
 
-it('el Administrador no se edita, y Encargado y Cajero cambian de permisos pero no de nombre', function () {
+it('el Administrador no se edita, y Encargado y Vendedor cambian de permisos pero no de nombre', function () {
     expect(fn () => ($this->guardar)(Role::findByName('Administrador'), 'Administrador', [], $this->admin))->toThrow(ValidationException::class, 'siempre tiene todos');
 
-    $cajero = Role::findByName('Cajero');
+    $cajero = Role::findByName('Vendedor');
     expect(fn () => ($this->guardar)($cajero, 'Cajera', ['ventas.cobrar'], $this->admin))->toThrow(ValidationException::class, 'no se pueden renombrar');
 
-    ($this->guardar)($cajero, 'Cajero', ['ventas.cobrar', 'reportes.ver'], $this->admin);
-    expect(Role::findByName('Cajero')->permissions->pluck('name')->all())->toEqualCanonicalizing(['ventas.cobrar', 'reportes.ver']);
+    ($this->guardar)($cajero, 'Vendedor', ['ventas.cobrar', 'reportes.ver'], $this->admin);
+    expect(Role::findByName('Vendedor')->permissions->pluck('name')->all())->toEqualCanonicalizing(['ventas.cobrar', 'reportes.ver']);
 });
 
 it('no se puede dar un permiso que uno no tiene ni administrar roles sin el permiso', function () {
@@ -81,7 +81,7 @@ it('borra un rol propio sin usuarios y no los del sistema ni los que alguien tie
     $u->assignRole($rol);
 
     expect(fn () => $eliminar($rol, $this->admin))->toThrow(ValidationException::class, 'lo tienen 1 usuario');
-    expect(fn () => $eliminar(Role::findByName('Cajero'), $this->admin))->toThrow(ValidationException::class, 'no se pueden borrar');
+    expect(fn () => $eliminar(Role::findByName('Vendedor'), $this->admin))->toThrow(ValidationException::class, 'no se pueden borrar');
 
     $u->removeRole('Temporal');
     $eliminar($rol, $this->admin);
@@ -128,18 +128,18 @@ it('crea, edita y borra un rol desde la pantalla', function () {
 
 it('la pantalla muestra los errores y no abre el rol Administrador', function () {
     Volt::actingAs($this->admin)->test('pages.roles')
-        ->call('nuevo')->set('nombre', 'Cajero')->call('guardar')->assertHasErrors('nombre')
+        ->call('nuevo')->set('nombre', 'Vendedor')->call('guardar')->assertHasErrors('nombre')
         ->call('editar', Role::findByName('Administrador')->id)->assertSet('editandoId', null);
 });
 
 it('un rol base se puede volver a sus permisos de fábrica', function () {
-    $cajero = Role::findByName('Cajero');
+    $cajero = Role::findByName('Vendedor');
     $cajero->syncPermissions(['ventas.cobrar']);
 
     Volt::actingAs($this->admin)->test('pages.roles')
         ->call('editar', $cajero->id)->assertSet('permisos', ['ventas.cobrar'])
         ->call('restablecer')
-        ->assertSet('permisos', array_map(fn (Permiso $p) => $p->value, Rol::Cajero->permisos()));
+        ->assertSet('permisos', array_map(fn (Permiso $p) => $p->value, Rol::Vendedor->permisos()));
 });
 
 it('la pantalla de Usuarios ofrece los roles creados', function () {

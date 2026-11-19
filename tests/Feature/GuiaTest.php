@@ -14,14 +14,14 @@ it('todos los roles pueden leer la guía', function (Rol $rol) {
         ->assertSee('Cobrar a un cliente')
         ->assertSee('Cerrar tu caja al final')
         ->assertSee('Palabras que verás');
-})->with([Rol::Administrador, Rol::Encargado, Rol::Cajero]);
+})->with([Rol::Administrador, Rol::Encargado, Rol::Vendedor]);
 
 it('los visitantes no ven la guía', function () {
     $this->get('/guia')->assertRedirect('/login');
 });
 
 it('la guía explica cada módulo del sistema', function (string $texto) {
-    $this->actingAs(User::factory()->conRol(Rol::Cajero)->create())->get('/guia')->assertSee($texto);
+    $this->actingAs(User::factory()->conRol(Rol::Vendedor)->create())->get('/guia')->assertSee($texto);
 })->with([
     'turno' => 'Abrir tu caja para empezar a vender',
     'artículos' => 'Tus productos (artículos)',
@@ -62,7 +62,7 @@ it('tiene buscador y un índice con anclas a cada sección', function () {
 });
 
 it('los atajos de la guía coinciden con los de la pantalla de venta', function () {
-    $guia = $this->actingAs(User::factory()->conRol(Rol::Cajero)->create())->get('/guia')->getContent();
+    $guia = $this->actingAs(User::factory()->conRol(Rol::Vendedor)->create())->get('/guia')->getContent();
     $pos = file_get_contents(resource_path('views/livewire/pages/pos.blade.php'));
 
     foreach (['F2', 'F3', 'F4', 'F6', 'F7', 'F8'] as $tecla) {
@@ -71,7 +71,7 @@ it('los atajos de la guía coinciden con los de la pantalla de venta', function 
 });
 
 it('los enlaces de ayuda rápida solo aparecen si el rol tiene permiso', function () {
-    $cajero = $this->actingAs(User::factory()->conRol(Rol::Cajero)->create())->get('/guia')->getContent();
+    $cajero = $this->actingAs(User::factory()->conRol(Rol::Vendedor)->create())->get('/guia')->getContent();
     $admin = $this->actingAs(User::factory()->conRol(Rol::Administrador)->create())->get('/guia')->getContent();
 
     expect($cajero)->not->toContain(route('usuarios'))->and($cajero)->not->toContain(route('configuracion'))
@@ -79,7 +79,7 @@ it('los enlaces de ayuda rápida solo aparecen si el rol tiene permiso', functio
 });
 
 it('la guía está en español sencillo: sin tecnicismos del sistema en los títulos', function () {
-    $html = $this->actingAs(User::factory()->conRol(Rol::Cajero)->create())->get('/guia')->getContent();
+    $html = $this->actingAs(User::factory()->conRol(Rol::Vendedor)->create())->get('/guia')->getContent();
 
     foreach (['ESC/POS', 'transacción', 'lockForUpdate', 'endpoint', 'middleware'] as $tecnicismo) {
         expect($html)->not->toContain($tecnicismo);

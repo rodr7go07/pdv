@@ -6,7 +6,7 @@ enum Rol: string
 {
     case Administrador = 'Administrador';
     case Encargado = 'Encargado';
-    case Cajero = 'Cajero';
+    case Vendedor = 'Vendedor';
 
     /** Lugar del rol en las listas: primero los del sistema en su orden y después los de la tienda. */
     public static function orden(string $nombre): int
@@ -37,7 +37,7 @@ enum Rol: string
                 fn (Permiso $p) => ! in_array($p, [Permiso::UsuariosAdministrar, Permiso::ConfiguracionEditar, Permiso::RolesAdministrar], true),
             )),
 
-            self::Cajero => [
+            self::Vendedor => [
                 Permiso::ArticulosVer,
                 Permiso::VentasCobrar,
                 Permiso::CajaAbrir,

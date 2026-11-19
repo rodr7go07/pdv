@@ -70,7 +70,7 @@ class ReporteExportController extends Controller
             'periodo' => ['Ventas por periodo', ['Periodo', 'Ventas', ...$cabecera], $r->porPeriodo($agrupar)->map(fn ($f) => [$f['etiqueta'], $f['ventas'], ...$cifras($f)])->all()],
             'departamento' => ['Por departamento', ['Departamento', ...$cabecera], $r->porDepartamento()->map(fn ($f) => [$f['nombre'], ...$cifras($f)])->all()],
             'articulo' => ['Por artículo', ['Clave', 'Artículo', 'Cantidad', ...$cabecera], $r->porArticulo(100000, $orden)->map(fn ($f) => [$f['clave'], $f['nombre'], $n($f['cantidad']), ...$cifras($f)])->all()],
-            'cajero' => ['Por cajero', ['Cajero', 'Ventas', ...$cabecera], $r->porCajero()->map(fn ($f) => [$f['nombre'], $f['ventas'], ...$cifras($f)])->all()],
+            'cajero' => ['Por vendedor', ['Vendedor', 'Ventas', ...$cabecera], $r->porCajero()->map(fn ($f) => [$f['nombre'], $f['ventas'], ...$cifras($f)])->all()],
             'pago' => ['Por forma de pago', ['Forma de pago', 'Ventas', 'Monto'], $r->porFormaPago()->map(fn ($f) => [$f['etiqueta'], $f['ventas'], $n($f['monto'])])->all()],
             'inventario' => (function () use ($n) {
                 $v = ReporteVentas::valorInventario();

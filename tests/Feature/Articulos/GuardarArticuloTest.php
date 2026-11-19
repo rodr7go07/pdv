@@ -244,7 +244,7 @@ it('sin existencia inicial, o al editar, no se mueve el inventario', function ()
 
 it('sin permiso de inventario no se puede capturar existencia inicial', function () {
     $this->seed(RolesYPermisosSeeder::class);
-    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $cajero = User::factory()->conRol(Rol::Vendedor)->create();
 
     expect(fn () => ($this->guardar)(null, datosArticulo(['existencia_inicial' => '5']), $cajero))->toThrow(HttpException::class);
 });

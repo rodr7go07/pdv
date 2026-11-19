@@ -203,7 +203,7 @@ new #[Layout('layouts.app')] class extends Component
                 <x-input-label for="caja_pedidos" value="Tickets pedidos desde otro equipo (el teléfono)" />
                 <x-select wire:model="impresion_pedidos" id="caja_pedidos">
                     <option value="sola">Imprimir solos, apenas lleguen</option>
-                    <option value="aviso">Avisar en la pantalla de Venta y que el cajero toque Imprimir</option>
+                    <option value="aviso">Avisar en la pantalla de Venta y que el vendedor toque Imprimir</option>
                 </x-select>
                 <p class="mt-1.5 text-xs text-anil-600">Los atiende la pantalla de Venta de esta caja en la PC que tiene la impresora (se activa en «Atajos» de esa pantalla; en la PC ya viene activado).</p>
                 <x-input-error :messages="$errors->get('impresion_pedidos')" class="mt-1.5" />

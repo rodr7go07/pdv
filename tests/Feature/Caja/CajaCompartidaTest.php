@@ -18,9 +18,9 @@ use Livewire\Volt\Volt;
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->caja = Caja::factory()->create(['serie' => 'A', 'nombre' => 'Mostrador', 'compartida' => true]);
-    $this->ana = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Ana']);
-    $this->beto = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Beto']);
-    $this->ajeno = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Ajeno']);
+    $this->ana = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Ana']);
+    $this->beto = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Beto']);
+    $this->ajeno = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Ajeno']);
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create(['name' => 'Encargada']);
     $this->caja->usuarios()->sync([$this->ana->id, $this->beto->id, $this->encargado->id]);
     $this->articulo = Articulo::factory()->create(['precio_1' => '50', 'costo' => '30', 'existencia' => '100']);

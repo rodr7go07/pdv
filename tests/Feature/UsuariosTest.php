@@ -18,13 +18,13 @@ beforeEach(function () {
 
 function datosUsuario(array $extra = []): array
 {
-    return array_merge(['name' => 'Ana López', 'usuario' => 'ana', 'email' => '', 'password' => 'clave-segura-1', 'rol' => 'Cajero', 'activo' => true], $extra);
+    return array_merge(['name' => 'Ana López', 'usuario' => 'ana', 'email' => '', 'password' => 'clave-segura-1', 'rol' => 'Vendedor', 'activo' => true], $extra);
 }
 
 it('solo el administrador entra a usuarios', function () {
     $this->actingAs($this->admin)->get('/usuarios')->assertOk()->assertSee('Qué puede hacer cada rol');
     $this->actingAs(User::factory()->conRol(Rol::Encargado)->create())->get('/usuarios')->assertForbidden();
-    $this->actingAs(User::factory()->conRol(Rol::Cajero)->create())->get('/usuarios')->assertForbidden();
+    $this->actingAs(User::factory()->conRol(Rol::Vendedor)->create())->get('/usuarios')->assertForbidden();
 });
 
 it('los visitantes no ven usuarios', function () {
@@ -34,7 +34,7 @@ it('los visitantes no ven usuarios', function () {
 it('da de alta un usuario con rol y contraseña cifrada', function () {
     $u = ($this->guardar)(null, datosUsuario(), $this->admin);
 
-    expect($u->usuario)->toBe('ana')->and($u->nombreRol())->toBe('Cajero')->and($u->activo)->toBeTrue()
+    expect($u->usuario)->toBe('ana')->and($u->nombreRol())->toBe('Vendedor')->and($u->activo)->toBeTrue()
         ->and($u->email)->toBeNull()
         ->and(Hash::check('clave-segura-1', $u->password))->toBeTrue()
         ->and($u->password)->not->toBe('clave-segura-1');
@@ -96,13 +96,13 @@ it('nadie puede desactivarse a sí mismo', function () {
 
 it('la tienda nunca se queda sin administrador activo', function () {
     // Único administrador: no se le puede bajar el rol
-    expect(fn () => ($this->guardar)($this->admin, datosUsuario(['usuario' => 'duena', 'password' => '', 'rol' => 'Cajero']), $this->admin))->toThrow(ValidationException::class, 'al menos un administrador');
+    expect(fn () => ($this->guardar)($this->admin, datosUsuario(['usuario' => 'duena', 'password' => '', 'rol' => 'Vendedor']), $this->admin))->toThrow(ValidationException::class, 'al menos un administrador');
 
     // Con otro administrador activo sí se puede
     $otro = ($this->guardar)(null, datosUsuario(['usuario' => 'jefe2', 'rol' => 'Administrador']), $this->admin);
-    ($this->guardar)($this->admin, datosUsuario(['usuario' => 'duena', 'password' => '', 'rol' => 'Cajero']), $otro);
+    ($this->guardar)($this->admin, datosUsuario(['usuario' => 'duena', 'password' => '', 'rol' => 'Vendedor']), $otro);
 
-    expect($this->admin->refresh()->nombreRol())->toBe('Cajero');
+    expect($this->admin->refresh()->nombreRol())->toBe('Vendedor');
 });
 
 it('un administrador desactivado no cuenta como otro administrador', function () {
@@ -112,7 +112,7 @@ it('un administrador desactivado no cuenta como otro administrador', function ()
 });
 
 it('sin permiso no se administran usuarios aunque se llame a la acción', function () {
-    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $cajero = User::factory()->conRol(Rol::Vendedor)->create();
 
     expect(fn () => ($this->guardar)(null, datosUsuario(), $cajero))->toThrow(HttpException::class);
 });

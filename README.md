@@ -14,8 +14,8 @@ Sistema de punto de venta web para **una tienda de abarrotes**: caja con escáne
 | **Turnos y cortes** | Fondo inicial, entradas y retiros, corte X y Z con arqueo, cajas con serie de folios |
 | **Clientes** | Crédito con límite, abonos, estado de cuenta, lista de precios por cliente |
 | **Escaneos** | Bitácora de todos los códigos de barras escaneados (lector o cámara), con alta rápida de los que no existen |
-| **Reportes** | Tablero del día, ventas por periodo/departamento/artículo/cajero/forma de pago, utilidad bruta, valor del inventario, Excel |
-| **Administración** | Usuarios y roles (Administrador, Encargado, Cajero), configuración de la tienda, PWA instalable |
+| **Reportes** | Tablero del día, ventas por periodo/departamento/artículo/vendedor/forma de pago, utilidad bruta, valor del inventario, Excel |
+| **Administración** | Usuarios y roles (Administrador, Encargado, Vendedor), configuración de la tienda, PWA instalable |
 
 ## Tecnología
 

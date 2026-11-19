@@ -7,7 +7,7 @@ Documento técnico para quien instala el sistema en la tienda. Para el uso diari
 | Necesidad | Solución actual | Estado |
 |---|---|---|
 | Ticket de venta 58 mm y 80 mm | Página HTML con CSS de impresión (`window.print()`), según el ancho configurado en cada caja | Listo |
-| Corte de caja (X y Z) | Misma técnica, con firma del cajero | Listo |
+| Corte de caja (X y Z) | Misma técnica, con firma del vendedor | Listo |
 | Prueba de la impresora | Botón de impresora en **Cajas** imprime un ticket con regla de caracteres | Listo |
 | Imprimir sola al cobrar | Casilla «Imprimir el ticket al cobrar» por caja | Listo (ver nota del diálogo) |
 | Etiquetas de precio con código de barras | Pantalla **Artículos → Etiquetas** (rollo 50×30 mm o carta en 3 columnas) | Listo, opcional |

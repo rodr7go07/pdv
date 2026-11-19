@@ -15,7 +15,7 @@ use Livewire\Volt\Volt;
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->admin = User::factory()->conRol(Rol::Administrador)->create(['name' => 'Ana Admin']);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Beto Cajero']);
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Beto Cajero']);
     $this->leche = Articulo::factory()->create(['clave' => '7501055363057', 'descripcion' => 'LECHE ENTERA 1 L']);
     $this->registrar = fn (string $codigo, OrigenEscaneo $origen = OrigenEscaneo::Caja, MedioEscaneo $medio = MedioEscaneo::Lector, ?User $u = null) => app(RegistrarEscaneo::class)($codigo, $origen, $medio, $u ?? $this->cajero);
 });

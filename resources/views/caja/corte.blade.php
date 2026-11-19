@@ -33,7 +33,7 @@
     <hr class="linea">
     <table>
         <tr><td>Caja</td><td class="der">{{ $d['caja'] ?? $corte->turno->caja->nombre }}</td></tr>
-        <tr><td>{{ count($d['vendedores'] ?? []) > 1 ? 'Abrió' : 'Cajero' }}</td><td class="der">{{ $d['cajero'] ?? $corte->turno->usuario->name }}</td></tr>
+        <tr><td>{{ count($d['vendedores'] ?? []) > 1 ? 'Abrió' : 'Vendedor' }}</td><td class="der">{{ $d['cajero'] ?? $corte->turno->usuario->name }}</td></tr>
         <tr><td>Abierto</td><td class="der">{{ \Illuminate\Support\Carbon::parse($d['abierto_at'] ?? $corte->turno->abierto_at)->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td></tr>
         <tr><td>Corte</td><td class="der">{{ $corte->created_at->format('d/m/Y H:i') }}</td></tr>
         <tr><td>Hizo el corte</td><td class="der">{{ $corte->usuario?->name }}</td></tr>
@@ -97,7 +97,7 @@
         <div>Notas: {{ $d['notas'] }}</div>
     @endif
 
-    <div class="firma">Firma del cajero</div>
+    <div class="firma">Firma del vendedor</div>
 
     @if ($imprimir)
         <script>window.addEventListener('load', () => setTimeout(() => window.print(), 250));</script>

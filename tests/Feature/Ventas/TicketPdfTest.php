@@ -12,8 +12,8 @@ use Database\Seeders\RolesYPermisosSeeder;
 
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Beto Cajero']);
-    $this->otro = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Beto Cajero']);
+    $this->otro = User::factory()->conRol(Rol::Vendedor)->create();
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
     $this->caja = Caja::factory()->create(['serie' => 'A', 'ancho_papel' => 58]);
     abrirTurno($this->caja, $this->cajero);

@@ -20,8 +20,8 @@ beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->caja1 = Caja::factory()->create(['serie' => 'A']);
     $this->caja2 = Caja::factory()->create(['serie' => 'B']);
-    $this->ana = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Ana']);
-    $this->beto = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Beto']);
+    $this->ana = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Ana']);
+    $this->beto = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Beto']);
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
     abrirTurno($this->caja1, $this->ana);
     abrirTurno($this->caja2, $this->beto);

@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create();
     $this->bolillo = Articulo::factory()->create(['descripcion' => 'BOLILLO', 'clave' => 'BOL', 'existencia' => '10', 'costo' => '1.50', 'costo_promedio' => '1.50', 'ultimo_costo' => '1.50']);
     $this->leche = Articulo::factory()->create(['descripcion' => 'LECHE', 'clave' => 'LEC', 'existencia' => '4', 'costo' => '20', 'costo_promedio' => '20', 'ultimo_costo' => '20']);
 });

@@ -32,7 +32,7 @@ it('prohíbe la configuración al cajero y al encargado', function (Rol $rol) {
     $this->actingAs(User::factory()->conRol($rol)->create())
         ->get('/configuracion')
         ->assertForbidden();
-})->with([Rol::Cajero, Rol::Encargado]);
+})->with([Rol::Vendedor, Rol::Encargado]);
 
 it('guarda los datos de la tienda y el RFC en mayúsculas', function () {
     $admin = User::factory()->conRol(Rol::Administrador)->create();
@@ -78,7 +78,7 @@ it('valida el nombre y el formato del RFC', function () {
 });
 
 it('no deja guardar a quien no tiene el permiso', function () {
-    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $cajero = User::factory()->conRol(Rol::Vendedor)->create();
 
     Volt::actingAs($cajero)->test('pages.configuracion')->assertForbidden();
 });

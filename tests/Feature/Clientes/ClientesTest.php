@@ -22,7 +22,7 @@ use Livewire\Volt\Volt;
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->caja = Caja::factory()->create(['serie' => 'A']);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create();
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
     $this->admin = User::factory()->conRol(Rol::Administrador)->create();
     $this->turno = abrirTurno($this->caja, $this->cajero);
@@ -134,7 +134,7 @@ it('un abono con tarjeta no entra al efectivo del cajón', function () {
 
 it('el abono en efectivo exige turno abierto; con tarjeta no', function () {
     vender([['forma' => 'credito', 'monto' => '160']], '2', $this->cliente);
-    $sinTurno = User::factory()->conRol(Rol::Cajero)->create();
+    $sinTurno = User::factory()->conRol(Rol::Vendedor)->create();
 
     expect(fn () => app(RegistrarAbono::class)($this->cliente, '10', 'efectivo', null, $sinTurno))->toThrow(ValidationException::class, 'turno de caja abierto');
 

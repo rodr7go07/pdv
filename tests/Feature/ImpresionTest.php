@@ -11,7 +11,7 @@ use Livewire\Volt\Volt;
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->admin = User::factory()->conRol(Rol::Administrador)->create();
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create();
     $this->caja = Caja::factory()->create(['nombre' => 'Caja de prueba', 'ancho_papel' => 58]);
 });
 

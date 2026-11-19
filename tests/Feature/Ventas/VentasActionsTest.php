@@ -26,7 +26,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 beforeEach(function () {
     $this->seed(RolesYPermisosSeeder::class);
     $this->caja = Caja::factory()->create(['serie' => 'A']);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create();
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
     $this->cajaEncargado = Caja::factory()->create(['serie' => 'E']);
     abrirTurno($this->caja, $this->cajero);

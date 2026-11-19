@@ -69,7 +69,7 @@ class PlantillaArticulos implements Export, WithMultipleSheets
                         ['Borra las 2 filas de ejemplo y captura tus artículos desde la fila 2. No cambies los encabezados de la fila 1.'],
                         [''],
                         ['clave', 'Obligatoria. Código de barras o clave interna. No se puede repetir. Si ya existe, se actualiza ese artículo.'],
-                        ['descripcion', 'Obligatoria. Nombre que verá el cajero.'],
+                        ['descripcion', 'Obligatoria. Nombre que verá el vendedor.'],
                         ['departamento', 'Obligatoria en artículos nuevos. Si no existe, se crea.'],
                         ['unidad', 'Obligatoria en artículos nuevos. Nombre o abreviatura de la hoja «Catálogos» (pza, kg, l…).'],
                         ['costo', 'Sin impuestos. Número, por ejemplo 10.50. Vacío = 0.'],

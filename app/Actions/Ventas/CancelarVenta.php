@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
  *  - Con el turno de la venta todavía abierto se cancela de verdad: la venta ya no cuenta en el corte.
  *  - Con el turno ya cerrado el corte no se toca: se registra una devolución total (el dinero sale de la caja
  *    abierta de quien cancela) marcada como cancelación. Solo lo hace quien tiene el permiso `ventas.cancelar`.
- *  - Quien no tiene ese permiso (un cajero) solo puede cancelar su propia venta con el turno abierto y con la
+ *  - Quien no tiene ese permiso (un vendedor) solo puede cancelar su propia venta con el turno abierto y con la
  *    autorización de un supervisor (`ventas.autorizar_cancelacion`), que debe venir ya verificada.
  */
 class CancelarVenta

@@ -20,7 +20,7 @@
                 ['tabla' => [
                     ['Administrador', 'El dueño. Puede hacer todo.'],
                     ['Encargado', 'Persona de confianza. Supervisa, pero no cambia usuarios ni la configuración.'],
-                    ['Cajero', 'Quien cobra. Abre su caja, vende y cierra su caja.'],
+                    ['Vendedor', 'Quien cobra. Abre su caja, vende y cierra su caja.'],
                 ]],
                 ['p' => 'El dueño puede crear más roles (por ejemplo «Almacenista») y cambiar lo que puede hacer cada uno en **Roles**.'],
                 ['p' => '**Modo oscuro.** Si trabajas con poca luz o te cansa la vista, toca **Modo oscuro** (en la computadora, abajo en el menú de la izquierda; en el teléfono y en la caja, el sol o la luna arriba a la derecha). Para volver, toca **Modo claro**. Se acuerda de tu elección en cada aparato: la tablet de la caja y tu computadora pueden tener la suya. La primera vez usa el tema que tenga tu aparato. Los tickets siempre se imprimen y se mandan en blanco.'],
@@ -44,7 +44,7 @@
                     'Escribe los datos de tu tienda: nombre, dirección, teléfono y el mensaje que sale al final del ticket. Puedes subir tu logotipo: sale en el ticket de pantalla, en el PDF y también en la impresora de tickets (en blanco y negro). Usa una imagen PNG o JPG con fondo blanco o transparente. (**Configuración**)',
                     'Revisa los **departamentos** (grupos de productos, como lácteos o bebidas), las **unidades** (pieza, kilo, litro) y los **impuestos**. Las unidades y los impuestos más comunes ya vienen listos. De departamentos solo viene uno, «General»: crea aquí los tuyos (lácteos, bebidas, botanas…). (**Catálogos**)',
                     'Revisa tu caja y elige si tu impresora usa papel angosto (58) o normal (80). Con el botón de la impresora imprimes una hoja de prueba. Si dos personas van a cobrar **al mismo tiempo** en la misma caja, activa **Turno compartido** y elige quiénes venden en ella; si se turnan (uno sale y entra otro), déjalo apagado. (**Cajas**)',
-                    'Da de alta a tus cajeros: les pones un usuario y una contraseña, y les entregas los datos. (**Usuarios**)',
+                    'Da de alta a tus vendedores: les pones un usuario y una contraseña, y les entregas los datos. (**Usuarios**)',
                     'Anota a quienes te surten. (**Compras → Proveedores**)',
                     'Da de alta tus productos, uno por uno o todos juntos desde un Excel. (**Artículos**)',
                     'Dile al sistema qué tienes hoy en la tienda: al crear cada producto escribe su **Existencia inicial**, o después registra una compra o haz un conteo. (**Artículos**, **Compras** o **Inventario**)',
@@ -130,7 +130,7 @@
             ],
         ],
         [
-            'id' => 'abrir', 'titulo' => 'Abrir tu caja para empezar a vender (turno)', 'icono' => 'wallet', 'para' => 'Cajero',
+            'id' => 'abrir', 'titulo' => 'Abrir tu caja para empezar a vender (turno)', 'icono' => 'wallet', 'para' => 'Vendedor',
             'intro' => 'Tu **turno** es tu jornada en la caja: desde que la abres hasta que la cierras. Todo lo que cobres queda a tu nombre.',
             'bloques' => [
                 ['pasos' => [
@@ -145,7 +145,7 @@
             ],
         ],
         [
-            'id' => 'vender', 'titulo' => 'Cobrar a un cliente (venta)', 'icono' => 'cash-register', 'para' => 'Cajero',
+            'id' => 'vender', 'titulo' => 'Cobrar a un cliente (venta)', 'icono' => 'cash-register', 'para' => 'Vendedor',
             'intro' => 'La pantalla de **Venta** está hecha para ir rápido, con un lector de código de barras o con la cámara del teléfono. El cursor siempre está listo para escanear.',
             'bloques' => [
                 ['pasos' => [
@@ -198,16 +198,16 @@
             ],
         ],
         [
-            'id' => 'problemas-venta', 'titulo' => 'Cuando una venta salió mal (cancelar y devolver)', 'icono' => 'arrow-u-up-left', 'para' => 'Cajero · Encargado · Dueño',
+            'id' => 'problemas-venta', 'titulo' => 'Cuando una venta salió mal (cancelar y devolver)', 'icono' => 'arrow-u-up-left', 'para' => 'Vendedor · Encargado · Dueño',
             'intro' => 'Nada se borra: todo queda anotado con tu nombre y el motivo.',
             'bloques' => [
-                ['p' => '**Cancelar una venta completa.** Úsalo si te equivocaste al cobrar, y solo si esa venta **no tiene devoluciones**. El **encargado y el dueño** cancelan directo. El **cajero** puede cancelar **su propia venta mientras su turno siga abierto**, pero necesita que un supervisor la **autorice**: toca **Pedir autorización para cancelar**, escribe el motivo y pídele al encargado o al dueño que escriba **su usuario y su contraseña** en esa misma ventana (no tiene que cerrar tu sesión). Queda anotado quién la autorizó. Si falla 5 veces seguidas, hay que esperar unos minutos.'],
-                ['p' => '**¿Ya se cerró el turno de esa venta?** El corte cerrado no se cambia. El dueño o el encargado pueden cancelarla igual: el sistema hace una **devolución total** y la venta queda marcada como *Cancelada con devolución total*. El dinero que se regresa al cliente sale de **su caja abierta**, así que primero tiene que abrir su turno. El cajero no puede cancelar ventas de un turno cerrado.'],
+                ['p' => '**Cancelar una venta completa.** Úsalo si te equivocaste al cobrar, y solo si esa venta **no tiene devoluciones**. El **encargado y el dueño** cancelan directo. El **vendedor** puede cancelar **su propia venta mientras su turno siga abierto**, pero necesita que un supervisor la **autorice**: toca **Pedir autorización para cancelar**, escribe el motivo y pídele al encargado o al dueño que escriba **su usuario y su contraseña** en esa misma ventana (no tiene que cerrar tu sesión). Queda anotado quién la autorizó. Si falla 5 veces seguidas, hay que esperar unos minutos.'],
+                ['p' => '**¿Ya se cerró el turno de esa venta?** El corte cerrado no se cambia. El dueño o el encargado pueden cancelarla igual: el sistema hace una **devolución total** y la venta queda marcada como *Cancelada con devolución total*. El dinero que se regresa al cliente sale de **su caja abierta**, así que primero tiene que abrir su turno. El vendedor no puede cancelar ventas de un turno cerrado.'],
                 ['pasos' => [
                     'Entra a **Ventas** y abre la venta.',
-                    'Toca **Cancelar venta** (o **Pedir autorización para cancelar**, si eres cajero) y escribe el motivo.',
+                    'Toca **Cancelar venta** (o **Pedir autorización para cancelar**, si eres vendedor) y escribe el motivo.',
                     'Los productos regresan al inventario.',
-                    'Si el cliente había pagado en efectivo, el cajero debe regresarle ese dinero: el sistema ya no cuenta esa venta en el corte.',
+                    'Si el cliente había pagado en efectivo, el vendedor debe regresarle ese dinero: el sistema ya no cuenta esa venta en el corte.',
                 ]],
                 ['p' => '**Devolución.** Úsala cuando el cliente regresa algo después (o ya se cerró el turno).'],
                 ['pasos' => [
@@ -217,7 +217,7 @@
                     'Entrégale al cliente el dinero que muestra el sistema. Sale del cajón de tu turno, así que necesitas tener tu turno abierto.',
                 ]],
                 ['p' => '**Encontrar una venta de otro día.** En **Ventas** escribe el **folio** (por ejemplo A-000123) en el buscador, o elige las fechas **Desde** y **Hasta**.'],
-                ['p' => '**Imprimir otra vez un ticket.** Abre la venta y toca **Ver / reimprimir ticket**. Un cajero solo ve sus propias ventas.'],
+                ['p' => '**Imprimir otra vez un ticket.** Abre la venta y toca **Ver / reimprimir ticket**. Un vendedor solo ve sus propias ventas.'],
             ],
         ],
         [
@@ -233,10 +233,10 @@
             ],
         ],
         [
-            'id' => 'cerrar', 'titulo' => 'Cerrar tu caja al final (corte)', 'icono' => 'lock-key', 'para' => 'Cajero',
+            'id' => 'cerrar', 'titulo' => 'Cerrar tu caja al final (corte)', 'icono' => 'lock-key', 'para' => 'Vendedor',
             'intro' => 'Al terminar, cuentas el dinero y el sistema te dice si **cuadra**, si **sobra** o si **falta**.',
             'bloques' => [
-                ['p' => '**Corte parcial (X).** Es una foto de cómo va el día. No cierra nada. Úsalo cuando quieras ver cuánto llevas. El cajero ve sus ventas y movimientos, pero **no** cuánto efectivo debería haber: eso lo ve el encargado, para que el conteo al cerrar sea honesto.'],
+                ['p' => '**Corte parcial (X).** Es una foto de cómo va el día. No cierra nada. Úsalo cuando quieras ver cuánto llevas. El vendedor ve sus ventas y movimientos, pero **no** cuánto efectivo debería haber: eso lo ve el encargado, para que el conteo al cerrar sea honesto.'],
                 ['p' => '**Imprimir un corte otra vez.** En **Mi caja**, en la tarjeta **Cortes de este turno**, abre el corte que quieras y vuelve a imprimirlo. Los turnos ya cerrados los ve el encargado en **Turnos y cortes** (menú → Administración).'],
                 ['p' => '**Corte final (Z).** Cierra tu turno.'],
                 ['pasos' => [
@@ -251,11 +251,11 @@
             ],
         ],
         [
-            'id' => 'clientes', 'titulo' => 'Clientes que te deben (crédito)', 'icono' => 'users', 'para' => 'Cajero · Encargado · Dueño',
+            'id' => 'clientes', 'titulo' => 'Clientes que te deben (crédito)', 'icono' => 'users', 'para' => 'Vendedor · Encargado · Dueño',
             'intro' => 'Algunos clientes te compran «fiado». El sistema apunta cuánto te debe cada uno y no deja que se pase de su límite.',
             'bloques' => [
                 ['pasos' => [
-                    '**Dar de alta al cliente:** el encargado o el dueño, en **Clientes**, toca **Nuevo cliente** (nombre y teléfono). El cajero puede elegir clientes y cobrarles, pero no crearlos.',
+                    '**Dar de alta al cliente:** el encargado o el dueño, en **Clientes**, toca **Nuevo cliente** (nombre y teléfono). El vendedor puede elegir clientes y cobrarles, pero no crearlos.',
                     '**Darle crédito:** el dueño le pone un **límite de crédito** (lo máximo que puede deber). Con 0 no se le fía.',
                     '**Venderle:** en la pantalla de venta toca **Cliente** (F7) y búscalo. Al cobrar elige **+ A crédito**.',
                     '**Cuando te paga:** abre al cliente en **Clientes** y toca **Registrar abono**. Escribe cuánto te dio y cómo.',
@@ -270,7 +270,7 @@
             'intro' => 'La pantalla de **Inicio** te muestra lo más importante de hoy. En **Reportes** puedes ver más detalle y bajarlo a Excel.',
             'bloques' => [
                 ['p' => '**En Inicio verás:** lo que vendiste hoy y cómo va contra ayer, cuántas ventas, el ticket promedio (lo que gasta cada cliente en promedio), cuánto ganaste, las ventas de los últimos 7 días, lo más vendido, lo que hay que reabastecer, qué cajas están abiertas y cuánto te deben.'],
-                ['p' => '**En Reportes** eliges fechas (hoy, ayer, este mes…) y ves las ventas por día, por departamento, por producto, por cajero y por forma de pago. Arriba a la derecha tocas **Exportar a Excel**. En cada reporte, a un costado de la tabla (debajo, en el teléfono), verás una tablita con **qué significa cada columna** (Neto, Costo, Utilidad, Margen…), y el archivo de Excel trae la misma explicación al lado de sus datos, para que no tengas que adivinar. El archivo lleva en su nombre el reporte y las fechas (por ejemplo *reporte-por-articulo-2026-10-01-a-2026-10-25*), y los códigos de barras largos se ven completos, sin convertirse en números como 7.5E+12.'],
+                ['p' => '**En Reportes** eliges fechas (hoy, ayer, este mes…) y ves las ventas por día, por departamento, por producto, por vendedor y por forma de pago. Arriba a la derecha tocas **Exportar a Excel**. En cada reporte, a un costado de la tabla (debajo, en el teléfono), verás una tablita con **qué significa cada columna** (Neto, Costo, Utilidad, Margen…), y el archivo de Excel trae la misma explicación al lado de sus datos, para que no tengas que adivinar. El archivo lleva en su nombre el reporte y las fechas (por ejemplo *reporte-por-articulo-2026-10-01-a-2026-10-25*), y los códigos de barras largos se ven completos, sin convertirse en números como 7.5E+12.'],
                 ['p' => '**¿Qué es la utilidad?** Es lo que ganas en los productos, **antes de pagar** renta, luz y sueldos. Ejemplo: un refresco que te costó $10 y vendiste en $14.50 (sin impuestos) te deja $4.50 de utilidad.'],
                 ['consejo' => 'La utilidad usa lo que **te costaba** el producto el día que lo vendiste. Si después sube el costo, las ventas viejas no cambian.'],
             ],
@@ -279,11 +279,11 @@
             'id' => 'administrar', 'titulo' => 'Para el dueño: usuarios, roles, cajas y ajustes', 'icono' => 'gear', 'para' => 'Dueño',
             'intro' => 'Aquí decides quién puede hacer qué y cómo funciona tu tienda.',
             'bloques' => [
-                ['p' => '**Roles.** Un rol es un conjunto de cosas que alguien puede hacer. Además del Administrador, el Encargado y el Cajero, puedes crear los tuyos (por ejemplo «Almacenista»): toca **Nuevo rol**, ponle nombre y marca las casillas de lo que puede hacer. También puedes cambiar los permisos del Encargado y del Cajero. Los cambios valen de inmediato para quienes tienen ese rol. El Administrador siempre puede todo, y un rol solo se borra si nadie lo tiene.'],
+                ['p' => '**Roles.** Un rol es un conjunto de cosas que alguien puede hacer. Además del Administrador, el Encargado y el Vendedor, puedes crear los tuyos (por ejemplo «Almacenista»): toca **Nuevo rol**, ponle nombre y marca las casillas de lo que puede hacer. También puedes cambiar los permisos del Encargado y del Vendedor. Los cambios valen de inmediato para quienes tienen ese rol. El Administrador siempre puede todo, y un rol solo se borra si nadie lo tiene.'],
                 ['p' => '**Usuarios.** Da de alta a cada persona con su usuario, contraseña y rol. En la misma pantalla ves qué puede hacer cada rol. Si alguien deja de trabajar contigo, **desactívalo** (no se borra su historial). Siempre debe haber al menos un administrador.'],
                 ['p' => '**Cajas.** Cada caja tiene una letra de serie que abre los folios de sus tickets (por ejemplo A-000123), el ancho del papel y si el ticket se imprime solo. Si una caja tiene turno abierto, ahí mismo dice **de quién y desde qué hora**. Con **Turno compartido** varias personas cobran a la vez en la misma caja (eliges quiénes); se puede quitar solo cuando no tiene turno abierto.'],
                 ['p' => '**¿Quién tiene cada caja?** En **Inicio** ves los turnos abiertos con su caja, quién la tiene y lo que lleva vendido. En **Turnos y cortes** elige *Abiertos* para ver solo esos.'],
-                ['p' => '**Turnos y cortes.** Ahí ves los turnos de todos los cajeros, si cuadraron, y puedes cerrar un turno que alguien olvidó cerrar.'],
+                ['p' => '**Turnos y cortes.** Ahí ves los turnos de todos los vendedores, si cuadraron, y puedes cerrar un turno que alguien olvidó cerrar.'],
                 ['p' => '**Imprimir sin que pregunte.** El navegador siempre pregunta antes de imprimir. Pídele a la persona que instala el sistema que configure la computadora de la caja para que imprima directo (hay instrucciones en el manual técnico).'],
             ],
         ],
@@ -293,7 +293,7 @@
             'bloques' => [
                 ['tabla' => [
                     ['Dice «Abre tu turno de caja antes de vender»', 'Entra a **Mi caja** y abre tu turno. Si la caja es compartida, pide que te asignen a ella en **Cajas**.'],
-                    ['Dice «Esa caja ya tiene un turno abierto con otro cajero»', 'Quien la tiene debe hacer su corte final antes. En **Cajas** o en **Inicio** ves quién es.'],
+                    ['Dice «Esa caja ya tiene un turno abierto con otro vendedor»', 'Quien la tiene debe hacer su corte final antes. En **Cajas** o en **Inicio** ves quién es.'],
                     ['Dice «No estás asignado a esta caja»', 'Es una caja compartida y no estás en su lista. El dueño te agrega en **Cajas**.'],
                     ['No veo los botones de productos en **Venta**', 'Solo salen en la computadora y en la tablet acostada (pantallas anchas). En el teléfono se cobra escaneando o con **Buscar** (F2).'],
                     ['Dice «Esa clave ya está en uso»', 'Otro producto ya tiene ese código. Búscalo en **Artículos**.'],

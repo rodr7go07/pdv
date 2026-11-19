@@ -11,7 +11,7 @@ use Spatie\Permission\Models\Role;
 beforeEach(fn () => $this->seed(RolesYPermisosSeeder::class));
 
 it('crea los tres roles y todos los permisos', function () {
-    expect(Role::pluck('name')->all())->toEqualCanonicalizing(['Administrador', 'Encargado', 'Cajero'])
+    expect(Role::pluck('name')->all())->toEqualCanonicalizing(['Administrador', 'Encargado', 'Vendedor'])
         ->and(Permission::count())->toBe(count(Permiso::cases()));
 });
 
@@ -40,7 +40,7 @@ it('el encargado no administra usuarios ni configuración', function () {
 });
 
 it('el cajero solo puede cobrar y operar su caja', function () {
-    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $cajero = User::factory()->conRol(Rol::Vendedor)->create();
 
     expect($cajero->can(Permiso::VentasCobrar->value))->toBeTrue()
         ->and($cajero->can(Permiso::CajaAbrir->value))->toBeTrue()
@@ -51,7 +51,7 @@ it('el cajero solo puede cobrar y operar su caja', function () {
 
 it('el menú muestra solo lo que el rol puede usar', function () {
     $admin = User::factory()->conRol(Rol::Administrador)->create();
-    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $cajero = User::factory()->conRol(Rol::Vendedor)->create();
 
     expect(Menu::para($admin)->pluck('ruta')->all())->toContain('configuracion')
         ->and(Menu::para($cajero)->pluck('ruta')->all())->not->toContain('configuracion')
@@ -59,21 +59,21 @@ it('el menú muestra solo lo que el rol puede usar', function () {
 });
 
 it('el tablero se adapta al rol', function () {
-    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $cajero = User::factory()->conRol(Rol::Vendedor)->create();
     $admin = User::factory()->conRol(Rol::Administrador)->create();
 
     $this->actingAs($cajero)->get('/dashboard')->assertOk()->assertDontSee('Datos de la tienda');
     $this->actingAs($admin)->get('/dashboard')->assertOk()->assertSee('Datos de la tienda');
 });
 
-it('el seeder no pisa los permisos que la tienda cambió en Encargado y Cajero, pero el Administrador siempre tiene todo', function () {
-    Role::findByName('Cajero')->givePermissionTo(Permiso::ReportesVer->value);
+it('el seeder no pisa los permisos que la tienda cambió en Encargado y Vendedor, pero el Administrador siempre tiene todo', function () {
+    Role::findByName('Vendedor')->givePermissionTo(Permiso::ReportesVer->value);
     Role::findByName('Encargado')->revokePermissionTo(Permiso::ArticulosEditarPrecio->value);
     Role::findByName('Administrador')->revokePermissionTo(Permiso::ConfiguracionEditar->value);
 
     $this->seed(RolesYPermisosSeeder::class);
 
-    expect(Role::findByName('Cajero')->hasPermissionTo(Permiso::ReportesVer->value))->toBeTrue()
+    expect(Role::findByName('Vendedor')->hasPermissionTo(Permiso::ReportesVer->value))->toBeTrue()
         ->and(Role::findByName('Encargado')->hasPermissionTo(Permiso::ArticulosEditarPrecio->value))->toBeFalse()
         ->and(Role::findByName('Administrador')->permissions)->toHaveCount(count(Permiso::cases()));
 });
@@ -81,7 +81,7 @@ it('el seeder no pisa los permisos que la tienda cambió en Encargado y Cajero, 
 it('solo el administrador administra roles de fábrica', function () {
     expect(Role::findByName('Administrador')->hasPermissionTo(Permiso::RolesAdministrar->value))->toBeTrue()
         ->and(Role::findByName('Encargado')->hasPermissionTo(Permiso::RolesAdministrar->value))->toBeFalse()
-        ->and(Role::findByName('Cajero')->hasPermissionTo(Permiso::RolesAdministrar->value))->toBeFalse();
+        ->and(Role::findByName('Vendedor')->hasPermissionTo(Permiso::RolesAdministrar->value))->toBeFalse();
 });
 
 it('cada permiso tiene etiqueta y módulo', function () {

@@ -76,14 +76,14 @@ new #[Layout('layouts.app')] class extends Component
         $this->recargar();
     }
 
-    /** Quien tiene el permiso cancela directo; un cajero necesita que un supervisor lo autorice. */
+    /** Quien tiene el permiso cancela directo; un vendedor necesita que un supervisor lo autorice. */
     #[Computed]
     public function puedeCancelarDirecto(): bool
     {
         return auth()->user()->can('ventas.cancelar');
     }
 
-    /** Un cajero puede pedir autorización para cancelar su propia venta mientras su turno siga abierto. */
+    /** Un vendedor puede pedir autorización para cancelar su propia venta mientras su turno siga abierto. */
     #[Computed]
     public function puedePedirAutorizacion(): bool
     {

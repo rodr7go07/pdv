@@ -9,7 +9,7 @@ it('la prueba de impresora Bluetooth se abre con sesión y pide entrar sin ella'
 
     $this->get('/impresora-bluetooth')->assertRedirect('/login');
 
-    $this->actingAs(User::factory()->conRol(Rol::Cajero)->create())
+    $this->actingAs(User::factory()->conRol(Rol::Vendedor)->create())
         ->get('/impresora-bluetooth')
         ->assertOk()
         ->assertSee('Conectar impresora')

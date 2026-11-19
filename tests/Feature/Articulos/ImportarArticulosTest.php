@@ -164,7 +164,7 @@ it('permite descargar la plantilla', function () {
 });
 
 it('solo quien tiene permiso puede importar', function () {
-    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $cajero = User::factory()->conRol(Rol::Vendedor)->create();
 
     Volt::actingAs($cajero)->test('pages.articulos.importar')->assertForbidden();
 });
@@ -284,7 +284,7 @@ it('el comando no guarda nada si hay errores y rechaza archivos o usuarios que n
     $this->artisan('articulos:importar', ['archivo' => $ruta, '--usuario' => $this->admin->usuario])->expectsOutputToContain('No se guardó nada')->assertFailed();
     expect(Articulo::count())->toBe(0);
 
-    $cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $cajero = User::factory()->conRol(Rol::Vendedor)->create();
     $this->artisan('articulos:importar', ['archivo' => $ruta, '--usuario' => $cajero->usuario])->assertFailed();
     $this->artisan('articulos:importar', ['archivo' => '/no/existe.xlsx'])->assertFailed();
     unlink($ruta);

@@ -44,7 +44,7 @@ final class DescripcionesReporte
                 'Artículo' => 'Nombre del artículo.',
                 'Cantidad' => 'Piezas, kilos o litros vendidos.',
             ] + array_diff_key(self::VENTAS, ['Ventas' => 1]),
-            'cajero' => ['Cajero' => 'Quién atendió las ventas.'] + self::VENTAS,
+            'cajero' => ['Vendedor' => 'Quién atendió las ventas.'] + self::VENTAS,
             'pago' => [
                 'Forma de pago' => 'Efectivo, tarjeta, transferencia o crédito.',
                 'Ventas' => 'En cuántas ventas se usó esta forma de pago (una venta mixta cuenta en cada una).',
@@ -86,7 +86,7 @@ final class DescripcionesReporte
             'periodo' => ['Periodo' => 'Día, semana o mes en que se agrupan las ventas.', 'Ventas' => $v['Ventas']] + $cifras,
             'departamento' => ['Departamento' => 'Departamento que tiene hoy el artículo.'] + $cifras,
             'articulo' => ['Artículo' => 'Nombre y clave del artículo.', 'Piezas' => 'Piezas, kilos o litros vendidos.'] + $cifras,
-            'cajero' => ['Cajero' => 'Quién atendió las ventas.', 'Ventas' => $v['Ventas']] + $cifras,
+            'cajero' => ['Vendedor' => 'Quién atendió las ventas.', 'Ventas' => $v['Ventas']] + $cifras,
             'pago' => [
                 'Forma de pago' => 'Efectivo, tarjeta, transferencia o crédito (cada tarjeta de arriba).',
                 'Monto' => 'Dinero cobrado con esta forma. En efectivo no incluye el cambio entregado.',

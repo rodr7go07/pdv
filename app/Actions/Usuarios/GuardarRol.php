@@ -15,7 +15,7 @@ use Spatie\Permission\Models\Role;
  * Crea o edita un rol con sus permisos (permiso roles.administrar).
  *
  *  - El Administrador siempre tiene todos los permisos: no se edita.
- *  - Encargado y Cajero se pueden editar, pero no renombrar.
+ *  - Encargado y Vendedor se pueden editar, pero no renombrar.
  *  - Nadie puede dar un permiso que él mismo no tiene (así un rol no sirve para subirse de nivel).
  */
 class GuardarRol

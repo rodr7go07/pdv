@@ -20,8 +20,8 @@ beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->caja = Caja::factory()->create(['serie' => 'A', 'nombre' => 'Caja 1']);
     $this->admin = User::factory()->conRol(Rol::Administrador)->create();
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Cajero Uno']);
-    $this->otroCajero = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Cajero Dos']);
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Cajero Uno']);
+    $this->otroCajero = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Cajero Dos']);
     $this->caja2 = Caja::factory()->create(['serie' => 'C', 'nombre' => 'Caja 2']);
     abrirTurno($this->caja, $this->cajero);
     abrirTurno($this->caja2, $this->otroCajero);
@@ -132,7 +132,7 @@ it('al cobrar con error no guarda nada y devuelve el mensaje', function () {
 });
 
 it('la caja sin turno abierto pide abrirlo', function () {
-    $sinTurno = User::factory()->conRol(Rol::Cajero)->create();
+    $sinTurno = User::factory()->conRol(Rol::Vendedor)->create();
 
     Volt::actingAs($sinTurno)->test('pages.pos')->assertSee('Abre tu turno')->assertSee('Abrir mi turno');
     $c = Volt::actingAs($sinTurno)->test('pages.pos')->instance();

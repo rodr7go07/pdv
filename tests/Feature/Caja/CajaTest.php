@@ -25,8 +25,8 @@ beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->caja = Caja::factory()->create(['serie' => 'A', 'nombre' => 'Caja 1']);
     $this->caja2 = Caja::factory()->create(['serie' => 'B', 'nombre' => 'Caja 2']);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Cajero Uno']);
-    $this->otro = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Cajero Dos']);
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Cajero Uno']);
+    $this->otro = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Cajero Dos']);
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create();
     $this->admin = User::factory()->conRol(Rol::Administrador)->create();
     $this->articulo = Articulo::factory()->create(['precio_1' => '50', 'costo' => '30']);

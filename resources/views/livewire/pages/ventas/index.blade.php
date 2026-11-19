@@ -124,8 +124,8 @@ new #[Layout('layouts.app')] class extends Component
             @foreach ($this->cajas as $c)<option value="{{ $c->id }}">{{ $c->nombre }}</option>@endforeach
         </x-select>
         @if ($this->veTodas)
-            <x-select wire:model.live="cajero" aria-label="Cajero">
-                <option value="">Todos los cajeros</option>
+            <x-select wire:model.live="cajero" aria-label="Vendedor">
+                <option value="">Todos los vendedores</option>
                 @foreach ($this->cajeros as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach
             </x-select>
         @endif

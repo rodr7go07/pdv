@@ -28,7 +28,7 @@ new #[Layout('layouts.app')] class extends Component
         $this->authorize('roles.administrar');
     }
 
-    /** Roles base primero (Administrador, Encargado, Cajero) y luego los de la tienda por nombre. */
+    /** Roles base primero (Administrador, Encargado, Vendedor) y luego los de la tienda por nombre. */
     #[Computed]
     public function lista()
     {

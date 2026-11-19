@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Abre el turno de un cajero en una caja con su fondo inicial.
+ * Abre el turno de un vendedor en una caja con su fondo inicial.
  * La base de datos garantiza un solo turno abierto por caja y por usuario.
  */
 class AbrirTurno
@@ -51,7 +51,7 @@ class AbrirTurno
                 }
 
                 if (Turno::query()->abiertos()->where('caja_id', $caja->id)->exists()) {
-                    throw ValidationException::withMessages(['caja' => 'Esa caja ya tiene un turno abierto con otro cajero.']);
+                    throw ValidationException::withMessages(['caja' => 'Esa caja ya tiene un turno abierto con otro vendedor.']);
                 }
 
                 return Turno::query()->create([

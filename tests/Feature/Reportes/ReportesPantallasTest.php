@@ -18,7 +18,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->admin = User::factory()->conRol(Rol::Administrador)->create(['name' => 'Dueño']);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Ana']);
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Ana']);
     $this->caja = Caja::factory()->create(['serie' => 'A', 'nombre' => 'Caja 1']);
     abrirTurno($this->caja, $this->cajero);
 
@@ -80,7 +80,7 @@ it('los rangos rápidos fijan las fechas', function () {
 });
 
 it('filtra por cajero', function () {
-    $otro = User::factory()->conRol(Rol::Cajero)->create(['name' => 'Beto']);
+    $otro = User::factory()->conRol(Rol::Vendedor)->create(['name' => 'Beto']);
 
     Volt::actingAs($this->admin)->test('pages.reportes.index')
         ->call('rango', 'hoy')
@@ -141,7 +141,7 @@ it('exporta cada reporte a Excel con el nombre del reporte en el archivo', funct
     'periodo' => ['periodo', 'ventas-por-periodo'],
     'departamento' => ['departamento', 'por-departamento'],
     'articulo' => ['articulo', 'por-articulo'],
-    'cajero' => ['cajero', 'por-cajero'],
+    'cajero' => ['cajero', 'por-vendedor'],
     'pago' => ['pago', 'por-forma-de-pago'],
     'inventario' => ['inventario', 'valor-del-inventario'],
 ]);

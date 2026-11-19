@@ -40,7 +40,7 @@ new class extends Component
 <section>
     <header>
         <h2 class="text-lg font-extrabold text-anil-900">Cambiar contraseña</h2>
-        <p class="mt-1 text-sm text-anil-700">Usa al menos 8 caracteres. No la compartas con otros cajeros.</p>
+        <p class="mt-1 text-sm text-anil-700">Usa al menos 8 caracteres. No la compartas con tus compañeros.</p>
     </header>
 
     <form wire:submit="updatePassword" class="mt-6 space-y-5">

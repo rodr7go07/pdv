@@ -37,7 +37,7 @@ new #[Layout('layouts.app')] class extends Component
         'periodo' => 'Por periodo',
         'departamento' => 'Por departamento',
         'articulo' => 'Por artículo',
-        'cajero' => 'Por cajero',
+        'cajero' => 'Por vendedor',
         'pago' => 'Por forma de pago',
         'inventario' => 'Inventario',
     ];
@@ -177,7 +177,7 @@ new #[Layout('layouts.app')] class extends Component
                 <div><x-input-label for="r_hasta" value="Hasta" /><x-text-input wire:model.live="hasta" id="r_hasta" type="date" /></div>
                 <div><x-input-label for="r_caja" value="Caja" />
                     <x-select wire:model.live="caja" id="r_caja"><option value="">Todas</option>@foreach ($this->cajas as $c)<option value="{{ $c->id }}">{{ $c->nombre }}</option>@endforeach</x-select></div>
-                <div><x-input-label for="r_cajero" value="Cajero" />
+                <div><x-input-label for="r_cajero" value="Vendedor" />
                     <x-select wire:model.live="cajero" id="r_cajero"><option value="">Todos</option>@foreach ($this->cajeros as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach</x-select></div>
             </div>
         </div>
@@ -225,7 +225,7 @@ new #[Layout('layouts.app')] class extends Component
                     <table class="w-full min-w-[40rem] text-left text-sm">
                         <thead>
                             <tr class="rotulo border-b border-anil-100 bg-anil-50/60">
-                                <th class="px-4 py-3 font-medium">{{ ['periodo' => 'Periodo', 'departamento' => 'Departamento', 'articulo' => 'Artículo', 'cajero' => 'Cajero'][$seccion] }}</th>
+                                <th class="px-4 py-3 font-medium">{{ ['periodo' => 'Periodo', 'departamento' => 'Departamento', 'articulo' => 'Artículo', 'cajero' => 'Vendedor'][$seccion] }}</th>
                                 @if (in_array($seccion, ['periodo', 'cajero'], true))<th class="px-3 py-3 text-right font-medium">Ventas</th>@endif
                                 @if ($seccion === 'articulo')<th class="px-3 py-3 text-right font-medium">Piezas</th>@endif
                                 <th class="px-3 py-3 text-right font-medium">Neto</th>

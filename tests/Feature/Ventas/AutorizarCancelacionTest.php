@@ -22,8 +22,8 @@ beforeEach(function () {
     $this->seed([RolesYPermisosSeeder::class, CatalogosBaseSeeder::class]);
     $this->admin = User::factory()->conRol(Rol::Administrador)->create(['usuario' => 'jefa', 'password' => Hash::make('secreto-123')]);
     $this->encargado = User::factory()->conRol(Rol::Encargado)->create(['usuario' => 'encargado1', 'password' => Hash::make('clave-enc-9')]);
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create(['usuario' => 'cajero1', 'password' => Hash::make('clave-caj-9')]);
-    $this->otroCajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create(['usuario' => 'cajero1', 'password' => Hash::make('clave-caj-9')]);
+    $this->otroCajero = User::factory()->conRol(Rol::Vendedor)->create();
     $this->caja = Caja::factory()->create(['serie' => 'A']);
     $this->turno = abrirTurno($this->caja, $this->cajero);
     $this->articulo = Articulo::factory()->create(['precio_1' => '50', 'existencia_minima' => '1']);

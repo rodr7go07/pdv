@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
         if (app()->environment('local')) {
             foreach ([
                 'encargado' => ['Encargado de prueba', Rol::Encargado],
-                'cajero' => ['Cajero de prueba', Rol::Cajero],
+                'vendedor' => ['Vendedor de prueba', Rol::Vendedor],
             ] as $usuario => [$nombre, $rol]) {
                 User::query()
                     ->firstOrCreate(['usuario' => $usuario], ['name' => $nombre, 'password' => 'password'])

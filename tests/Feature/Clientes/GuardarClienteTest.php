@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 beforeEach(function () {
     $this->seed(RolesYPermisosSeeder::class);
     $this->admin = User::factory()->conRol(Rol::Administrador)->create();
-    $this->cajero = User::factory()->conRol(Rol::Cajero)->create();
+    $this->cajero = User::factory()->conRol(Rol::Vendedor)->create();
     $this->guardar = app(GuardarCliente::class);
 });
 
